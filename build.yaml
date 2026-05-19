@@ -1,0 +1,14 @@
+# build.yaml
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          store_date_time_values_as_text: true
+          sql:
+            dialect: sqlite
+            options:
+              version: "3.39"
+      riverpod_generator:
+        options:
+          riverpod_version: 2
