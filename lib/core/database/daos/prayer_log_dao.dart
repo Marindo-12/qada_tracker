@@ -75,9 +75,9 @@ class PrayerLogDao extends DatabaseAccessor<AppDatabase> with _$PrayerLogDaoMixi
     final from = '$yearMonth-01';
     // last day auto from query
     final rows = await customSelect(
-      "SELECT date, COALESCE(SUM(count), 0) as total FROM prayer_log "
+      'SELECT date, COALESCE(SUM(count), 0) as total FROM prayer_log '
       "WHERE date >= ? AND date <= date(?, '+1 month', '-1 day') "
-      "GROUP BY date",
+      'GROUP BY date',
       variables: [Variable.withString(from), Variable.withString(from)],
       readsFrom: {prayerLogTable},
     ).get();

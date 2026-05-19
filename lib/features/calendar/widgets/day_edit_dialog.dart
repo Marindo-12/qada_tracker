@@ -77,7 +77,7 @@ class _DayEditDialogState extends ConsumerState<DayEditDialog> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -115,7 +115,7 @@ class _DayEditDialogState extends ConsumerState<DayEditDialog> {
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       color: isCompleted
-                          ? AppColors.primary.withOpacity(0.04)
+                          ? AppColors.primary.withValues(alpha: 0.04)
                           : Colors.transparent,
                       padding: const EdgeInsets.symmetric(
                           vertical: 10, horizontal: 4),
@@ -213,14 +213,14 @@ class _RoundButton extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(
             color: enabled
-                ? color.withOpacity(0.5)
-                : color.withOpacity(0.15),
+                ? color.withValues(alpha: 0.5)
+                : color.withValues(alpha: 0.15),
           ),
         ),
         child: Icon(
           icon,
           size: 16,
-          color: enabled ? color : color.withOpacity(0.25),
+          color: enabled ? color : color.withValues(alpha: 0.25),
         ),
       ),
     );

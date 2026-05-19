@@ -12,6 +12,7 @@ import 'widgets/progress_card.dart';
 import 'widgets/streak_card.dart';
 import 'widgets/recent_activity.dart';
 import 'widgets/previous_day_logger.dart';
+import '../setup/setup_screan.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -50,7 +51,7 @@ class _WelcomeScreen extends ConsumerWidget {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -104,9 +105,6 @@ class _WelcomeScreen extends ConsumerWidget {
     );
   }
 }
-
-// Import for setup navigation
-import '../../features/setup/setup_screen.dart';
 
 class SetupScreenWrapper extends StatelessWidget {
   const SetupScreenWrapper({super.key});

@@ -35,7 +35,7 @@ class _PreviousDayLoggerState extends ConsumerState<PreviousDayLogger> {
               Container(
                 width: 42,
                 height: 42,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppColors.muted,
                   shape: BoxShape.circle,
                 ),
@@ -74,7 +74,7 @@ class _PreviousDayLoggerState extends ConsumerState<PreviousDayLogger> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: AppColors.muted.withOpacity(0.4),
+              color: AppColors.muted.withValues(alpha: 0.4),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             ),
             child: Row(
@@ -147,7 +147,7 @@ class _PreviousDayLoggerState extends ConsumerState<PreviousDayLogger> {
                                     : Icons.radio_button_unchecked,
                                 color: isCompleted
                                     ? AppColors.primary
-                                    : AppColors.mutedFg.withOpacity(0.3),
+                                    : AppColors.mutedFg.withValues(alpha: 0.3),
                                 size: 22,
                               ),
                               const SizedBox(width: 10),
@@ -263,14 +263,14 @@ class _SmallCounter extends StatelessWidget {
           shape: BoxShape.circle,
           border: Border.all(
             color: onPressed == null
-                ? color.withOpacity(0.2)
-                : color.withOpacity(0.5),
+                ? color.withValues(alpha: 0.2)
+                : color.withValues(alpha: 0.5),
           ),
         ),
         child: Icon(icon,
             size: 14,
             color:
-                onPressed == null ? color.withOpacity(0.3) : color),
+                onPressed == null ? color.withValues(alpha: 0.3) : color),
       ),
     );
   }

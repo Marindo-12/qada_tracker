@@ -215,7 +215,7 @@ class _CalendarCell extends StatelessWidget {
       child: AnimatedContainer(
         duration: 200.ms,
         decoration: BoxDecoration(
-          color: isFuture ? AppColors.muted.withOpacity(0.3) : cellColor,
+          color: isFuture ? AppColors.muted.withValues(alpha: 0.3) : cellColor,
           borderRadius: BorderRadius.circular(10),
           border: isToday
               ? Border.all(color: AppColors.primary, width: 2)
@@ -237,7 +237,7 @@ class _CalendarCell extends StatelessWidget {
                 Text(
                   formatNumber(data!.completed, useArabic: useArabic),
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: textColor.withOpacity(0.8),
+                    color: textColor.withValues(alpha: 0.8),
                     fontSize: 9,
                   ),
                 ),

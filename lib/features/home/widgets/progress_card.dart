@@ -47,7 +47,7 @@ class ProgressCard extends ConsumerWidget {
                   child: LinearProgressIndicator(
                     value: pct / 100,
                     minHeight: 12,
-                    backgroundColor: AppColors.primary.withOpacity(0.12),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
                     valueColor:
                         const AlwaysStoppedAnimation<Color>(AppColors.primary),
                   ),
@@ -150,7 +150,7 @@ class _StatBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.07),
+        color: color.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

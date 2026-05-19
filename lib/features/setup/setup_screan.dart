@@ -76,7 +76,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                   child: LinearProgressIndicator(
                     value: (_step + 1) / _totalSteps,
                     minHeight: 6,
-                    backgroundColor: AppColors.primary.withOpacity(0.12),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
                   ),
                 ),
               ],
@@ -274,7 +274,7 @@ class _StepIntro extends StatelessWidget {
           width: 100,
           height: 100,
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.1),
+            color: AppColors.primary.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.menu_book_rounded,
@@ -382,10 +382,10 @@ class _StepCommitment extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.06),
+              color: AppColors.primary.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(12),
               border:
-                  Border.all(color: AppColors.primary.withOpacity(0.15)),
+                  Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
             ),
             child: Row(
               children: [
@@ -457,7 +457,7 @@ class _StepEstimate extends StatelessWidget {
         // Mode toggle
         Container(
           decoration: BoxDecoration(
-            color: AppColors.muted.withOpacity(0.5),
+            color: AppColors.muted.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.all(4),
@@ -477,7 +477,7 @@ class _StepEstimate extends StatelessWidget {
                       boxShadow: granularMode
                           ? [
                               BoxShadow(
-                                  color: Colors.black.withOpacity(0.08),
+                                  color: Colors.black.withValues(alpha: 0.08),
                                   blurRadius: 4)
                             ]
                           : [],
@@ -623,12 +623,12 @@ class _StepTarget extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 color: active
-                    ? AppColors.primary.withOpacity(0.08)
+                    ? AppColors.primary.withValues(alpha: 0.08)
                     : Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: active
-                      ? AppColors.primary.withOpacity(0.4)
+                      ? AppColors.primary.withValues(alpha: 0.4)
                       : AppColors.border,
                 ),
               ),
@@ -662,7 +662,7 @@ class _StepTarget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.06),
+              color: AppColors.primary.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -783,12 +783,12 @@ class _StepReview extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: confirmed
-                  ? AppColors.primary.withOpacity(0.07)
-                  : AppColors.muted.withOpacity(0.3),
+                  ? AppColors.primary.withValues(alpha: 0.07)
+                  : AppColors.muted.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: confirmed
-                    ? AppColors.primary.withOpacity(0.4)
+                    ? AppColors.primary.withValues(alpha: 0.4)
                     : AppColors.border,
                 width: 2,
               ),
@@ -870,7 +870,7 @@ class _DateField extends StatelessWidget {
             decoration: BoxDecoration(
               border: Border.all(
                   color: value != null
-                      ? AppColors.primary.withOpacity(0.5)
+                      ? AppColors.primary.withValues(alpha: 0.5)
                       : AppColors.border),
               borderRadius: BorderRadius.circular(12),
               color: Theme.of(context).colorScheme.surface,
@@ -966,8 +966,8 @@ class _InfoBox extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: highlight
-            ? AppColors.primary.withOpacity(0.07)
-            : AppColors.muted.withOpacity(0.4),
+            ? AppColors.primary.withValues(alpha: 0.07)
+            : AppColors.muted.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

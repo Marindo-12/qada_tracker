@@ -18,14 +18,14 @@ class StreakCard extends ConsumerWidget {
 
     return streakAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
       data: (streak) {
         if (streak.current == 0) return const SizedBox.shrink();
         return Card(
-          color: AppColors.accent.withOpacity(0.08),
+          color: AppColors.accent.withValues(alpha: 0.08),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: AppColors.accent.withOpacity(0.3)),
+            side: BorderSide(color: AppColors.accent.withValues(alpha: 0.3)),
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -35,14 +35,14 @@ class StreakCard extends ConsumerWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withOpacity(0.15),
+                    color: AppColors.accent.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.local_fire_department,
                       color: AppColors.accent, size: 28),
                 ).animate(onPlay: (c) => c.repeat()).shimmer(
                       duration: 2.seconds,
-                      color: AppColors.accent.withOpacity(0.3),
+                      color: AppColors.accent.withValues(alpha: 0.3),
                     ),
                 const SizedBox(width: 16),
                 Expanded(

@@ -144,7 +144,7 @@ class SettingsScreen extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // ─── About ────────────────────────────────────────────────
-              _SectionCard(
+              const _SectionCard(
                 icon: Icons.help_outline,
                 title: 'عن التطبيق',
                 child: Column(
@@ -154,7 +154,7 @@ class SettingsScreen extends ConsumerWidget {
                       label: 'الإصدار',
                       value: '1.0.0',
                     ),
-                    const Divider(height: 1, indent: 16),
+                    Divider(height: 1, indent: 16),
                     _DetailRow(
                       icon: Icons.favorite_outline,
                       label: 'تطبيق مجاني بالكامل',
@@ -168,11 +168,11 @@ class SettingsScreen extends ConsumerWidget {
 
               // ─── Danger Zone ──────────────────────────────────────────
               Card(
-                color: AppColors.destructive.withOpacity(0.05),
+                color: AppColors.destructive.withValues(alpha: 0.05),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                   side: BorderSide(
-                      color: AppColors.destructive.withOpacity(0.2), width: 0.5),
+                      color: AppColors.destructive.withValues(alpha: 0.2), width: 0.5),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -185,7 +185,7 @@ class SettingsScreen extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text('إجراءات لا يمكن التراجع عنها',
                           style: theme.textTheme.bodySmall
-                              ?.copyWith(color: AppColors.destructive.withOpacity(0.7))),
+                              ?.copyWith(color: AppColors.destructive.withValues(alpha: 0.7))),
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
@@ -375,13 +375,13 @@ class _DailyTargetEditorState extends ConsumerState<_DailyTargetEditor> {
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: active
-                      ? AppColors.primary.withOpacity(0.08)
+                      ? AppColors.primary.withValues(alpha: 0.08)
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: active
-                        ? AppColors.primary.withOpacity(0.4)
-                        : AppColors.border.withOpacity(0.5),
+                        ? AppColors.primary.withValues(alpha: 0.4)
+                        : AppColors.border.withValues(alpha: 0.5),
                   ),
                 ),
                 child: Row(
@@ -436,11 +436,11 @@ class _CountBtn extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-              color: enabled ? color.withOpacity(0.5) : color.withOpacity(0.2)),
+              color: enabled ? color.withValues(alpha: 0.5) : color.withValues(alpha: 0.2)),
         ),
         child: Icon(icon,
             size: 16,
-            color: enabled ? color : color.withOpacity(0.3)),
+            color: enabled ? color : color.withValues(alpha: 0.3)),
       ),
     );
   }
@@ -472,7 +472,7 @@ class _SectionCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.04),
+              color: AppColors.primary.withValues(alpha: 0.04),
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(16)),
             ),
@@ -482,7 +482,7 @@ class _SectionCard extends StatelessWidget {
                   width: 36,
                   height: 36,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(icon, color: AppColors.primary, size: 18),
@@ -502,7 +502,7 @@ class _SectionCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (trailing != null) trailing!,
+                ?trailing,
               ],
             ),
           ),
@@ -569,12 +569,12 @@ class _DigitOption extends StatelessWidget {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: active
-              ? AppColors.primary.withOpacity(0.08)
-              : AppColors.muted.withOpacity(0.4),
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : AppColors.muted.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: active
-                ? AppColors.primary.withOpacity(0.4)
+                ? AppColors.primary.withValues(alpha: 0.4)
                 : AppColors.border,
             width: active ? 2 : 1,
           ),

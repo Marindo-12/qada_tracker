@@ -35,7 +35,7 @@ class TodayChecklist extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(0.05),
+                      color: AppColors.primary.withValues(alpha: 0.05),
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                     ),
                     child: Row(
@@ -48,7 +48,7 @@ class TodayChecklist extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -142,7 +142,7 @@ class _PrayerRow extends StatelessWidget {
     return Column(
       children: [
         Container(
-          color: isCompleted ? AppColors.primary.withOpacity(0.04) : Colors.transparent,
+          color: isCompleted ? AppColors.primary.withValues(alpha: 0.04) : Colors.transparent,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
@@ -156,14 +156,14 @@ class _PrayerRow extends StatelessWidget {
                   color: isCompleted ? AppColors.primary : Colors.transparent,
                   border: isCompleted
                       ? null
-                      : Border.all(color: AppColors.mutedFg.withOpacity(0.3), width: 2),
+                      : Border.all(color: AppColors.mutedFg.withValues(alpha: 0.3), width: 2),
                 ),
                 child: Center(
                   child: isCompleted
                       ? const Icon(Icons.check, color: Colors.white, size: 20)
                       : Text('٠',
                           style: theme.textTheme.bodySmall
-                              ?.copyWith(color: AppColors.mutedFg.withOpacity(0.4))),
+                              ?.copyWith(color: AppColors.mutedFg.withValues(alpha: 0.4))),
                 ),
               ),
               const SizedBox(width: 12),
@@ -243,14 +243,14 @@ class _CounterButton extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(
               color: onPressed == null
-                  ? AppColors.mutedFg.withOpacity(0.2)
-                  : color.withOpacity(0.4),
+                  ? AppColors.mutedFg.withValues(alpha: 0.2)
+                  : color.withValues(alpha: 0.4),
             ),
           ),
           child: Icon(
             icon,
             size: 16,
-            color: onPressed == null ? AppColors.mutedFg.withOpacity(0.3) : color,
+            color: onPressed == null ? AppColors.mutedFg.withValues(alpha: 0.3) : color,
           ),
         ),
       ),

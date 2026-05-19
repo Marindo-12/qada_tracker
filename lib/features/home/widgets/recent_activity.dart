@@ -17,7 +17,7 @@ class RecentActivityWidget extends ConsumerWidget {
 
     return recentAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
+      error: (_, _) => const SizedBox.shrink(),
       data: (logs) {
         if (logs.isEmpty) return const SizedBox.shrink();
         return Column(
@@ -32,7 +32,7 @@ class RecentActivityWidget extends ConsumerWidget {
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: AppColors.border.withOpacity(0.5), width: 0.5),
+                        color: AppColors.border.withValues(alpha: 0.5), width: 0.5),
                   ),
                   child: Row(
                     children: [
@@ -49,7 +49,7 @@ class RecentActivityWidget extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.1),
+                            color: AppColors.primary.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(

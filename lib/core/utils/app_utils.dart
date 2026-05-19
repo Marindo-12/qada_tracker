@@ -114,7 +114,7 @@ List<String> allDatesInMonth(String yearMonth) {
 // ─── Stats helpers ────────────────────────────────────────────────────────────
 StreakResult computeStreak(List<String> datesWithLogs, int dailyTarget) {
   // datesWithLogs: sorted list of dates where count >= dailyTarget * 5
-  if (datesWithLogs.isEmpty) return StreakResult(current: 0, longest: 0);
+  if (datesWithLogs.isEmpty) return const StreakResult(current: 0, longest: 0);
 
   final today = todayIso();
   int longest = 0;
