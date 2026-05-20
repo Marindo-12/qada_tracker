@@ -2,13 +2,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:drift/drift.dart' hide Column;
 
+import '../../core/database/app_database.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/app_utils.dart';
 import '../../shared/providers/providers.dart';
-import '../../core/database/tables/tables.dart';
-import '../../core/navigation/app_router.dart';
-import '../setup/setup_screen.dart';
+import '../setup/setup_screan.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -502,7 +502,7 @@ class _SectionCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                ?trailing,
+                if (trailing != null) trailing!,
               ],
             ),
           ),

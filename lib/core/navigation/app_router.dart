@@ -2,11 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../features/home/home_screen.dart';
-import '../../features/calendar/calendar_screen.dart';
-import '../../features/settings/settings_screen.dart';
-import '../../features/setup/setup_screen.dart';
-import '../../core/theme/app_theme.dart';
+import '../../features/home/home_screan.dart';
+import '../../features/calendar/calendar_screan.dart';
+import '../../features/settings/settings_screan.dart';
+import '../../features/setup/setup_screan.dart';
 import '../../shared/providers/providers.dart';
 
 final currentTabProvider = StateProvider<int>((ref) => 0);

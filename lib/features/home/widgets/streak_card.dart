@@ -18,7 +18,7 @@ class StreakCard extends ConsumerWidget {
 
     return streakAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
       data: (streak) {
         if (streak.current == 0) return const SizedBox.shrink();
         return Card(

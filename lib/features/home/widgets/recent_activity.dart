@@ -17,7 +17,7 @@ class RecentActivityWidget extends ConsumerWidget {
 
     return recentAsync.when(
       loading: () => const SizedBox.shrink(),
-      error: (_, _) => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
       data: (logs) {
         if (logs.isEmpty) return const SizedBox.shrink();
         return Column(

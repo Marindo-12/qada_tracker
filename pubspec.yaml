@@ -14,11 +14,10 @@ dependencies:
 
   # State management
   flutter_riverpod: ^2.5.1
-  riverpod_annotation: ^2.3.5
 
   # Database
-  drift: ^2.18.0
-  drift_flutter: ^0.2.0
+  drift: 2.18.0
+  drift_flutter: 0.2.0
   sqlite3_flutter_libs: ^0.5.24
   path_provider: ^2.1.3
   path: ^1.9.0
@@ -40,27 +39,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  build_runner: ^2.4.11
-  drift_dev: ^2.18.0
-  riverpod_generator: ^2.4.3
-  custom_lint: ^0.7.6
-  riverpod_lint: ^2.6.5
+  build_runner: 2.4.11
+  drift_dev: 2.18.0
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/animations/
-    - assets/fonts/
-  fonts:
-    - family: Cairo
-      fonts:
-        - asset: assets/fonts/Cairo-Regular.ttf
-        - asset: assets/fonts/Cairo-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Cairo-SemiBold.ttf
-          weight: 600
-    - family: Amiri
-      fonts:
-        - asset: assets/fonts/Amiri-Regular.ttf
-        - asset: assets/fonts/Amiri-Bold.ttf
-          weight: 700

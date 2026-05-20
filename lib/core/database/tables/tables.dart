@@ -34,7 +34,6 @@ class PrayerLogTable extends Table {
         {date, prayer}
       ];
 
-  @override
   List<Index> get indices => [
         Index('prayer_log_date_idx', 'CREATE INDEX prayer_log_date_idx ON prayer_log (date)'),
       ];

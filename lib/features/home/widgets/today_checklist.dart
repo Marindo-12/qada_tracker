@@ -6,7 +6,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/app_utils.dart';
 import '../../../shared/providers/providers.dart';
-import '../../../core/database/tables/tables.dart';
 
 class TodayChecklist extends ConsumerWidget {
   const TodayChecklist({super.key});

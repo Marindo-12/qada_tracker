@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/database/app_database.dart';
 import '../../core/database/daos/plan_dao.dart';
 import '../../core/database/daos/prayer_log_dao.dart';
-import '../../core/database/tables/tables.dart';
 import '../../core/utils/app_utils.dart';
 
 // ─── Database ─────────────────────────────────────────────────────────────────
@@ -117,7 +116,6 @@ final streakProvider = FutureProvider<StreakResult>((ref) async {
   if (plan == null) return const StreakResult(current: 0, longest: 0);
 
   final dao = ref.watch(prayerLogDaoProvider);
-  final allDates = await dao.getAllDatesWithLogs();
   final fullDayTarget = plan.dailyTarget * 5;
 
   // We need per-date totals to filter only full days
