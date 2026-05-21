@@ -268,21 +268,30 @@ class _SetupNavigationBar extends StatelessWidget {
                   onPressed: onPrevious,
                   style: OutlinedButton.styleFrom(
                     padding: EdgeInsets.zero,
+                    minimumSize: const Size(52, 56),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  child: const Icon(Icons.arrow_forward, size: 22),
+                  child: const Icon(Icons.arrow_back, size: 22),
                 ),
               ),
               const SizedBox(width: 12),
             ],
             Expanded(
               child: SizedBox(
-                height: 52,
+                height: 56,
                 child: isLastStep
                     ? ElevatedButton(
                         onPressed: canSubmit ? onSubmit : null,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            height: 1.25,
+                          ),
+                        ),
                         child: saving
                             ? const SizedBox(
                                 width: 20,
@@ -300,7 +309,15 @@ class _SetupNavigationBar extends StatelessWidget {
                       )
                     : ElevatedButton.icon(
                         onPressed: canContinue ? onNext : null,
-                        icon: const Icon(Icons.arrow_back, size: 20),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            height: 1.25,
+                          ),
+                        ),
+                        icon: const Icon(Icons.arrow_forward, size: 20),
                         label: const Text(
                           'التالي',
                           maxLines: 1,
