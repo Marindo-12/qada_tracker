@@ -45,6 +45,17 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: ScheherazadeNew
+      fonts:
+        - asset: assets/fonts/ScheherazadeNew-Regular.ttf
+        - asset: assets/fonts/ScheherazadeNew-Bold.ttf
+          weight: 700
+    - family: Amiri
+      fonts:
+        - asset: assets/fonts/Amiri-Regular.ttf
+        - asset: assets/fonts/Amiri-Bold.ttf
+          weight: 700
 
 
 flutter_launcher_icons:
