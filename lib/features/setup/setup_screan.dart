@@ -99,67 +99,15 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
             ),
           ),
 
-          // Navigation buttons
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                children: [
-                  if (_step > 0)
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => setState(() => _step--),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                          textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-                        ),
-                        icon: const Icon(Icons.arrow_forward, size: 18),
-                        label: const Text('السابق'),
-                      ),
-                    ),
-                  if (_step > 0) const SizedBox(width: 12),
-                  Expanded(
-                    flex: 2,
-                    child: _step < _totalSteps - 1
-                        ? ElevatedButton(
-                            onPressed: _canProceed() ? _nextStep : null,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                              textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                            ),
-                            child: const Text(
-                              'التالي',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          )
-                        : ElevatedButton(
-                            onPressed: (_reviewConfirmed && !_saving)
-                                ? _submit
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                              textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
-                            ),
-                            child: _saving
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Text(
-                                    'اعتماد الخطة',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                          ),
-                  ),
-                ],
-              ),
-            ),
+          _SetupNavigationBar(
+            step: _step,
+            isLastStep: _step == _totalSteps - 1,
+            canContinue: _canProceed(),
+            canSubmit: _reviewConfirmed && !_saving,
+            saving: _saving,
+            onPrevious: () => setState(() => _step--),
+            onNext: _nextStep,
+            onSubmit: _submit,
           ),
         ],
       ),
@@ -281,6 +229,90 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       default:
         return const SizedBox.shrink();
     }
+  }
+}
+
+class _SetupNavigationBar extends StatelessWidget {
+  final int step;
+  final bool isLastStep;
+  final bool canContinue;
+  final bool canSubmit;
+  final bool saving;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
+  final VoidCallback onSubmit;
+
+  const _SetupNavigationBar({
+    required this.step,
+    required this.isLastStep,
+    required this.canContinue,
+    required this.canSubmit,
+    required this.saving,
+    required this.onPrevious,
+    required this.onNext,
+    required this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            if (step > 0) ...[
+              SizedBox(
+                width: 52,
+                height: 52,
+                child: OutlinedButton(
+                  onPressed: onPrevious,
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Icon(Icons.arrow_forward, size: 22),
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              child: SizedBox(
+                height: 52,
+                child: isLastStep
+                    ? ElevatedButton(
+                        onPressed: canSubmit ? onSubmit : null,
+                        child: saving
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'اعتماد الخطة',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                      )
+                    : ElevatedButton.icon(
+                        onPressed: canContinue ? onNext : null,
+                        icon: const Icon(Icons.arrow_back, size: 20),
+                        label: const Text(
+                          'التالي',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
