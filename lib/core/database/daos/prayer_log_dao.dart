@@ -31,14 +31,25 @@ class PrayerLogDao extends DatabaseAccessor<AppDatabase> with _$PrayerLogDaoMixi
             ..where((t) => t.date.equals(date) & t.prayer.equals(prayer)))
           .go();
     } else {
-      await into(prayerLogTable).insertOnConflictUpdate(
-        PrayerLogTableCompanion.insert(
-          date: date,
-          prayer: prayer,
+      final updated = await (update(prayerLogTable)
+            ..where((t) => t.date.equals(date) & t.prayer.equals(prayer)))
+          .write(
+        PrayerLogTableCompanion(
           count: Value(count),
           completedAt: Value(DateTime.now()),
         ),
       );
+
+      if (updated == 0) {
+        await into(prayerLogTable).insert(
+          PrayerLogTableCompanion.insert(
+            date: date,
+            prayer: prayer,
+            count: Value(count),
+            completedAt: Value(DateTime.now()),
+          ),
+        );
+      }
     }
   }
 
@@ -48,6 +59,20 @@ class PrayerLogDao extends DatabaseAccessor<AppDatabase> with _$PrayerLogDaoMixi
           ..where((t) => t.date.equals(date) & t.prayer.equals(prayer)))
         .getSingleOrNull();
     return row?.count ?? 0;
+  }
+
+  Future<void> incrementCount(String date, String prayer) async {
+    await transaction(() async {
+      final current = await getCount(date, prayer);
+      await setCount(date, prayer, current + 1);
+    });
+  }
+
+  Future<void> decrementCount(String date, String prayer) async {
+    await transaction(() async {
+      final current = await getCount(date, prayer);
+      await setCount(date, prayer, current - 1);
+    });
   }
 
   // ─── Stats ───────────────────────────────────────────────────────────────────

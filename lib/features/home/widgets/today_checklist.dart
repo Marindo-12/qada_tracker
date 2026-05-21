@@ -73,9 +73,9 @@ class TodayChecklist extends ConsumerWidget {
                       useArabic: useArabic,
                       isLast: i == kPrayerNames.length - 1,
                       onDecrement: count > 0
-                          ? () => _setCount(ref, prayer, count - 1)
+                          ? () => _decrementCount(ref, prayer)
                           : null,
-                      onIncrement: () => _setCount(ref, prayer, count + 1),
+                      onIncrement: () => _incrementCount(ref, prayer),
                     ).animate().fadeIn(delay: Duration(milliseconds: i * 80));
                   }),
                 ],
@@ -87,10 +87,21 @@ class TodayChecklist extends ConsumerWidget {
     );
   }
 
-  Future<void> _setCount(WidgetRef ref, String prayer, int count) async {
+  Future<void> _incrementCount(WidgetRef ref, String prayer) async {
     final dao = ref.read(prayerLogDaoProvider);
     final today = todayIso();
-    await dao.setCount(today, prayer, count);
+    await dao.incrementCount(today, prayer);
+    _refreshStats(ref);
+  }
+
+  Future<void> _decrementCount(WidgetRef ref, String prayer) async {
+    final dao = ref.read(prayerLogDaoProvider);
+    final today = todayIso();
+    await dao.decrementCount(today, prayer);
+    _refreshStats(ref);
+  }
+
+  void _refreshStats(WidgetRef ref) {
     ref.invalidate(todayLogsProvider);
     ref.invalidate(summaryProvider);
     ref.invalidate(streakProvider);
