@@ -29,8 +29,8 @@ class PrayerProgressBreakdown extends ConsumerWidget {
                 'تقدم كل صلاة على حدة',
                 textAlign: TextAlign.right,
                 style: theme.textTheme.titleLarge?.copyWith(
-                  color: AppColors.foreground,
-                  fontWeight: FontWeight.w800,
+                  color: AppColors.foreground.withValues(alpha: 0.86),
+                  fontWeight: FontWeight.w700,
                   fontSize: 16,
                 ),
               ),
@@ -80,8 +80,8 @@ class _PrayerProgressRow extends StatelessWidget {
               Text(
                 '${formatNumber(item.total, useArabic: useArabic)} / ${formatNumber(item.completed, useArabic: useArabic)}',
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: AppColors.foreground,
-                  fontWeight: FontWeight.w800,
+                  color: AppColors.mutedFg,
+                  fontWeight: FontWeight.w700,
                   fontSize: 12,
                 ),
               ),
@@ -89,8 +89,8 @@ class _PrayerProgressRow extends StatelessWidget {
               Text(
                 prayerName,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: AppColors.foreground,
-                  fontWeight: FontWeight.w800,
+                  color: AppColors.foreground.withValues(alpha: 0.88),
+                  fontWeight: FontWeight.w700,
                   fontSize: 13,
                 ),
               ),
@@ -122,7 +122,7 @@ class _PrayerProgressRow extends StatelessWidget {
                 'أنجزت: ${formatNumber(item.completed, useArabic: useArabic)}',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: AppColors.primary,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                   fontSize: 11,
                 ),
               ),

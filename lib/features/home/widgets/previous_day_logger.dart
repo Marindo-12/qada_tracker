@@ -213,6 +213,7 @@ class _PreviousDayLoggerState extends ConsumerState<PreviousDayLogger> {
     await dao.setCount(_selectedDate, prayer, count);
     setState(() => _counts[prayer] = count < 0 ? 0 : count);
     ref.invalidate(summaryProvider);
+    ref.invalidate(prayerProgressProvider);
     ref.invalidate(streakProvider);
     ref.invalidate(recentActivityProvider);
   }

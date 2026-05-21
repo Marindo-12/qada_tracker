@@ -38,6 +38,7 @@ class _DayEditDialogState extends ConsumerState<DayEditDialog> {
     await dao.setCount(widget.date, prayer, count);
     setState(() => _counts[prayer] = count < 0 ? 0 : count);
     ref.invalidate(summaryProvider);
+    ref.invalidate(prayerProgressProvider);
     ref.invalidate(streakProvider);
     ref.invalidate(recentActivityProvider);
     ref.invalidate(calendarDataProvider);

@@ -104,6 +104,7 @@ class TodayChecklist extends ConsumerWidget {
   void _refreshStats(WidgetRef ref) {
     ref.invalidate(todayLogsProvider);
     ref.invalidate(summaryProvider);
+    ref.invalidate(prayerProgressProvider);
     ref.invalidate(streakProvider);
     ref.invalidate(recentActivityProvider);
   }

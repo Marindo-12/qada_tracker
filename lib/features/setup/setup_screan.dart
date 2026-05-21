@@ -68,7 +68,14 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('إعداد الخطة', style: theme.textTheme.titleLarge),
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: widget.initialPlan != null,
+        leading: widget.initialPlan != null
+            ? IconButton(
+                tooltip: 'رجوع',
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.of(context).pop(),
+              )
+            : null,
       ),
       body: Column(
         children: [
@@ -337,12 +344,12 @@ class _SetupNavigationBar extends StatelessWidget {
                             height: 1.25,
                           ),
                         ),
-                        icon: const Icon(Icons.arrow_forward, size: 20),
                         label: const Text(
                           'التالي',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
+                        icon: const Icon(Icons.arrow_forward, size: 20),
                       ),
               ),
             ),
