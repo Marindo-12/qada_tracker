@@ -109,6 +109,10 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => setState(() => _step--),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+                          textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                        ),
                         icon: const Icon(Icons.arrow_forward, size: 18),
                         label: const Text('السابق'),
                       ),
@@ -119,12 +123,24 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                     child: _step < _totalSteps - 1
                         ? ElevatedButton(
                             onPressed: _canProceed() ? _nextStep : null,
-                            child: const Text('التالي'),
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                            ),
+                            child: const Text(
+                              'التالي',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           )
                         : ElevatedButton(
                             onPressed: (_reviewConfirmed && !_saving)
                                 ? _submit
                                 : null,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                              textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                            ),
                             child: _saving
                                 ? const SizedBox(
                                     width: 20,
@@ -134,7 +150,11 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                                       color: Colors.white,
                                     ),
                                   )
-                                : const Text('اعتماد الخطة وحفظها'),
+                                : const Text(
+                                    'اعتماد الخطة',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                           ),
                   ),
                 ],
