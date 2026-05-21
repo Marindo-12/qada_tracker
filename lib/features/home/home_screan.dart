@@ -9,6 +9,7 @@ import '../../shared/providers/providers.dart';
 import '../../core/navigation/app_router.dart';
 import 'widgets/today_checklist.dart';
 import 'widgets/progress_card.dart';
+import 'widgets/prayer_progress_breakdown.dart';
 import 'widgets/streak_card.dart';
 import 'widgets/recent_activity.dart';
 import 'widgets/previous_day_logger.dart';
@@ -244,6 +245,10 @@ class _Dashboard extends ConsumerWidget {
 
             // Progress
             const ProgressCard(),
+            const SizedBox(height: 16),
+
+            // Per-prayer progress
+            const PrayerProgressBreakdown(),
             const SizedBox(height: 16),
 
             // Streak

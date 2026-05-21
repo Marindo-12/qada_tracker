@@ -110,6 +110,25 @@ final summaryProvider = FutureProvider<SummaryStats>((ref) async {
   );
 });
 
+final prayerProgressProvider = FutureProvider<List<PrayerProgressData>>((ref) async {
+  final plan = await ref.watch(planProvider.future);
+  final dao = ref.watch(prayerLogDaoProvider);
+
+  if (plan == null) return const [];
+
+  final totalPerPrayer = plan.missedDays;
+  final breakdown = await dao.getBreakdown();
+
+  return [
+    for (final prayer in kPrayerNames)
+      PrayerProgressData(
+        prayer: prayer,
+        completed: breakdown[prayer] ?? 0,
+        total: totalPerPrayer,
+      )
+  ];
+});
+
 // ─── Streak ───────────────────────────────────────────────────────────────────
 final streakProvider = FutureProvider<StreakResult>((ref) async {
   final plan = await ref.watch(planProvider.future);
@@ -215,4 +234,19 @@ class CalendarDayData {
     required this.target,
   });
   double get ratio => target > 0 ? (completed / target).clamp(0.0, 1.0) : 0;
+}
+
+class PrayerProgressData {
+  final String prayer;
+  final int completed;
+  final int total;
+
+  const PrayerProgressData({
+    required this.prayer,
+    required this.completed,
+    required this.total,
+  });
+
+  int get remaining => (total - completed).clamp(0, total);
+  double get ratio => total > 0 ? (completed / total).clamp(0.0, 1.0) : 0;
 }
