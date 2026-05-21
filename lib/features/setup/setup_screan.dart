@@ -269,7 +269,6 @@ class _StepIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final initialDate = _clampDate(value ?? DateTime.now(), firstDate, lastDate);
 
     return Column(
       children: [
@@ -448,6 +447,8 @@ class _StepEstimate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final initialDate = _clampDate(value ?? DateTime.now(), firstDate, lastDate);
+
     return Column(
       children: [
         Text(
@@ -961,7 +962,7 @@ class _NumberInputState extends State<_NumberInput> {
     final theme = Theme.of(context);
     return Column(
       children: [
-        Text(label, style: theme.textTheme.labelMedium),
+        Text(widget.label, style: theme.textTheme.labelMedium),
         const SizedBox(height: 6),
         TextFormField(
           controller: _controller,
