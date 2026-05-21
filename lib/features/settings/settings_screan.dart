@@ -41,7 +41,7 @@ class SettingsScreen extends ConsumerWidget {
                     Expanded(
                       child: _DigitOption(
                         label: 'عربية',
-                        sample: '٠ ١ ٢ ٣ ٤ ٥',
+                        sample: '٠ ١ ٢ ٣',
                         active: useArabic,
                         onTap: () => ref.read(digitStyleProvider.notifier).set(true),
                       ),
@@ -50,7 +50,7 @@ class SettingsScreen extends ConsumerWidget {
                     Expanded(
                       child: _DigitOption(
                         label: 'إنجليزية',
-                        sample: '0 1 2 3 4 5',
+                        sample: '0 1 2 3',
                         active: !useArabic,
                         onTap: () => ref.read(digitStyleProvider.notifier).set(false),
                       ),
