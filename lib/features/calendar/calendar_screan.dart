@@ -37,7 +37,7 @@ class CalendarScreen extends ConsumerWidget {
                     final prev = DateTime(currentMonth.year, currentMonth.month - 1);
                     ref.read(selectedMonthProvider.notifier).state = toYearMonth(prev);
                   },
-                  icon: const Icon(Icons.arrow_forward_ios, size: 18),
+                  icon: const Icon(Icons.arrow_back_ios, size: 18),
                   style: IconButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.surface,
                     shape: RoundedRectangleBorder(
@@ -57,7 +57,7 @@ class CalendarScreen extends ConsumerWidget {
                           ref.read(selectedMonthProvider.notifier).state = toYearMonth(next);
                         }
                       : null,
-                  icon: const Icon(Icons.arrow_back_ios, size: 18),
+                  icon: const Icon(Icons.arrow_forward_ios, size: 18),
                   style: IconButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.surface,
                     shape: RoundedRectangleBorder(
