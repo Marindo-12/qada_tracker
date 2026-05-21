@@ -334,7 +334,7 @@ class _SetupNavigationBar extends StatelessWidget {
                                 overflow: TextOverflow.ellipsis,
                               ),
                       )
-                    : ElevatedButton.icon(
+                    : ElevatedButton(
                         onPressed: canContinue ? onNext : null,
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -344,12 +344,18 @@ class _SetupNavigationBar extends StatelessWidget {
                             height: 1.25,
                           ),
                         ),
-                        label: const Text(
-                          'التالي',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'التالي',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_forward, size: 20),
+                          ],
                         ),
-                        icon: const Icon(Icons.arrow_forward, size: 20),
                       ),
               ),
             ),
