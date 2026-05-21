@@ -447,7 +447,6 @@ class _StepEstimate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final initialDate = _clampDate(value ?? DateTime.now(), firstDate, lastDate);
 
     return Column(
       children: [
@@ -849,9 +848,17 @@ class _DateField extends StatelessWidget {
     required this.onChanged,
   });
 
+  DateTime _clampDate(DateTime date, DateTime min, DateTime max) {
+    if (date.isBefore(min)) return min;
+    if (date.isAfter(max)) return max;
+    return date;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final initialDate = _clampDate(value ?? DateTime.now(), firstDate, lastDate);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -905,12 +912,6 @@ class _DateField extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  DateTime _clampDate(DateTime date, DateTime min, DateTime max) {
-    if (date.isBefore(min)) return min;
-    if (date.isAfter(max)) return max;
-    return date;
   }
 }
 
