@@ -307,6 +307,26 @@ class PlanTableData extends DataClass implements Insertable<PlanTableData> {
         createdAt: createdAt ?? this.createdAt,
         updatedAt: updatedAt ?? this.updatedAt,
       );
+  PlanTableData copyWithCompanion(PlanTableCompanion data) {
+    return PlanTableData(
+      id: data.id.present ? data.id.value : this.id,
+      birthDate: data.birthDate.present ? data.birthDate.value : this.birthDate,
+      bulughDate:
+          data.bulughDate.present ? data.bulughDate.value : this.bulughDate,
+      commitmentDate: data.commitmentDate.present
+          ? data.commitmentDate.value
+          : this.commitmentDate,
+      missedDays:
+          data.missedDays.present ? data.missedDays.value : this.missedDays,
+      dailyTarget:
+          data.dailyTarget.present ? data.dailyTarget.value : this.dailyTarget,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
   @override
   String toString() {
     return (StringBuffer('PlanTableData(')
@@ -666,6 +686,17 @@ class PrayerLogTableData extends DataClass
         count: count ?? this.count,
         completedAt: completedAt ?? this.completedAt,
       );
+  PrayerLogTableData copyWithCompanion(PrayerLogTableCompanion data) {
+    return PrayerLogTableData(
+      id: data.id.present ? data.id.value : this.id,
+      date: data.date.present ? data.date.value : this.date,
+      prayer: data.prayer.present ? data.prayer.value : this.prayer,
+      count: data.count.present ? data.count.value : this.count,
+      completedAt:
+          data.completedAt.present ? data.completedAt.value : this.completedAt,
+    );
+  }
+
   @override
   String toString() {
     return (StringBuffer('PrayerLogTableData(')
@@ -779,7 +810,7 @@ class PrayerLogTableCompanion extends UpdateCompanion<PrayerLogTableData> {
 
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
-  _$AppDatabaseManager get managers => _$AppDatabaseManager(this);
+  $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $PlanTableTable planTable = $PlanTableTable(this);
   late final $PrayerLogTableTable prayerLogTable = $PrayerLogTableTable(this);
   late final PlanDao planDao = PlanDao(this as AppDatabase);
@@ -795,7 +826,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       const DriftDatabaseOptions(storeDateTimeAsText: true);
 }
 
-typedef $$PlanTableTableInsertCompanionBuilder = PlanTableCompanion Function({
+typedef $$PlanTableTableCreateCompanionBuilder = PlanTableCompanion Function({
   Value<int> id,
   required String birthDate,
   required String bulughDate,
@@ -820,26 +851,154 @@ typedef $$PlanTableTableUpdateCompanionBuilder = PlanTableCompanion Function({
   Value<DateTime> updatedAt,
 });
 
+class $$PlanTableTableFilterComposer
+    extends Composer<_$AppDatabase, $PlanTableTable> {
+  $$PlanTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get birthDate => $composableBuilder(
+      column: $table.birthDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get bulughDate => $composableBuilder(
+      column: $table.bulughDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get commitmentDate => $composableBuilder(
+      column: $table.commitmentDate,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get missedDays => $composableBuilder(
+      column: $table.missedDays, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get dailyTarget => $composableBuilder(
+      column: $table.dailyTarget, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get startDate => $composableBuilder(
+      column: $table.startDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get notes => $composableBuilder(
+      column: $table.notes, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$PlanTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $PlanTableTable> {
+  $$PlanTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get birthDate => $composableBuilder(
+      column: $table.birthDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get bulughDate => $composableBuilder(
+      column: $table.bulughDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get commitmentDate => $composableBuilder(
+      column: $table.commitmentDate,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get missedDays => $composableBuilder(
+      column: $table.missedDays, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get dailyTarget => $composableBuilder(
+      column: $table.dailyTarget, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get startDate => $composableBuilder(
+      column: $table.startDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+      column: $table.notes, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$PlanTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PlanTableTable> {
+  $$PlanTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get birthDate =>
+      $composableBuilder(column: $table.birthDate, builder: (column) => column);
+
+  GeneratedColumn<String> get bulughDate => $composableBuilder(
+      column: $table.bulughDate, builder: (column) => column);
+
+  GeneratedColumn<String> get commitmentDate => $composableBuilder(
+      column: $table.commitmentDate, builder: (column) => column);
+
+  GeneratedColumn<int> get missedDays => $composableBuilder(
+      column: $table.missedDays, builder: (column) => column);
+
+  GeneratedColumn<int> get dailyTarget => $composableBuilder(
+      column: $table.dailyTarget, builder: (column) => column);
+
+  GeneratedColumn<String> get startDate =>
+      $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
 class $$PlanTableTableTableManager extends RootTableManager<
     _$AppDatabase,
     $PlanTableTable,
     PlanTableData,
     $$PlanTableTableFilterComposer,
     $$PlanTableTableOrderingComposer,
-    $$PlanTableTableProcessedTableManager,
-    $$PlanTableTableInsertCompanionBuilder,
-    $$PlanTableTableUpdateCompanionBuilder> {
+    $$PlanTableTableAnnotationComposer,
+    $$PlanTableTableCreateCompanionBuilder,
+    $$PlanTableTableUpdateCompanionBuilder,
+    (
+      PlanTableData,
+      BaseReferences<_$AppDatabase, $PlanTableTable, PlanTableData>
+    ),
+    PlanTableData,
+    PrefetchHooks Function()> {
   $$PlanTableTableTableManager(_$AppDatabase db, $PlanTableTable table)
       : super(TableManagerState(
           db: db,
           table: table,
-          filteringComposer:
-              $$PlanTableTableFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $$PlanTableTableOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) =>
-              $$PlanTableTableProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
+          createFilteringComposer: () =>
+              $$PlanTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PlanTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PlanTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> birthDate = const Value.absent(),
             Value<String> bulughDate = const Value.absent(),
@@ -863,7 +1022,7 @@ class $$PlanTableTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
           ),
-          getInsertCompanionBuilder: ({
+          createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String birthDate,
             required String bulughDate,
@@ -887,130 +1046,29 @@ class $$PlanTableTableTableManager extends RootTableManager<
             createdAt: createdAt,
             updatedAt: updatedAt,
           ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
         ));
 }
 
-class $$PlanTableTableProcessedTableManager extends ProcessedTableManager<
+typedef $$PlanTableTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
     $PlanTableTable,
     PlanTableData,
     $$PlanTableTableFilterComposer,
     $$PlanTableTableOrderingComposer,
-    $$PlanTableTableProcessedTableManager,
-    $$PlanTableTableInsertCompanionBuilder,
-    $$PlanTableTableUpdateCompanionBuilder> {
-  $$PlanTableTableProcessedTableManager(super.$state);
-}
-
-class $$PlanTableTableFilterComposer
-    extends FilterComposer<_$AppDatabase, $PlanTableTable> {
-  $$PlanTableTableFilterComposer(super.$state);
-  ColumnFilters<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get birthDate => $state.composableBuilder(
-      column: $state.table.birthDate,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get bulughDate => $state.composableBuilder(
-      column: $state.table.bulughDate,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get commitmentDate => $state.composableBuilder(
-      column: $state.table.commitmentDate,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get missedDays => $state.composableBuilder(
-      column: $state.table.missedDays,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get dailyTarget => $state.composableBuilder(
-      column: $state.table.dailyTarget,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get startDate => $state.composableBuilder(
-      column: $state.table.startDate,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get notes => $state.composableBuilder(
-      column: $state.table.notes,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get createdAt => $state.composableBuilder(
-      column: $state.table.createdAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get updatedAt => $state.composableBuilder(
-      column: $state.table.updatedAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $$PlanTableTableOrderingComposer
-    extends OrderingComposer<_$AppDatabase, $PlanTableTable> {
-  $$PlanTableTableOrderingComposer(super.$state);
-  ColumnOrderings<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get birthDate => $state.composableBuilder(
-      column: $state.table.birthDate,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get bulughDate => $state.composableBuilder(
-      column: $state.table.bulughDate,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get commitmentDate => $state.composableBuilder(
-      column: $state.table.commitmentDate,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get missedDays => $state.composableBuilder(
-      column: $state.table.missedDays,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get dailyTarget => $state.composableBuilder(
-      column: $state.table.dailyTarget,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get startDate => $state.composableBuilder(
-      column: $state.table.startDate,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get notes => $state.composableBuilder(
-      column: $state.table.notes,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get createdAt => $state.composableBuilder(
-      column: $state.table.createdAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get updatedAt => $state.composableBuilder(
-      column: $state.table.updatedAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-typedef $$PrayerLogTableTableInsertCompanionBuilder = PrayerLogTableCompanion
+    $$PlanTableTableAnnotationComposer,
+    $$PlanTableTableCreateCompanionBuilder,
+    $$PlanTableTableUpdateCompanionBuilder,
+    (
+      PlanTableData,
+      BaseReferences<_$AppDatabase, $PlanTableTable, PlanTableData>
+    ),
+    PlanTableData,
+    PrefetchHooks Function()>;
+typedef $$PrayerLogTableTableCreateCompanionBuilder = PrayerLogTableCompanion
     Function({
   Value<int> id,
   required String date,
@@ -1027,27 +1085,108 @@ typedef $$PrayerLogTableTableUpdateCompanionBuilder = PrayerLogTableCompanion
   Value<DateTime> completedAt,
 });
 
+class $$PrayerLogTableTableFilterComposer
+    extends Composer<_$AppDatabase, $PrayerLogTableTable> {
+  $$PrayerLogTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get date => $composableBuilder(
+      column: $table.date, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get prayer => $composableBuilder(
+      column: $table.prayer, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get count => $composableBuilder(
+      column: $table.count, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$PrayerLogTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $PrayerLogTableTable> {
+  $$PrayerLogTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get date => $composableBuilder(
+      column: $table.date, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get prayer => $composableBuilder(
+      column: $table.prayer, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get count => $composableBuilder(
+      column: $table.count, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$PrayerLogTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PrayerLogTableTable> {
+  $$PrayerLogTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get prayer =>
+      $composableBuilder(column: $table.prayer, builder: (column) => column);
+
+  GeneratedColumn<int> get count =>
+      $composableBuilder(column: $table.count, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+      column: $table.completedAt, builder: (column) => column);
+}
+
 class $$PrayerLogTableTableTableManager extends RootTableManager<
     _$AppDatabase,
     $PrayerLogTableTable,
     PrayerLogTableData,
     $$PrayerLogTableTableFilterComposer,
     $$PrayerLogTableTableOrderingComposer,
-    $$PrayerLogTableTableProcessedTableManager,
-    $$PrayerLogTableTableInsertCompanionBuilder,
-    $$PrayerLogTableTableUpdateCompanionBuilder> {
+    $$PrayerLogTableTableAnnotationComposer,
+    $$PrayerLogTableTableCreateCompanionBuilder,
+    $$PrayerLogTableTableUpdateCompanionBuilder,
+    (
+      PrayerLogTableData,
+      BaseReferences<_$AppDatabase, $PrayerLogTableTable, PrayerLogTableData>
+    ),
+    PrayerLogTableData,
+    PrefetchHooks Function()> {
   $$PrayerLogTableTableTableManager(
       _$AppDatabase db, $PrayerLogTableTable table)
       : super(TableManagerState(
           db: db,
           table: table,
-          filteringComposer:
-              $$PrayerLogTableTableFilterComposer(ComposerState(db, table)),
-          orderingComposer:
-              $$PrayerLogTableTableOrderingComposer(ComposerState(db, table)),
-          getChildManagerBuilder: (p) =>
-              $$PrayerLogTableTableProcessedTableManager(p),
-          getUpdateCompanionBuilder: ({
+          createFilteringComposer: () =>
+              $$PrayerLogTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PrayerLogTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PrayerLogTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
             Value<int> id = const Value.absent(),
             Value<String> date = const Value.absent(),
             Value<String> prayer = const Value.absent(),
@@ -1061,7 +1200,7 @@ class $$PrayerLogTableTableTableManager extends RootTableManager<
             count: count,
             completedAt: completedAt,
           ),
-          getInsertCompanionBuilder: ({
+          createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String date,
             required String prayer,
@@ -1075,82 +1214,32 @@ class $$PrayerLogTableTableTableManager extends RootTableManager<
             count: count,
             completedAt: completedAt,
           ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
         ));
 }
 
-class $$PrayerLogTableTableProcessedTableManager extends ProcessedTableManager<
+typedef $$PrayerLogTableTableProcessedTableManager = ProcessedTableManager<
     _$AppDatabase,
     $PrayerLogTableTable,
     PrayerLogTableData,
     $$PrayerLogTableTableFilterComposer,
     $$PrayerLogTableTableOrderingComposer,
-    $$PrayerLogTableTableProcessedTableManager,
-    $$PrayerLogTableTableInsertCompanionBuilder,
-    $$PrayerLogTableTableUpdateCompanionBuilder> {
-  $$PrayerLogTableTableProcessedTableManager(super.$state);
-}
+    $$PrayerLogTableTableAnnotationComposer,
+    $$PrayerLogTableTableCreateCompanionBuilder,
+    $$PrayerLogTableTableUpdateCompanionBuilder,
+    (
+      PrayerLogTableData,
+      BaseReferences<_$AppDatabase, $PrayerLogTableTable, PrayerLogTableData>
+    ),
+    PrayerLogTableData,
+    PrefetchHooks Function()>;
 
-class $$PrayerLogTableTableFilterComposer
-    extends FilterComposer<_$AppDatabase, $PrayerLogTableTable> {
-  $$PrayerLogTableTableFilterComposer(super.$state);
-  ColumnFilters<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get date => $state.composableBuilder(
-      column: $state.table.date,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<String> get prayer => $state.composableBuilder(
-      column: $state.table.prayer,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<int> get count => $state.composableBuilder(
-      column: $state.table.count,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-
-  ColumnFilters<DateTime> get completedAt => $state.composableBuilder(
-      column: $state.table.completedAt,
-      builder: (column, joinBuilders) =>
-          ColumnFilters(column, joinBuilders: joinBuilders));
-}
-
-class $$PrayerLogTableTableOrderingComposer
-    extends OrderingComposer<_$AppDatabase, $PrayerLogTableTable> {
-  $$PrayerLogTableTableOrderingComposer(super.$state);
-  ColumnOrderings<int> get id => $state.composableBuilder(
-      column: $state.table.id,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get date => $state.composableBuilder(
-      column: $state.table.date,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<String> get prayer => $state.composableBuilder(
-      column: $state.table.prayer,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<int> get count => $state.composableBuilder(
-      column: $state.table.count,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-
-  ColumnOrderings<DateTime> get completedAt => $state.composableBuilder(
-      column: $state.table.completedAt,
-      builder: (column, joinBuilders) =>
-          ColumnOrderings(column, joinBuilders: joinBuilders));
-}
-
-class _$AppDatabaseManager {
+class $AppDatabaseManager {
   final _$AppDatabase _db;
-  _$AppDatabaseManager(this._db);
+  $AppDatabaseManager(this._db);
   $$PlanTableTableTableManager get planTable =>
       $$PlanTableTableTableManager(_db, _db.planTable);
   $$PrayerLogTableTableTableManager get prayerLogTable =>

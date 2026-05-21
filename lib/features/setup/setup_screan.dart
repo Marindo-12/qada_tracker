@@ -1,5 +1,6 @@
 // lib/features/setup/setup_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -268,6 +269,8 @@ class _StepIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final initialDate = _clampDate(value ?? DateTime.now(), firstDate, lastDate);
+
     return Column(
       children: [
         const SizedBox(height: 24),
@@ -857,7 +860,7 @@ class _DateField extends StatelessWidget {
           onTap: () async {
             final picked = await showDatePicker(
               context: context,
-              initialDate: value ?? DateTime(2000),
+              initialDate: initialDate,
               firstDate: firstDate,
               lastDate: lastDate,
               locale: const Locale('ar'),
@@ -902,9 +905,15 @@ class _DateField extends StatelessWidget {
       ],
     );
   }
+
+  DateTime _clampDate(DateTime date, DateTime min, DateTime max) {
+    if (date.isBefore(min)) return min;
+    if (date.isAfter(max)) return max;
+    return date;
+  }
 }
 
-class _NumberInput extends StatelessWidget {
+class _NumberInput extends StatefulWidget {
   final String label;
   final String? hint;
   final int value;
@@ -920,6 +929,34 @@ class _NumberInput extends StatelessWidget {
   });
 
   @override
+  State<_NumberInput> createState() => _NumberInputState();
+}
+
+class _NumberInputState extends State<_NumberInput> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.value.toString());
+  }
+
+  @override
+  void didUpdateWidget(covariant _NumberInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final nextText = widget.value.toString();
+    if (!_controller.selection.isValid && _controller.text != nextText) {
+      _controller.text = nextText;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
@@ -927,20 +964,23 @@ class _NumberInput extends StatelessWidget {
         Text(label, style: theme.textTheme.labelMedium),
         const SizedBox(height: 6),
         TextFormField(
-          initialValue: value.toString(),
+          controller: _controller,
           keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           textAlign: TextAlign.center,
           style: theme.textTheme.headlineSmall
               ?.copyWith(fontWeight: FontWeight.bold),
           decoration: InputDecoration(
-            hintText: hint,
+            hintText: widget.hint,
             hintStyle: theme.textTheme.bodySmall
                 ?.copyWith(color: AppColors.mutedFg),
           ),
           onChanged: (v) {
             final parsed = int.tryParse(v) ?? 0;
-            final clamped = max != null ? parsed.clamp(0, max!) : parsed.clamp(0, 999999);
-            onChanged(clamped);
+            final clamped = widget.max != null
+                ? parsed.clamp(0, widget.max!)
+                : parsed.clamp(0, 999999);
+            widget.onChanged(clamped);
           },
         ),
       ],
