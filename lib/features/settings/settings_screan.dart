@@ -17,6 +17,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final planAsync = ref.watch(planProvider);
     final useArabic = ref.watch(digitStyleProvider);
+    final themeMode = ref.watch(themeModeProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -59,6 +60,41 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
             ).animate().fadeIn(delay: 100.ms),
+
+            const SizedBox(height: 16),
+
+            _SectionCard(
+              icon: Icons.contrast,
+              title: 'المظهر',
+              subtitle: 'اختر وضع ألوان التطبيق',
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    _ThemeOption(
+                      icon: Icons.phone_android,
+                      label: 'حسب النظام',
+                      active: themeMode == ThemeMode.system,
+                      onTap: () => ref.read(themeModeProvider.notifier).set(ThemeMode.system),
+                    ),
+                    const SizedBox(height: 10),
+                    _ThemeOption(
+                      icon: Icons.light_mode_outlined,
+                      label: 'الوضع الفاتح',
+                      active: themeMode == ThemeMode.light,
+                      onTap: () => ref.read(themeModeProvider.notifier).set(ThemeMode.light),
+                    ),
+                    const SizedBox(height: 10),
+                    _ThemeOption(
+                      icon: Icons.dark_mode_outlined,
+                      label: 'الوضع الداكن',
+                      active: themeMode == ThemeMode.dark,
+                      onTap: () => ref.read(themeModeProvider.notifier).set(ThemeMode.dark),
+                    ),
+                  ],
+                ),
+              ),
+            ).animate().fadeIn(delay: 150.ms),
 
             const SizedBox(height: 16),
 
@@ -599,6 +635,69 @@ class _DigitOption extends StatelessWidget {
             Text(sample,
                 style: theme.textTheme.bodyMedium
                     ?.copyWith(color: AppColors.mutedFg, letterSpacing: 2)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ThemeOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  const _ThemeOption({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: 200.ms,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: active
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : AppColors.muted.withValues(alpha: 0.35),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: active
+                ? AppColors.primary.withValues(alpha: 0.4)
+                : AppColors.border,
+            width: active ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: active ? AppColors.primary : AppColors.mutedFg,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: active ? AppColors.primary : AppColors.foreground,
+                  fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+                ),
+              ),
+            ),
+            Icon(
+              active ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              color: active ? AppColors.primary : AppColors.mutedFg,
+              size: 18,
+            ),
           ],
         ),
       ),

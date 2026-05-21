@@ -1,4 +1,5 @@
 // lib/shared/providers/providers.dart
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -31,6 +32,10 @@ final digitStyleProvider = StateNotifierProvider<DigitStyleNotifier, bool>((ref)
   return DigitStyleNotifier(ref);
 });
 
+final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((ref) {
+  return ThemeModeNotifier(ref);
+});
+
 class DigitStyleNotifier extends StateNotifier<bool> {
   final Ref _ref;
   static const _key = 'qada.useArabicDigits';
@@ -54,6 +59,34 @@ class DigitStyleNotifier extends StateNotifier<bool> {
     final prefs = await _ref.read(sharedPrefsProvider.future);
     state = useArabic;
     await prefs.setBool(_key, useArabic);
+  }
+}
+
+class ThemeModeNotifier extends StateNotifier<ThemeMode> {
+  final Ref _ref;
+  static const _key = 'qada.themeMode';
+
+  ThemeModeNotifier(this._ref) : super(ThemeMode.system) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await _ref.read(sharedPrefsProvider.future);
+    state = _fromStorage(prefs.getString(_key));
+  }
+
+  Future<void> set(ThemeMode mode) async {
+    final prefs = await _ref.read(sharedPrefsProvider.future);
+    state = mode;
+    await prefs.setString(_key, mode.name);
+  }
+
+  ThemeMode _fromStorage(String? value) {
+    return switch (value) {
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      _ => ThemeMode.system,
+    };
   }
 }
 

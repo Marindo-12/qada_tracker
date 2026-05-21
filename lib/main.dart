@@ -43,6 +43,7 @@ class QadaApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Pre-load preferences
     ref.watch(digitStyleProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
       title: 'قضاء الصلوات',
@@ -63,7 +64,7 @@ class QadaApp extends ConsumerWidget {
       // Theme
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
 
       // Text direction RTL
       builder: (context, child) {
