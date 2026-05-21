@@ -99,7 +99,9 @@ class SettingsScreen extends ConsumerWidget {
                 title: 'تفاصيل الخطة',
                 trailing: TextButton.icon(
                   onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SetupScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => SetupScreen(initialPlan: plan),
+                    ),
                   ),
                   icon: const Icon(Icons.edit, size: 16),
                   label: const Text('تعديل'),

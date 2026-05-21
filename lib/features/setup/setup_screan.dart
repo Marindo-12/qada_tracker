@@ -12,7 +12,9 @@ import '../../shared/providers/providers.dart';
 import '../../core/navigation/app_router.dart';
 
 class SetupScreen extends ConsumerStatefulWidget {
-  const SetupScreen({super.key});
+  final PlanTableData? initialPlan;
+
+  const SetupScreen({super.key, this.initialPlan});
 
   @override
   ConsumerState<SetupScreen> createState() => _SetupScreenState();
@@ -39,6 +41,24 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   bool _saving = false;
 
   int get _granularTotal => (_years * 365) + (_months * 30) + _days;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final plan = widget.initialPlan;
+    if (plan == null) return;
+
+    _step = 1;
+    _birthDate = isoToDate(plan.birthDate);
+    _bulughDate = isoToDate(plan.bulughDate);
+    _commitmentDate = isoToDate(plan.commitmentDate);
+    _missedDays = plan.missedDays;
+    _dailyTarget = plan.dailyTarget;
+    _startDate = isoToDate(plan.startDate);
+    _notes = plan.notes ?? '';
+    _granularMode = false;
+  }
 
   @override
   Widget build(BuildContext context) {
