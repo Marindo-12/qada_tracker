@@ -113,6 +113,50 @@ class SetupScreenWrapper extends StatelessWidget {
 }
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
+class _DigitMenuItem extends StatelessWidget {
+  final String label;
+  final String sample;
+  final bool selected;
+
+  const _DigitMenuItem({
+    required this.label,
+    required this.sample,
+    required this.selected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      children: [
+        Icon(
+          selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+          size: 18,
+          color: selected ? AppColors.primary : AppColors.mutedFg,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: selected ? AppColors.primary : AppColors.foreground,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ),
+        Text(
+          sample,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: AppColors.mutedFg,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _Dashboard extends ConsumerWidget {
   const _Dashboard();
 
@@ -123,23 +167,45 @@ class _Dashboard extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.menu_book_rounded, color: AppColors.primary, size: 22),
-            const SizedBox(width: 8),
-            Text('قضاء', style: theme.textTheme.headlineMedium?.copyWith(color: AppColors.primary)),
-          ],
-        ),
-        actions: [
-          // Digit style toggle
-          TextButton(
-            onPressed: () => ref.read(digitStyleProvider.notifier).toggle(),
-            child: Text(
-              useArabic ? '123' : '١٢٣',
-              style: theme.textTheme.titleMedium?.copyWith(color: AppColors.mutedFg),
+        centerTitle: false,
+        titleSpacing: 20,
+        title: Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: Text(
+            'قضاء',
+            textAlign: TextAlign.right,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0,
             ),
           ),
+        ),
+        actions: [
+          PopupMenuButton<bool>(
+            tooltip: 'شكل الأرقام',
+            icon: const Icon(Icons.format_list_numbered, color: AppColors.primary),
+            onSelected: (value) => ref.read(digitStyleProvider.notifier).set(value),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: true,
+                child: _DigitMenuItem(
+                  label: 'أرقام عربية',
+                  sample: '١٢٣',
+                  selected: useArabic,
+                ),
+              ),
+              PopupMenuItem(
+                value: false,
+                child: _DigitMenuItem(
+                  label: 'أرقام إنجليزية',
+                  sample: '123',
+                  selected: !useArabic,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: RefreshIndicator(
