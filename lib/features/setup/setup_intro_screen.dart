@@ -84,17 +84,17 @@ class _SetupIntroScreenState extends State<SetupIntroScreen> {
               ),
             ).animate().fadeIn(delay: 1100.ms).slideY(begin: 0.12),
             const SizedBox(height: 24),
-            _IntroPoint(
+            const _IntroPoint(
               icon: Icons.calendar_month_outlined,
               title: 'حدد الفترة',
               text: 'أدخل التواريخ الأساسية أو عدد الأيام التقريبي التي تريد قضاءها.',
             ).animate().fadeIn(delay: 1250.ms).slideY(begin: 0.16),
-            _IntroPoint(
+            const _IntroPoint(
               icon: Icons.track_changes_outlined,
               title: 'اختر روتينك',
               text: 'اختر عدد الأيام التي تناسبك يومياً، ويمكنك إضافة أكثر من صلاة في نفس اليوم.',
             ).animate().fadeIn(delay: 1400.ms).slideY(begin: 0.16),
-            _IntroPoint(
+            const _IntroPoint(
               icon: Icons.insights_outlined,
               title: 'تابع الإنجاز',
               text: 'راقب ما أنجزته، المتبقي، السلسلة اليومية، وتقويم التقدم.',
