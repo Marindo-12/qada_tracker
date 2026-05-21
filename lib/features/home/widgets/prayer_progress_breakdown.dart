@@ -31,6 +31,7 @@ class PrayerProgressBreakdown extends ConsumerWidget {
                 style: theme.textTheme.titleLarge?.copyWith(
                   color: AppColors.foreground,
                   fontWeight: FontWeight.w800,
+                  fontSize: 16,
                 ),
               ),
             ),
@@ -81,6 +82,7 @@ class _PrayerProgressRow extends StatelessWidget {
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: AppColors.foreground,
                   fontWeight: FontWeight.w800,
+                  fontSize: 12,
                 ),
               ),
               const Spacer(),
@@ -89,6 +91,7 @@ class _PrayerProgressRow extends StatelessWidget {
                 style: theme.textTheme.titleMedium?.copyWith(
                   color: AppColors.foreground,
                   fontWeight: FontWeight.w800,
+                  fontSize: 13,
                 ),
               ),
             ],
@@ -111,6 +114,7 @@ class _PrayerProgressRow extends StatelessWidget {
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: AppColors.mutedFg,
                   fontWeight: FontWeight.w700,
+                  fontSize: 11,
                 ),
               ),
               const Spacer(),
@@ -119,6 +123,7 @@ class _PrayerProgressRow extends StatelessWidget {
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w800,
+                  fontSize: 11,
                 ),
               ),
             ],
