@@ -4,6 +4,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'setup_screan.dart';
+
 // ─── Design System Colors ─────────────────────────────────────────────────────
 class AppColors {
   static const bg        = Color(0xFFF5F0E8);
@@ -254,7 +256,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
                     scale: 0.85 + t * 0.15,
                     alignment: Alignment.centerRight,
                     child: const Text(
-                      'قَضَاءُ الصَّلَوَاتِ',
+                      'قَضَاء',
                       textDirection: TextDirection.rtl,
                       style: TextStyle(
                         fontFamily: 'ScheherazadeNew',
@@ -618,7 +620,9 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
     return _ShimmerButton(
       label: 'إنشاء خطة القضاء',
       onPressed: () {
-        // Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SetupScreen()));
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => const SetupScreen()),
+        );
       },
     );
   }
