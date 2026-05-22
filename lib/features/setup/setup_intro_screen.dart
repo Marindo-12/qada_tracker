@@ -20,7 +20,6 @@ class AppColors {
   static const accent    = Color(0xFFB8932A);
 }
 
-// ─── Screen ────────────────────────────────────────────────────────────────────
 class SetupIntroScreen extends StatefulWidget {
   const SetupIntroScreen({super.key});
 
@@ -31,66 +30,65 @@ class SetupIntroScreen extends StatefulWidget {
 class _SetupIntroScreenState extends State<SetupIntroScreen>
     with TickerProviderStateMixin {
 
-  // ── Word data ────────────────────────────────────────────────────────────────
-  // Only "قضاء" animated — no الصلوات in the center stage
-  static const String _baseWord = 'قضاء';
-  static const String _fullWord = 'قَضَاءُ';
+  // قضاء individual letters (RTL order as displayed: ق ض ا ء)
+  static const _letters    = ['ق', 'ض', 'ا', 'ء'];
+  static const _fullWord   = 'قَضَاءُ';
 
-  // ── Per-letter controllers ────────────────────────────────────────────────
-  late final List<AnimationController> _letterCtls;
-  late final List<Animation<double>>   _letterFades;
-  late final List<Animation<Offset>>   _letterSlides;
+  // ── Flash-letter animation (single letter shown/hidden) ────────────────────
+  late final AnimationController _flashInCtl;
+  late final AnimationController _flashOutCtl;
+
+  // ── Full word build-up (char by char) ─────────────────────────────────────
+  late final List<AnimationController> _charCtls;
+  late final List<Animation<double>>   _charFades;
+  late final List<Animation<Offset>>   _charSlides;
 
   // ── Phase controllers ──────────────────────────────────────────────────────
-  late final AnimationController _glowCtl;       // accent color pulse
-  late final AnimationController _swapCtl;       // swap to full word
-  late final AnimationController _scaleCtl;      // scale up
-  late final AnimationController _sweepCtl;      // white light sweep
-  late final AnimationController _ornCtl;        // ornament line
-  late final AnimationController _migrateCtl;    // word moves to header
-  late final AnimationController _headerCtl;     // header word fades in
-  late final AnimationController _stageCtl;      // stage height collapse
-  late final AnimationController _r1Ctl, _r2Ctl, _r3Ctl, _r4Ctl; // content reveals
+  late final AnimationController _glowCtl;     // accent pulse on full word
+  late final AnimationController _sweepCtl;    // white light sweep
+  late final AnimationController _ornCtl;      // ornament line
+  late final AnimationController _migrateCtl;  // full word shrinks → header
+  late final AnimationController _headerCtl;   // header word slides in
+  late final AnimationController _stageCtl;    // stage height collapse
+  late final AnimationController _r1Ctl, _r2Ctl, _r3Ctl, _r4Ctl;
 
-  // ── State ─────────────────────────────────────────────────────────────────
-  bool _showFullWord   = false;
-  bool _sweepRunning   = false;
-  bool _stageCollapsed = false;
+  // ── Runtime state ─────────────────────────────────────────────────────────
+  int  _currentFlashIndex = -1; // which letter is currently shown (-1 = none)
+  bool _showFullWord       = false;
+  bool _sweepRunning       = false;
+  bool _stageCollapsed     = false;
 
   @override
   void initState() {
     super.initState();
-    _buildLetterControllers();
-    _buildPhaseControllers();
+    _buildControllers();
     _runSequence();
-  }
-
-  void _buildLetterControllers() {
-    final chars = _baseWord.characters.toList();
-    _letterCtls = List.generate(
-      chars.length,
-      (_) => AnimationController(vsync: this, duration: const Duration(milliseconds: 480)),
-    );
-    _letterFades = _letterCtls
-        .map((c) => CurvedAnimation(parent: c, curve: Curves.easeOut))
-        .toList();
-    _letterSlides = _letterCtls.map((c) =>
-        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero)
-            .animate(CurvedAnimation(parent: c, curve: Curves.elasticOut)))
-        .toList();
   }
 
   AnimationController _ctl(int ms) =>
       AnimationController(vsync: this, duration: Duration(milliseconds: ms));
 
-  void _buildPhaseControllers() {
+  void _buildControllers() {
+    // Flash in/out for single letter
+    _flashInCtl  = _ctl(220);
+    _flashOutCtl = _ctl(180);
+
+    // Per-char controllers for full word build-up
+    final count = _fullWord.characters.length;
+    _charCtls = List.generate(count, (_) => _ctl(300));
+    _charFades = _charCtls
+        .map((c) => CurvedAnimation(parent: c, curve: Curves.easeOut))
+        .toList();
+    _charSlides = _charCtls.map((c) =>
+        Tween<Offset>(begin: const Offset(0, 0.35), end: Offset.zero)
+            .animate(CurvedAnimation(parent: c, curve: Curves.easeOutCubic)))
+        .toList();
+
     _glowCtl    = _ctl(280);
-    _swapCtl    = _ctl(350);
-    _scaleCtl   = _ctl(700);
-    _sweepCtl   = _ctl(1100);
-    _ornCtl     = _ctl(500);
-    _migrateCtl = _ctl(450);
-    _headerCtl  = _ctl(450);
+    _sweepCtl   = _ctl(1000);
+    _ornCtl     = _ctl(480);
+    _migrateCtl = _ctl(420);
+    _headerCtl  = _ctl(480);
     _stageCtl   = _ctl(480);
     _r1Ctl      = _ctl(650);
     _r2Ctl      = _ctl(650);
@@ -100,53 +98,67 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
 
   // ── Main sequence ──────────────────────────────────────────────────────────
   Future<void> _runSequence() async {
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 350));
 
-    // 1. Letters appear one by one
-    for (int i = 0; i < _letterCtls.length; i++) {
+    // Phase 1 — flash each letter individually: show → hide → next
+    for (int i = 0; i < _letters.length; i++) {
       if (!mounted) return;
-      _letterCtls[i].forward();
-      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Show letter
+      _flashInCtl.reset();
+      setState(() => _currentFlashIndex = i);
+      _flashInCtl.forward();
+      await Future.delayed(const Duration(milliseconds: 320));
+
+      // Hide letter
+      _flashOutCtl.reset();
+      _flashOutCtl.forward();
+      await Future.delayed(const Duration(milliseconds: 180));
+
+      setState(() => _currentFlashIndex = -1);
+      await Future.delayed(const Duration(milliseconds: 40));
     }
-    await Future.delayed(const Duration(milliseconds: 320));
 
-    // 2. Accent glow flash
-    if (!mounted) return;
-    _glowCtl.forward();
-    await Future.delayed(const Duration(milliseconds: 260));
-    _glowCtl.reverse();
-    await Future.delayed(const Duration(milliseconds: 200));
+    await Future.delayed(const Duration(milliseconds: 60));
 
-    // 2b. Swap to full word (tashkeel)
+    // Phase 2 — build full word char by char
     if (!mounted) return;
     setState(() => _showFullWord = true);
-    _swapCtl.forward();
+
+    final chars = _fullWord.characters.toList();
+    for (int i = 0; i < chars.length; i++) {
+      if (!mounted) return;
+      _charCtls[i].forward();
+      await Future.delayed(const Duration(milliseconds: 90));
+    }
     await Future.delayed(const Duration(milliseconds: 200));
 
-    // 3. Scale up
+    // Phase 3 — accent color flash
     if (!mounted) return;
-    _scaleCtl.forward();
-    await Future.delayed(const Duration(milliseconds: 260));
+    _glowCtl.forward();
+    await Future.delayed(const Duration(milliseconds: 280));
+    _glowCtl.reverse();
+    await Future.delayed(const Duration(milliseconds: 120));
 
-    // 3b. White sweep (right → left, RTL)
+    // Phase 4 — white light sweep
     if (!mounted) return;
     setState(() => _sweepRunning = true);
     _sweepCtl.forward();
-    await Future.delayed(const Duration(milliseconds: 400));
+    await Future.delayed(const Duration(milliseconds: 380));
 
-    // Ornament
+    // Phase 5 — ornament
     if (!mounted) return;
     _ornCtl.forward();
-    await Future.delayed(const Duration(milliseconds: 600));
+    await Future.delayed(const Duration(milliseconds: 520));
 
-    // 4. Word migrates to header
+    // Phase 6 — migrate word to header
     if (!mounted) return;
     _migrateCtl.forward();
-    await Future.delayed(const Duration(milliseconds: 150));
+    await Future.delayed(const Duration(milliseconds: 160));
     _headerCtl.forward();
-    await Future.delayed(const Duration(milliseconds: 300));
+    await Future.delayed(const Duration(milliseconds: 280));
 
-    // Collapse stage
+    // Phase 7 — collapse stage
     if (!mounted) return;
     _stageCtl.forward();
     _stageCtl.addStatusListener((s) {
@@ -156,26 +168,24 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
     });
     await Future.delayed(const Duration(milliseconds: 380));
 
-    // 5. Content cascade
+    // Phase 8 — content cascade
     for (final ctl in [_r1Ctl, _r2Ctl, _r3Ctl, _r4Ctl]) {
       if (!mounted) return;
       ctl.forward();
-      await Future.delayed(const Duration(milliseconds: 240));
+      await Future.delayed(const Duration(milliseconds: 230));
     }
   }
 
   @override
   void dispose() {
-    for (final c in _letterCtls) {
-      c.dispose();
-    }
+    _flashInCtl.dispose();
+    _flashOutCtl.dispose();
+    for (final c in _charCtls) c.dispose();
     for (final c in [
-      _glowCtl, _swapCtl, _scaleCtl, _sweepCtl, _ornCtl,
+      _glowCtl, _sweepCtl, _ornCtl,
       _migrateCtl, _headerCtl, _stageCtl,
       _r1Ctl, _r2Ctl, _r3Ctl, _r4Ctl,
-    ]) {
-      c.dispose();
-    }
+    ]) c.dispose();
     super.dispose();
   }
 
@@ -191,35 +201,33 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
       backgroundColor: AppColors.bg,
       body: Stack(
         children: [
-          // Subtle grid pattern
           const Positioned.fill(child: _GridPattern()),
-
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ── Header ──────────────────────────────────────────────
                 _buildHeader(),
 
-                // ── Animation stage ──────────────────────────────────────
-                if (!_stageCollapsed) _buildStage(),
+                // Stage takes all remaining space until collapsed
+                if (!_stageCollapsed) _buildStageExpanded(),
 
-                // ── Ornament ─────────────────────────────────────────────
                 if (!_stageCollapsed) _buildOrnament(),
 
-                // ── Scrollable content ────────────────────────────────────
                 Expanded(
                   child: ListView(
                     physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(22, 18, 22, 32),
+                    padding: const EdgeInsets.fromLTRB(22, 16, 22, 32),
                     children: [
-                      if (_stageCollapsed) _buildOrnament(),
+                      if (_stageCollapsed) ...[
+                        _buildOrnament(),
+                        const SizedBox(height: 16),
+                      ],
                       _buildReveal(_r1Ctl, _buildWelcome()),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 16),
                       _buildReveal(_r2Ctl, _buildCitationCard()),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 16),
                       _buildReveal(_r3Ctl, _buildFeatures()),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 22),
                       _buildReveal(_r4Ctl, _buildCTA()),
                       const SizedBox(height: 10),
                       _buildReveal(_r4Ctl, _buildHint()),
@@ -236,107 +244,165 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
 
   // ── Header ─────────────────────────────────────────────────────────────────
   Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          AnimatedBuilder(
-            animation: _headerCtl,
-            builder: (context, _) {
-              final t = CurvedAnimation(
-                parent: _headerCtl,
-                curve: Curves.easeOutCubic,
-              ).value;
-              return Opacity(
-                opacity: t,
-                child: Transform.translate(
-                  offset: Offset((1 - t) * 20, 0),
-                  child: Transform.scale(
-                    scale: 0.85 + t * 0.15,
-                    alignment: Alignment.centerRight,
-                    child: const Text(
-                      'قَضَاء',
-                      textDirection: TextDirection.rtl,
-                      style: TextStyle(
-                        fontFamily: 'ScheherazadeNew',
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
+    return SizedBox(
+      height: 56,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            AnimatedBuilder(
+              animation: _headerCtl,
+              builder: (context, _) {
+                final t = CurvedAnimation(
+                  parent: _headerCtl,
+                  curve: Curves.easeOutCubic,
+                ).value;
+                return Opacity(
+                  opacity: t,
+                  child: Transform.translate(
+                    offset: Offset((1 - t) * 18, 0),
+                    child: Transform.scale(
+                      scale: 0.88 + t * 0.12,
+                      alignment: Alignment.centerRight,
+                      child: const Text(
+                        'قَضَاء',
+                        textDirection: TextDirection.rtl,
+                        style: TextStyle(
+                          fontFamily: 'ScheherazadeNew',
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primary,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
-        ],
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  // ── Animation stage ────────────────────────────────────────────────────────
-  Widget _buildStage() {
-    return AnimatedBuilder(
-      animation: _stageCtl,
-      builder: (context, child) {
-        final collapse = CurvedAnimation(parent: _stageCtl, curve: Curves.easeInOut).value;
-        return SizedBox(
-          height: (1 - collapse) * 200,
-          child: Opacity(opacity: (1 - collapse), child: child),
-        );
-      },
-      child: ClipRect(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: AnimatedBuilder(
-            animation: Listenable.merge([_scaleCtl, _glowCtl, _sweepCtl, _swapCtl, _migrateCtl]),
-            builder: (context, _) {
-              final scale = Tween<double>(begin: 1.0, end: 1.18)
-                  .animate(CurvedAnimation(parent: _scaleCtl, curve: Curves.elasticOut))
-                  .value;
-              final migrate = CurvedAnimation(parent: _migrateCtl, curve: Curves.easeInCubic).value;
-              final glowT   = CurvedAnimation(parent: _glowCtl,  curve: Curves.easeOut).value;
+  // ── Stage: fills all remaining vertical space, content truly centered ───────
+  Widget _buildStageExpanded() {
+    return Expanded(
+      child: AnimatedBuilder(
+        animation: _stageCtl,
+        builder: (context, child) {
+          final collapse = CurvedAnimation(
+            parent: _stageCtl,
+            curve: Curves.easeInOut,
+          ).value;
+          return Opacity(
+            opacity: (1 - collapse).clamp(0.0, 1.0),
+            child: child,
+          );
+        },
+        child: ClipRect(
+          child: Center(
+            child: AnimatedBuilder(
+              animation: Listenable.merge([
+                _flashInCtl, _flashOutCtl,
+                _glowCtl, _sweepCtl, _migrateCtl,
+              ]),
+              builder: (context, _) {
+                final migrateT = CurvedAnimation(
+                  parent: _migrateCtl,
+                  curve: Curves.easeInCubic,
+                ).value;
+                final glowT = CurvedAnimation(
+                  parent: _glowCtl,
+                  curve: Curves.easeOut,
+                ).value;
 
-              return Opacity(
-                opacity: (1 - migrate),
-                child: Transform.translate(
-                  offset: Offset(20 * migrate, -30 * migrate),
-                  child: Transform.scale(
-                    scale: scale * (1 - migrate * 0.4),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Word
-                        _showFullWord
-                            ? _buildFullWord(glowT)
-                            : _buildLetterByLetter(glowT),
+                return Opacity(
+                  opacity: (1 - migrateT).clamp(0.0, 1.0),
+                  child: Transform.translate(
+                    offset: Offset(migrateT * 80, migrateT * -28),
+                    child: Transform.scale(
+                      scale: 1.0 - migrateT * 0.45,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // Flash single letter
+                          if (!_showFullWord) _buildFlashLetter(),
 
-                        // White sweep
-                        if (_sweepRunning) _buildSweep(),
-                      ],
+                          // Full word build-up
+                          if (_showFullWord) _buildFullWord(glowT),
+
+                          // White sweep
+                          if (_sweepRunning) _buildSweep(),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildLetterByLetter(double glowT) {
-    final chars = _baseWord.characters.toList();
+  // ── Single letter flash ───────────────────────────────────────────────────
+  Widget _buildFlashLetter() {
+    if (_currentFlashIndex < 0) return const SizedBox.shrink();
+    final letter = _letters[_currentFlashIndex];
+
+    return AnimatedBuilder(
+      animation: Listenable.merge([_flashInCtl, _flashOutCtl]),
+      builder: (context, _) {
+        // Flash IN: scale up from small + fade in
+        final inT  = CurvedAnimation(parent: _flashInCtl,  curve: Curves.easeOutBack).value;
+        // Flash OUT: fade out + slight scale up
+        final outT = CurvedAnimation(parent: _flashOutCtl, curve: Curves.easeIn).value;
+
+        final opacity = _flashOutCtl.isAnimating
+            ? (1.0 - outT).clamp(0.0, 1.0)
+            : inT;
+        final scale   = _flashOutCtl.isAnimating
+            ? 1.0 + outT * 0.08
+            : 0.65 + inT * 0.35;
+
+        return Opacity(
+          opacity: opacity,
+          child: Transform.scale(
+            scale: scale,
+            child: Text(
+              letter,
+              textDirection: TextDirection.rtl,
+              style: const TextStyle(
+                fontFamily: 'ScheherazadeNew',
+                fontSize: 120,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primary,
+                height: 1.0,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // ── Full word (char by char build-up) ────────────────────────────────────
+  Widget _buildFullWord(double glowT) {
+    final chars = _fullWord.characters.toList();
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: List.generate(chars.length, (i) {
+          if (i >= _charCtls.length) return const SizedBox.shrink();
           return SlideTransition(
-            position: _letterSlides[i],
+            position: _charSlides[i],
             child: FadeTransition(
-              opacity: _letterFades[i],
+              opacity: _charFades[i],
               child: Text(
                 chars[i],
                 textDirection: TextDirection.rtl,
@@ -355,48 +421,31 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
     );
   }
 
-  Widget _buildFullWord(double glowT) {
-    return FadeTransition(
-      opacity: CurvedAnimation(parent: _swapCtl, curve: Curves.easeIn),
-      child: Text(
-        _fullWord,
-        textDirection: TextDirection.rtl,
-        style: TextStyle(
-          fontFamily: 'ScheherazadeNew',
-          fontSize: 88,
-          fontWeight: FontWeight.w700,
-          color: Color.lerp(AppColors.primary, AppColors.accent, glowT),
-          height: 1.0,
-        ),
-      ),
-    );
-  }
-
-  // White light sweep (RTL: right → left)
+  // ── White light sweep ─────────────────────────────────────────────────────
   Widget _buildSweep() {
     return AnimatedBuilder(
       animation: _sweepCtl,
       builder: (context, _) {
         final t = CurvedAnimation(parent: _sweepCtl, curve: Curves.easeInOut).value;
-        // Goes from right (+1) to left (-0.2)
-        final offsetX = (1 - t) * 1.0 - 0.2;
+        // RTL: starts at right (+1.2 offset) → moves to left (-0.3 offset)
+        final dx = 1.2 - t * 1.5;
         return Positioned.fill(
           child: FractionalTranslation(
-            translation: Offset(offsetX, 0),
+            translation: Offset(dx, 0),
             child: Transform(
-              transform: Matrix4.skewX(-0.2),
+              transform: Matrix4.skewX(-0.18),
               child: Container(
-                width: 60,
+                width: 56,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
                       Colors.transparent,
                       Color(0x00FFFFFF),
-                      Color(0xEEFFFFFF),
+                      Color(0xE8FFFFFF),
                       Color(0x00FFFFFF),
                       Colors.transparent,
                     ],
-                    stops: [0.0, 0.25, 0.5, 0.75, 1.0],
+                    stops: [0.0, 0.2, 0.5, 0.8, 1.0],
                   ),
                 ),
               ),
@@ -407,29 +456,29 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
     );
   }
 
-  // ── Ornament ───────────────────────────────────────────────────────────────
+  // ── Ornament line ─────────────────────────────────────────────────────────
   Widget _buildOrnament() {
     return AnimatedBuilder(
       animation: _ornCtl,
       builder: (context, _) {
-        final t = CurvedAnimation(parent: _ornCtl, curve: Curves.elasticOut).value;
+        final t = CurvedAnimation(parent: _ornCtl, curve: Curves.elasticOut).value.clamp(0.0, 1.0);
         return Opacity(
-          opacity: t.clamp(0.0, 1.0),
+          opacity: t,
           child: Transform.scale(
-            scaleX: t.clamp(0.0, 1.0),
+            scaleX: t,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding: const EdgeInsets.symmetric(vertical: 6),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _line(false),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 7),
                   _diamond(4, 0.5),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                   _diamond(7, 1.0),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 5),
                   _diamond(4, 0.5),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 7),
                   _line(true),
                 ],
               ),
@@ -441,7 +490,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
   }
 
   Widget _line(bool reversed) => Container(
-    width: 56, height: 1,
+    width: 52, height: 1,
     decoration: BoxDecoration(
       gradient: LinearGradient(
         colors: reversed
@@ -465,12 +514,12 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
     ),
   );
 
-  // ── Welcome ────────────────────────────────────────────────────────────────
+  // ── Welcome ───────────────────────────────────────────────────────────────
   Widget _buildWelcome() {
     return const Column(
       children: [
         Text(
-          'أهلاً بك في قضاء ',
+          'أهلاً بك في قضاء الصلوات',
           textAlign: TextAlign.center,
           textDirection: TextDirection.rtl,
           style: TextStyle(
@@ -481,7 +530,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
             height: 1.5,
           ),
         ),
-        SizedBox(height: 6),
+        SizedBox(height: 5),
         Text(
           'رفيق هادئ يساعدك على قضاء صلواتك الفائتة\nبخطة يومية واضحة ومتابعة مستمرة.',
           textAlign: TextAlign.center,
@@ -514,7 +563,6 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
       ),
       child: Stack(
         children: [
-          // Right accent bar
           Positioned(
             right: 0, top: 0, bottom: 0,
             child: Container(
@@ -563,7 +611,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
     );
   }
 
-  // ── Features ───────────────────────────────────────────────────────────────
+  // ── Features ──────────────────────────────────────────────────────────────
   Widget _buildFeatures() {
     const features = [
       (Icons.calendar_month_outlined, 'حدد الفترة'),
@@ -578,7 +626,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
           return Expanded(
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(12),
@@ -594,7 +642,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
                     ),
                     child: Icon(icon, color: AppColors.primary, size: 20),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 7),
                   Text(
                     label,
                     textAlign: TextAlign.center,
@@ -615,7 +663,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
     );
   }
 
-  // ── CTA ────────────────────────────────────────────────────────────────────
+  // ── CTA ───────────────────────────────────────────────────────────────────
   Widget _buildCTA() {
     return _ShimmerButton(
       label: 'إنشاء خطة القضاء',
@@ -647,7 +695,10 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
         final t = CurvedAnimation(parent: ctl, curve: Curves.easeOutCubic).value;
         return Opacity(
           opacity: t,
-          child: Transform.translate(offset: Offset(0, (1 - t) * 22), child: child),
+          child: Transform.translate(
+            offset: Offset(0, (1 - t) * 20),
+            child: child,
+          ),
         );
       },
     );
@@ -658,7 +709,6 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
 class _ShimmerButton extends StatefulWidget {
   final String label;
   final VoidCallback onPressed;
-
   const _ShimmerButton({required this.label, required this.onPressed});
 
   @override
@@ -673,27 +723,22 @@ class _ShimmerButtonState extends State<_ShimmerButton>
   @override
   void initState() {
     super.initState();
-    _ctl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2400),
-    )..repeat();
+    _ctl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2400))
+      ..repeat();
   }
 
   @override
-  void dispose() {
-    _ctl.dispose();
-    super.dispose();
-  }
+  void dispose() { _ctl.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp:   (_) { setState(() => _pressed = false); widget.onPressed(); },
+      onTapDown:   (_) => setState(() => _pressed = true),
+      onTapUp:     (_) { setState(() => _pressed = false); widget.onPressed(); },
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedScale(
         scale: _pressed ? 0.97 : 1.0,
-        duration: const Duration(milliseconds: 120),
+        duration: const Duration(milliseconds: 110),
         child: AnimatedBuilder(
           animation: _ctl,
           builder: (context, _) {
@@ -746,25 +791,18 @@ class _GridPattern extends StatelessWidget {
   const _GridPattern();
 
   @override
-  Widget build(BuildContext context) {
-    return CustomPaint(painter: _GridPainter());
-  }
+  Widget build(BuildContext context) => CustomPaint(painter: _GridPainter());
 }
 
 class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+    final p = Paint()
       ..color = AppColors.primary.withValues(alpha: 0.025)
       ..strokeWidth = 0.8;
-
-    const step = 40.0;
-    for (double x = 0; x < size.width; x += step) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y < size.height; y += step) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
+    const s = 40.0;
+    for (double x = 0; x < size.width;  x += s) canvas.drawLine(Offset(x, 0), Offset(x, size.height), p);
+    for (double y = 0; y < size.height; y += s) canvas.drawLine(Offset(0, y), Offset(size.width, y), p);
   }
 
   @override
