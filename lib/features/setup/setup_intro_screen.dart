@@ -252,40 +252,37 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
       height: 56,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 22),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            AnimatedBuilder(
-              animation: _headerCtl,
-              builder: (context, _) {
-                final t = CurvedAnimation(
-                  parent: _headerCtl,
-                  curve: Curves.easeOutCubic,
-                ).value;
-                return Opacity(
-                  opacity: t,
-                  child: Transform.translate(
-                    offset: Offset((1 - t) * 18, 0),
-                    child: Transform.scale(
-                      scale: 0.88 + t * 0.12,
-                      alignment: Alignment.centerRight,
-                      child: const Text(
-                        'قَضَاء',
-                        textDirection: TextDirection.rtl,
-                        style: TextStyle(
-                          fontFamily: 'ScheherazadeNew',
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
-                        ),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: AnimatedBuilder(
+            animation: _headerCtl,
+            builder: (context, _) {
+              final t = CurvedAnimation(
+                parent: _headerCtl,
+                curve: Curves.easeOutCubic,
+              ).value;
+              return Opacity(
+                opacity: t.clamp(0.0, 1.0),
+                child: Transform.translate(
+                  offset: Offset((1 - t) * -18, 0),
+                  child: Transform.scale(
+                    scale: 0.88 + t * 0.12,
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'قَضَاء',
+                      textDirection: TextDirection.rtl,
+                      style: TextStyle(
+                        fontFamily: 'ScheherazadeNew',
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
                       ),
                     ),
                   ),
-                );
-              },
-            ),
-          ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
@@ -326,7 +323,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
                 return Opacity(
                   opacity: (1 - migrateT).clamp(0.0, 1.0),
                   child: Transform.translate(
-                    offset: Offset(migrateT * 80, migrateT * -28),
+                    offset: Offset(migrateT * -90, migrateT * -28),
                     child: Transform.scale(
                       scale: 1.0 - migrateT * 0.45,
                       child: Stack(
@@ -338,8 +335,6 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
                           // Full word build-up
                           if (_showFullWord) _buildFullWord(glowT),
 
-                          // White sweep
-                          if (_sweepRunning) _buildSweep(),
                         ],
                       ),
                     ),
@@ -368,7 +363,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
 
         final opacity = _flashOutCtl.isAnimating
             ? (1.0 - outT).clamp(0.0, 1.0)
-            : inT;
+            : inT.clamp(0.0, 1.0);
         final scale   = _flashOutCtl.isAnimating
             ? 1.0 + outT * 0.08
             : 0.65 + inT * 0.35;
@@ -397,7 +392,8 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
   // ── Full word (char by char build-up) ────────────────────────────────────
   Widget _buildFullWord(double glowT) {
     final chars = _fullWord.characters.toList();
-    return Directionality(
+    final baseColor = Color.lerp(AppColors.primary, AppColors.accent, glowT) ?? AppColors.primary;
+    final word = Directionality(
       textDirection: TextDirection.rtl,
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -414,7 +410,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
                   fontFamily: 'ScheherazadeNew',
                   fontSize: 88,
                   fontWeight: FontWeight.w700,
-                  color: Color.lerp(AppColors.primary, AppColors.accent, glowT),
+                  color: baseColor,
                   height: 1.0,
                 ),
               ),
@@ -423,40 +419,33 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
         }),
       ),
     );
-  }
 
-  // ── White light sweep ─────────────────────────────────────────────────────
-  Widget _buildSweep() {
-    return AnimatedBuilder(
-      animation: _sweepCtl,
-      builder: (context, _) {
-        final t = CurvedAnimation(parent: _sweepCtl, curve: Curves.easeInOut).value;
-        // RTL: starts at right (+1.2 offset) → moves to left (-0.3 offset)
-        final dx = 1.2 - t * 1.5;
-        return Positioned.fill(
-          child: FractionalTranslation(
-            translation: Offset(dx, 0),
-            child: Transform(
-              transform: Matrix4.skewX(-0.18),
-              child: Container(
-                width: 56,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.transparent,
-                      Color(0x00FFFFFF),
-                      Color(0xE8FFFFFF),
-                      Color(0x00FFFFFF),
-                      Colors.transparent,
-                    ],
-                    stops: [0.0, 0.2, 0.5, 0.8, 1.0],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
+    if (!_sweepRunning) return word;
+
+    final sweepT = CurvedAnimation(parent: _sweepCtl, curve: Curves.easeInOut).value;
+    final center = (1.05 - sweepT * 1.25).clamp(0.0, 1.0);
+    final left = (center - 0.18).clamp(0.0, 1.0);
+    final right = (center + 0.18).clamp(0.0, 1.0);
+
+    return ShaderMask(
+      blendMode: BlendMode.srcIn,
+      shaderCallback: (bounds) {
+        return LinearGradient(
+          begin: Alignment.centerRight,
+          end: Alignment.centerLeft,
+          colors: [
+            baseColor,
+            Colors.white,
+            baseColor,
+          ],
+          stops: [
+            left,
+            center,
+            right,
+          ],
+        ).createShader(bounds);
       },
+      child: word,
     );
   }
 
