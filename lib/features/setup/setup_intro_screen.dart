@@ -180,12 +180,16 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
   void dispose() {
     _flashInCtl.dispose();
     _flashOutCtl.dispose();
-    for (final c in _charCtls) c.dispose();
+    for (final c in _charCtls) {
+      c.dispose();
+    }
     for (final c in [
       _glowCtl, _sweepCtl, _ornCtl,
       _migrateCtl, _headerCtl, _stageCtl,
       _r1Ctl, _r2Ctl, _r3Ctl, _r4Ctl,
-    ]) c.dispose();
+    ]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
@@ -801,8 +805,12 @@ class _GridPainter extends CustomPainter {
       ..color = AppColors.primary.withValues(alpha: 0.025)
       ..strokeWidth = 0.8;
     const s = 40.0;
-    for (double x = 0; x < size.width;  x += s) canvas.drawLine(Offset(x, 0), Offset(x, size.height), p);
-    for (double y = 0; y < size.height; y += s) canvas.drawLine(Offset(0, y), Offset(size.width, y), p);
+    for (double x = 0; x < size.width; x += s) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), p);
+    }
+    for (double y = 0; y < size.height; y += s) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), p);
+    }
   }
 
   @override
