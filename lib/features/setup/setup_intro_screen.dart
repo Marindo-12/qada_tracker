@@ -470,7 +470,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
     return const Column(
       children: [
         Text(
-          'أهلاً بك في قضاء الصلوات',
+          'أهلاً بك في قضاء ',
           textAlign: TextAlign.center,
           textDirection: TextDirection.rtl,
           style: TextStyle(
