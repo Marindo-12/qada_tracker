@@ -923,25 +923,29 @@ class _ScholarCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      scholar['full']!,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: primary,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        scholar['full']!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: primary,
+                        ),
                       ),
-                    ),
-                    Text(
-                      scholar['era']!,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: context.onSurface.withOpacity(0.45),
+                      Text(
+                        scholar['era']!,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: context.onSurface.withOpacity(0.45),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -993,6 +997,7 @@ class _DifferenceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = data['type']!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final Color bgColor;
     final Color borderColor;
     final Color badgeColor;
@@ -1005,10 +1010,16 @@ class _DifferenceCard extends StatelessWidget {
         badgeColor = context.primary.withOpacity(0.1);
         badgeTextColor = context.primary;
       case 'accent':
-        bgColor = const Color(0xFFF3E5F5);
-        borderColor = const Color(0xFFCE93D8).withOpacity(0.5);
-        badgeColor = const Color(0xFFE1BEE7);
-        badgeTextColor = const Color(0xFF6A1B9A);
+        bgColor = isDark
+            ? context.primary.withOpacity(0.08)
+            : const Color(0xFFF3E5F5);
+        borderColor = isDark
+            ? context.primary.withOpacity(0.3)
+            : const Color(0xFFCE93D8).withOpacity(0.5);
+        badgeColor = isDark
+            ? context.primary.withOpacity(0.18)
+            : const Color(0xFFE1BEE7);
+        badgeTextColor = isDark ? context.primary : const Color(0xFF6A1B9A);
       default:
         bgColor = context.surfaceVariant.withOpacity(0.6);
         borderColor = context.onSurface.withOpacity(0.1);
