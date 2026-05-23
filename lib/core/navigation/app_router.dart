@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/home/home_screan.dart';
 import '../../features/calendar/calendar_screan.dart';
+import '../../features/guide/guide_screen.dart';
 import '../../features/settings/settings_screan.dart';
 import '../../features/setup/setup_intro_screen.dart';
 import '../../shared/providers/providers.dart';
@@ -25,32 +26,36 @@ class AppShell extends ConsumerWidget {
       error: (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
       data: (plan) {
         // No plan yet → show setup
-        if (plan == null && currentTab != 3) {
+        if (plan == null && currentTab != 2 && currentTab != 3) {
           return const SetupIntroScreen();
         }
 
         final screens = [
           const HomeScreen(),
           const CalendarScreen(),
+          const GuidePage(),
           const SettingsScreen(),
         ];
 
         return Scaffold(
           body: IndexedStack(
-            index: currentTab.clamp(0, 2),
+            index: currentTab.clamp(0, 3),
             children: screens,
           ),
           bottomNavigationBar: Container(
             decoration: BoxDecoration(
               border: Border(
                 top: BorderSide(
-                  color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .outline
+                      .withValues(alpha: 0.3),
                   width: 0.5,
                 ),
               ),
             ),
             child: BottomNavigationBar(
-              currentIndex: currentTab.clamp(0, 2),
+              currentIndex: currentTab.clamp(0, 3),
               onTap: (i) => ref.read(currentTabProvider.notifier).state = i,
               items: const [
                 BottomNavigationBarItem(
@@ -62,6 +67,11 @@ class AppShell extends ConsumerWidget {
                   icon: Icon(Icons.calendar_month_outlined),
                   activeIcon: Icon(Icons.calendar_month),
                   label: 'التقويم',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.menu_book_outlined),
+                  activeIcon: Icon(Icons.menu_book),
+                  label: 'الدليل',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.settings_outlined),
