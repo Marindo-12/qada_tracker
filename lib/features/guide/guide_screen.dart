@@ -130,24 +130,28 @@ class _GuidePageState extends State<GuidePage> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Column(
-              children: [
-                _buildHeader(context),
-                const SizedBox(height: 16),
-                _buildLayoutToggle(context),
-                const SizedBox(height: 16),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: _layout == GuideLayout.qa
-                      ? QAView(key: const ValueKey('qa'))
-                      : ArticleView(key: const ValueKey('article')),
-                ),
-                const SizedBox(height: 32),
-              ],
-            ),
+        appBar: AppBar(
+          title: Text(
+            'دليل القضاء',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Column(
+            children: [
+              _buildHeader(context),
+              const SizedBox(height: 16),
+              _buildLayoutToggle(context),
+              const SizedBox(height: 16),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: _layout == GuideLayout.qa
+                    ? QAView(key: const ValueKey('qa'))
+                    : ArticleView(key: const ValueKey('article')),
+              ),
+              const SizedBox(height: 32),
+            ],
           ),
         ),
       ),
@@ -155,37 +159,16 @@ class _GuidePageState extends State<GuidePage> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(height: 8),
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: context.primary.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child:
-              Icon(Icons.menu_book_rounded, size: 28, color: context.primary),
+    return Padding(
+      padding: const EdgeInsets.only(top: 4),
+      child: Text(
+        'فهم الحكم الشرعي وأقوال العلماء في مسألة قضاء الصلوات الفائتة',
+        textAlign: TextAlign.center,
+        style: context.tt.bodySmall?.copyWith(
+          color: context.onSurface.withOpacity(0.55),
+          height: 1.6,
         ),
-        const SizedBox(height: 12),
-        Text(
-          'دليل القضاء',
-          style: context.tt.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: context.onSurface,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'فهم الحكم الشرعي وأقوال العلماء في مسألة قضاء الصلوات الفائتة',
-          textAlign: TextAlign.center,
-          style: context.tt.bodySmall?.copyWith(
-            color: context.onSurface.withOpacity(0.55),
-            height: 1.6,
-          ),
-        ),
-      ],
+      ),
     );
   }
 
