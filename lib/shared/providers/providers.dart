@@ -196,6 +196,11 @@ final recentActivityProvider = FutureProvider<List<PrayerLogTableData>>((ref) as
 // ─── Calendar month ───────────────────────────────────────────────────────────
 final selectedMonthProvider = StateProvider<String>((ref) => toYearMonth(DateTime.now()));
 
+final selectedHijriMonthProvider = StateProvider<String>((ref) {
+  final miladiMonth = ref.watch(selectedMonthProvider);
+  return miladiToHijri(miladiMonth);
+});
+
 final calendarDataProvider = FutureProvider<Map<String, CalendarDayData>>((ref) async {
   final month = ref.watch(selectedMonthProvider);
   final plan = await ref.watch(planProvider.future);
@@ -282,4 +287,31 @@ class PrayerProgressData {
 
   int get remaining => (total - completed).clamp(0, total);
   double get ratio => total > 0 ? (completed / total).clamp(0.0, 1.0) : 0;
+}
+
+// ─── Calendar Type ───────────────────────────────────────────────────────────
+final calendarTypeProvider = StateNotifierProvider<CalendarTypeNotifier, CalendarType>((ref) {
+  return CalendarTypeNotifier(ref);
+});
+
+class CalendarTypeNotifier extends StateNotifier<CalendarType> {
+  final Ref _ref;
+  static const _key = 'qada.calendarType';
+
+  CalendarTypeNotifier(this._ref) : super(CalendarType.miladi) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await _ref.read(sharedPrefsProvider.future);
+    final stored = prefs.getString(_key) ?? 'miladi';
+    state = stored == 'hijri' ? CalendarType.hijri : CalendarType.miladi;
+  }
+
+  Future<void> toggle() async {
+    final prefs = await _ref.read(sharedPrefsProvider.future);
+    final newType = state == CalendarType.miladi ? CalendarType.hijri : CalendarType.miladi;
+    state = newType;
+    await prefs.setString(_key, newType == CalendarType.hijri ? 'hijri' : 'miladi');
+  }
 }

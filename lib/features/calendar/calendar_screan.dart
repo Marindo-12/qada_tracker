@@ -15,6 +15,8 @@ class CalendarScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final selectedMonth = ref.watch(selectedMonthProvider);
+    final selectedHijriMonth = ref.watch(selectedHijriMonthProvider);
+    final calendarType = ref.watch(calendarTypeProvider);
     final useArabic = ref.watch(digitStyleProvider);
     final mutedFg = AppColors.mutedFgOf(context);
     final border = AppColors.borderOf(context);
@@ -36,10 +38,28 @@ class CalendarScreen extends ConsumerWidget {
 
     final now = DateTime.now();
     final currentMonth = DateTime.parse('$selectedMonth-01');
+    final displayMonth = calendarType == CalendarType.hijri ? selectedHijriMonth : selectedMonth;
 
     return Scaffold(
       appBar: AppBar(
         title: Text('التقويم', style: theme.textTheme.titleLarge),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextButton(
+              onPressed: () {
+                ref.read(calendarTypeProvider.notifier).toggle();
+              },
+              child: Text(
+                calendarType == CalendarType.hijri ? 'ميلادي' : 'هجري',
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -51,10 +71,8 @@ class CalendarScreen extends ConsumerWidget {
               children: [
                 IconButton(
                   onPressed: () {
-                    final prev =
-                        DateTime(currentMonth.year, currentMonth.month - 1);
-                    ref.read(selectedMonthProvider.notifier).state =
-                        toYearMonth(prev);
+                    final prev = DateTime(currentMonth.year, currentMonth.month - 1);
+                    ref.read(selectedMonthProvider.notifier).state = toYearMonth(prev);
                   },
                   icon: const Icon(Icons.arrow_back_ios, size: 18),
                   style: IconButton.styleFrom(
@@ -66,19 +84,18 @@ class CalendarScreen extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  formatMonthYear(selectedMonth),
+                  calendarType == CalendarType.hijri
+                      ? formatHijriMonthYear(displayMonth)
+                      : formatMonthYear(selectedMonth),
                   style: theme.textTheme.headlineSmall,
                 )
-                    .animate(key: ValueKey(selectedMonth))
+                    .animate(key: ValueKey(displayMonth))
                     .fadeIn(duration: 300.ms),
                 IconButton(
-                  onPressed: currentMonth.month < now.month ||
-                          currentMonth.year < now.year
+                  onPressed: currentMonth.month < now.month || currentMonth.year < now.year
                       ? () {
-                          final next = DateTime(
-                              currentMonth.year, currentMonth.month + 1);
-                          ref.read(selectedMonthProvider.notifier).state =
-                              toYearMonth(next);
+                          final next = DateTime(currentMonth.year, currentMonth.month + 1);
+                          ref.read(selectedMonthProvider.notifier).state = toYearMonth(next);
                         }
                       : null,
                   icon: const Icon(Icons.arrow_forward_ios, size: 18),
@@ -121,10 +138,24 @@ class CalendarScreen extends ConsumerWidget {
                       const Center(child: CircularProgressIndicator()),
                   error: (e, _) => Center(child: Text('خطأ: $e')),
                   data: (calendarData) {
-                    final dates = allDatesInMonth(selectedMonth);
-                    final firstDay = DateTime.parse('$selectedMonth-01');
-                    // 0=Sun in dart, we want Sun=0
-                    final startPadding = firstDay.weekday % 7;
+                    late List<String> dates;
+                    late int startPadding;
+
+                    if (calendarType == CalendarType.hijri) {
+                      dates = allHijriDatesInMonth(selectedHijriMonth);
+                      // Get the first day of Hijri month
+                      final firstHijriDay = HijriDate(
+                        int.parse(selectedHijriMonth.split('-')[0]),
+                        int.parse(selectedHijriMonth.split('-')[1]),
+                        1,
+                      );
+                      final firstGregorian = firstHijriDay.toGregorian();
+                      startPadding = firstGregorian.weekday % 7;
+                    } else {
+                      dates = allDatesInMonth(selectedMonth);
+                      final firstDay = DateTime.parse('$selectedMonth-01');
+                      startPadding = firstDay.weekday % 7;
+                    }
 
                     return GridView.builder(
                       padding: const EdgeInsets.all(16),
@@ -141,13 +172,32 @@ class CalendarScreen extends ConsumerWidget {
                           return const SizedBox.shrink();
                         }
                         final date = dates[index - startPadding];
-                        final data = calendarData[date];
-                        final isFuture = date.compareTo(todayIso()) > 0;
-                        final isToday = date == todayIso();
-                        final day = int.parse(date.split('-').last);
+                        
+                        // Get corresponding Gregorian date for data lookup
+                        late String miladiDate;
+                        late int dayToDisplay;
+                        
+                        if (calendarType == CalendarType.hijri) {
+                          final parts = date.split('-');
+                          final hijri = HijriDate(
+                            int.parse(parts[0]),
+                            int.parse(parts[1]),
+                            int.parse(parts[2]),
+                          );
+                          final gregorian = hijri.toGregorian();
+                          miladiDate = dateToIso(gregorian);
+                          dayToDisplay = int.parse(parts[2]);
+                        } else {
+                          miladiDate = date;
+                          dayToDisplay = int.parse(date.split('-').last);
+                        }
+                        
+                        final data = calendarData[miladiDate];
+                        final isFuture = miladiDate.compareTo(todayIso()) > 0;
+                        final isToday = miladiDate == todayIso();
 
                         return _CalendarCell(
-                          day: day,
+                          day: dayToDisplay,
                           data: data,
                           isToday: isToday,
                           isFuture: isFuture,
@@ -156,7 +206,8 @@ class CalendarScreen extends ConsumerWidget {
                               ? null
                               : () => showDialog(
                                     context: context,
-                                    builder: (_) => DayEditDialog(date: date),
+                                    builder: (_) =>
+                                        DayEditDialog(date: miladiDate),
                                   ),
                         );
                       },
