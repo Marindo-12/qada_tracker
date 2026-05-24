@@ -103,10 +103,9 @@ const List<Map<String, String>> kAdviceSteps = [
 
 extension _ThemeX on BuildContext {
   Color get primary => Theme.of(this).colorScheme.primary;
-  Color get onPrimary => Theme.of(this).colorScheme.onPrimary;
   Color get surface => Theme.of(this).colorScheme.surface;
   Color get onSurface => Theme.of(this).colorScheme.onSurface;
-  Color get surfaceVariant => Theme.of(this).colorScheme.surfaceVariant;
+  Color get surfaceContainerHighest => Theme.of(this).colorScheme.surfaceContainerHighest;
   TextTheme get tt => Theme.of(this).textTheme;
 }
 
@@ -147,8 +146,8 @@ class _GuidePageState extends State<GuidePage> {
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 300),
                 child: _layout == GuideLayout.qa
-                    ? QAView(key: const ValueKey('qa'))
-                    : ArticleView(key: const ValueKey('article')),
+                    ? const QAView(key: ValueKey('qa'))
+                    : const ArticleView(key: ValueKey('article')),
               ),
               const SizedBox(height: 32),
             ],
@@ -165,7 +164,7 @@ class _GuidePageState extends State<GuidePage> {
         'فهم الحكم الشرعي وأقوال العلماء في مسألة قضاء الصلوات الفائتة',
         textAlign: TextAlign.center,
         style: context.tt.bodySmall?.copyWith(
-          color: context.onSurface.withOpacity(0.55),
+          color: context.onSurface.withValues(alpha: 0.55),
           height: 1.6,
         ),
       ),
@@ -176,9 +175,9 @@ class _GuidePageState extends State<GuidePage> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: context.surfaceVariant.withOpacity(0.6),
+        color: context.surfaceContainerHighest.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: context.onSurface.withOpacity(0.08)),
+        border: Border.all(color: context.onSurface.withValues(alpha: 0.08)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -228,12 +227,12 @@ class _ToggleBtn extends StatelessWidget {
           color: active ? context.surface : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           border: active
-              ? Border.all(color: primary.withOpacity(0.2))
+              ? Border.all(color: primary.withValues(alpha: 0.2))
               : Border.all(color: Colors.transparent),
           boxShadow: active
               ? [
                   BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
+                      color: Colors.black.withValues(alpha: 0.06),
                       blurRadius: 4,
                       offset: const Offset(0, 1))
                 ]
@@ -243,14 +242,14 @@ class _ToggleBtn extends StatelessWidget {
           children: [
             Icon(icon,
                 size: 16,
-                color: active ? primary : context.onSurface.withOpacity(0.45)),
+                color: active ? primary : context.onSurface.withValues(alpha: 0.45)),
             const SizedBox(width: 6),
             Text(
               label,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.bold,
-                color: active ? primary : context.onSurface.withOpacity(0.45),
+                color: active ? primary : context.onSurface.withValues(alpha: 0.45),
               ),
             ),
           ],
@@ -269,7 +268,7 @@ class QAView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        _AccordionItem(
+        const _AccordionItem(
           title: 'لماذا نقضي الصلوات الفائتة؟',
           child: _BodyText(
             text:
@@ -277,22 +276,22 @@ class QAView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        _AccordionItem(
+        const _AccordionItem(
           title: 'ما الحكم الشرعي للقضاء؟',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const _BodyText(
+              _BodyText(
                 text:
                     'ذهب جمهور العلماء من الحنفية والمالكية والشافعية والحنابلة إلى أن قضاء الصلاة الفائتة واجب، سواء فاتت بعذر أو بغيره.',
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               _HadithBlock(
                 text: 'من نسي صلاة أو نام عنها فكفارتها أن يصليها إذا ذكرها.',
                 source: 'رواه البخاري ومسلم',
               ),
-              const SizedBox(height: 12),
-              const _BodyText(
+              SizedBox(height: 12),
+              _BodyText(
                 text:
                     'واستدلوا أيضاً بأن الصلاة دَين في ذمة المكلف لا يسقط بمضي الوقت، كما أن الديون المالية لا تسقط بتراكمها.\n\nوذهب بعض العلماء المعاصرين إلى التفريق بين من فاتته الصلاة بعذر ومن تركها عمداً، وإن كان الأحوط الأخذ بقول الجمهور والإقبال على القضاء.',
               ),
@@ -338,7 +337,7 @@ class QAView extends StatelessWidget {
                   child: _AdviceStep(step: step),
                 ),
               ),
-              _AyahBlock(
+              const _AyahBlock(
                 text:
                     'قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنفُسِهِمْ لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ ۚ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا ۚ إِنَّهُ هُوَ الْغَفُورُ الرَّحِيمُ',
                 source: 'الزمر: ٥٣',
@@ -360,41 +359,39 @@ class ArticleView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = context.primary;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Section 1 — Why
-        _ArticleSectionHeader(
+        const _ArticleSectionHeader(
             icon: Icons.help_outline_rounded,
             title: 'لماذا نقضي الصلوات الفائتة؟'),
         const SizedBox(height: 12),
         _withRightBorder(
           context,
-          Column(
+          const Column(
             children: [
               Row(
                 children: [
                   _ConceptCard(
                       label: 'فريضة',
                       desc: 'الصلاة ثاني أركان الإسلام وعماد الدين'),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   _ConceptCard(
                       label: 'دَين',
                       desc: 'تبقى في الذمة ولا تسقط بمرور الزمن'),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   _ConceptCard(
                       label: 'رحمة',
                       desc: 'القضاء باب يفتحه الله لتدارك ما فات'),
                 ],
               ),
-              const SizedBox(height: 12),
-              const _BodyText(
+              SizedBox(height: 12),
+              _BodyText(
                 text:
                     'الصلاة فريضة واجبة على كل مسلم بالغ عاقل. من تركها متعمداً فقد ارتكب كبيرة عظيمة، ومن تركها بعذر كالنوم أو النسيان وجب عليه قضاؤها متى زال العذر. أما من تركها تهاوناً أو جهلاً في سنوات مضت ثم تاب إلى الله، فإن جمهور العلماء يرون أن القضاء واجب عليه مع التوبة والاستغفار.\n\nقضاء الصلاة ليس عقوبة يُعاقَب بها، بل هو باب من الرحمة الإلهية يُتيح للإنسان أن يُصلح ما أفسده.',
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               _QuoteBox(
                 text:
                     '"مَثَلُ الصلواتِ الخمسِ كَمَثَلِ نَهَرٍ جارٍ عَلى بابِ أحدِكم، يَغْتَسِلُ مِنهُ كُلَّ يَوْمٍ خَمسَ مَرَّاتٍ"',
@@ -407,25 +404,25 @@ class ArticleView extends StatelessWidget {
         _Divider(),
 
         // Section 2 — Ruling
-        _ArticleSectionHeader(
+        const _ArticleSectionHeader(
             icon: Icons.balance_rounded, title: 'الحكم الشرعي للقضاء'),
         const SizedBox(height: 12),
         _withRightBorder(
           context,
-          Column(
+          const Column(
             children: [
-              const _BodyText(
+              _BodyText(
                 text:
                     'ذهب جمهور العلماء من الحنفية والمالكية والشافعية والحنابلة إلى أن قضاء الصلاة الفائتة واجب مطلقاً، سواء فاتت بعذر مقبول كالنوم والنسيان، أو بغير عذر كالتهاون والإهمال.',
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               _HadithBlock(
                 text: 'من نسي صلاة أو نام عنها فكفارتها أن يصليها إذا ذكرها.',
                 source:
                     'رواه البخاري ومسلم — وهو الدليل الرئيس على وجوب القضاء',
               ),
-              const SizedBox(height: 12),
-              const _BodyText(
+              SizedBox(height: 12),
+              _BodyText(
                 text:
                     'تعليل الجمهور: الصلاة دَين في ذمة المكلف، والدَّين لا يسقط بمرور الزمن ولا بتراكمه، كما أن الديون المالية لا تسقط بإهمال صاحبها. فكما تُقضى الديون المالية وإن كثرت، تُقضى الصلوات وإن تراكمت.',
               ),
@@ -436,7 +433,7 @@ class ArticleView extends StatelessWidget {
         _Divider(),
 
         // Section 3 — Scholars
-        _ArticleSectionHeader(
+        const _ArticleSectionHeader(
             icon: Icons.people_alt_rounded, title: 'أقوال كبار العلماء'),
         const SizedBox(height: 12),
         _withRightBorder(
@@ -447,7 +444,7 @@ class ArticleView extends StatelessWidget {
                 'اتفق العلماء على مشروعية القضاء وتفاوتوا في التفاصيل — إليك مواقفهم بأصواتهم:',
                 style: TextStyle(
                   fontSize: 13,
-                  color: context.onSurface.withOpacity(0.55),
+                  color: context.onSurface.withValues(alpha: 0.55),
                   height: 1.6,
                 ),
               ),
@@ -465,7 +462,7 @@ class ArticleView extends StatelessWidget {
         _Divider(),
 
         // Section 4 — Differences
-        _ArticleSectionHeader(
+        const _ArticleSectionHeader(
             icon: Icons.account_tree_rounded,
             title: 'الاختلاف العلمي — ثلاثة مواقف'),
         const SizedBox(height: 12),
@@ -477,7 +474,7 @@ class ArticleView extends StatelessWidget {
                 'المسألة فيها خلاف بين العلماء يمكن تلخيصه في ثلاثة مواقف رئيسية:',
                 style: TextStyle(
                   fontSize: 13,
-                  color: context.onSurface.withOpacity(0.55),
+                  color: context.onSurface.withValues(alpha: 0.55),
                   height: 1.6,
                 ),
               ),
@@ -492,10 +489,10 @@ class ArticleView extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: context.surfaceVariant.withOpacity(0.5),
+                  color: context.surfaceContainerHighest.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(12),
                   border:
-                      Border.all(color: context.onSurface.withOpacity(0.08)),
+                      Border.all(color: context.onSurface.withValues(alpha: 0.08)),
                 ),
                 child: RichText(
                   text: TextSpan(
@@ -512,7 +509,7 @@ class ArticleView extends StatelessWidget {
                         text:
                             'الأحوط والأخذ بقول الجمهور أسلم، وهو ما توفره هذه الأداة — قضاء الصلوات يوماً بيوم مع التوبة والاستغفار.',
                         style: TextStyle(
-                          color: context.onSurface.withOpacity(0.8),
+                          color: context.onSurface.withValues(alpha: 0.8),
                           fontSize: 13,
                           height: 1.7,
                         ),
@@ -528,7 +525,7 @@ class ArticleView extends StatelessWidget {
         _Divider(),
 
         // Section 5 — Advice
-        _ArticleSectionHeader(
+        const _ArticleSectionHeader(
             icon: Icons.favorite_rounded, title: 'نصيحة لمن بدأ رحلة القضاء'),
         const SizedBox(height: 12),
         _withRightBorder(
@@ -548,7 +545,7 @@ class ArticleView extends StatelessWidget {
                     ),
                   ),
               const SizedBox(height: 4),
-              _AyahBlock(
+              const _AyahBlock(
                 text:
                     'قُلْ يَا عِبَادِيَ الَّذِينَ أَسْرَفُوا عَلَىٰ أَنفُسِهِمْ لَا تَقْنَطُوا مِن رَّحْمَةِ اللَّهِ ۚ إِنَّ اللَّهَ يَغْفِرُ الذُّنُوبَ جَمِيعًا ۚ إِنَّهُ هُوَ الْغَفُورُ الرَّحِيمُ',
                 source: 'الزمر: ٥٣',
@@ -569,7 +566,7 @@ class ArticleView extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(
             right:
-                BorderSide(color: context.primary.withOpacity(0.2), width: 2),
+                BorderSide(color: context.primary.withValues(alpha: 0.2), width: 2),
           ),
         ),
         padding: const EdgeInsets.only(right: 12),
@@ -623,10 +620,10 @@ class _AccordionItemState extends State<_AccordionItem>
       decoration: BoxDecoration(
         color: context.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: context.onSurface.withOpacity(0.08)),
+        border: Border.all(color: context.onSurface.withValues(alpha: 0.08)),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.04),
+              color: Colors.black.withValues(alpha: 0.04),
               blurRadius: 4,
               offset: const Offset(0, 1)),
         ],
@@ -655,14 +652,14 @@ class _AccordionItemState extends State<_AccordionItem>
                     turns: _open ? 0.5 : 0,
                     duration: const Duration(milliseconds: 250),
                     child: Icon(Icons.keyboard_arrow_down_rounded,
-                        color: context.onSurface.withOpacity(0.4)),
+                        color: context.onSurface.withValues(alpha: 0.4)),
                   ),
                 ],
               ),
             ),
           ),
           if (_open) ...[
-            Divider(height: 1, color: context.onSurface.withOpacity(0.08)),
+            Divider(height: 1, color: context.onSurface.withValues(alpha: 0.08)),
             FadeTransition(
               opacity: _fadeIn,
               child: Padding(
@@ -691,7 +688,7 @@ class _ArticleSectionHeader extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: context.primary.withOpacity(0.1),
+            color: context.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, size: 22, color: context.primary),
@@ -730,7 +727,7 @@ class _BodyText extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13.5,
                   height: 1.9,
-                  color: context.onSurface.withOpacity(0.88),
+                  color: context.onSurface.withValues(alpha: 0.88),
                 ),
               ),
             ),
@@ -751,9 +748,9 @@ class _HadithBlock extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: context.primary.withOpacity(0.04),
+        color: context.primary.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: context.primary.withOpacity(0.18)),
+        border: Border.all(color: context.primary.withValues(alpha: 0.18)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -762,7 +759,7 @@ class _HadithBlock extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(Icons.format_quote_rounded,
-                  size: 18, color: context.primary.withOpacity(0.5)),
+                  size: 18, color: context.primary.withValues(alpha: 0.5)),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -785,7 +782,7 @@ class _HadithBlock extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                color: context.onSurface.withOpacity(0.45),
+                color: context.onSurface.withValues(alpha: 0.45),
               ),
             ),
           ),
@@ -806,9 +803,9 @@ class _AyahBlock extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: context.primary.withOpacity(0.05),
+        color: context.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: context.primary.withOpacity(0.2)),
+        border: Border.all(color: context.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -818,7 +815,7 @@ class _AyahBlock extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               height: 2.2,
-              color: context.onSurface.withOpacity(0.88),
+              color: context.onSurface.withValues(alpha: 0.88),
             ),
           ),
           const SizedBox(height: 6),
@@ -847,15 +844,15 @@ class _QuoteBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: context.surfaceVariant.withOpacity(0.6),
+        color: context.surfaceContainerHighest.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: context.onSurface.withOpacity(0.08)),
+        border: Border.all(color: context.onSurface.withValues(alpha: 0.08)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(Icons.format_quote_rounded,
-              size: 18, color: context.primary.withOpacity(0.5)),
+              size: 18, color: context.primary.withValues(alpha: 0.5)),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -867,7 +864,7 @@ class _QuoteBox extends StatelessWidget {
                     fontSize: 13.5,
                     height: 1.9,
                     fontStyle: FontStyle.italic,
-                    color: context.onSurface.withOpacity(0.88),
+                    color: context.onSurface.withValues(alpha: 0.88),
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -876,7 +873,7 @@ class _QuoteBox extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: context.onSurface.withOpacity(0.45),
+                    color: context.onSurface.withValues(alpha: 0.45),
                   ),
                 ),
               ],
@@ -900,9 +897,9 @@ class _ScholarCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: primary.withOpacity(0.05),
+        color: primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: primary.withOpacity(0.15)),
+        border: Border.all(color: primary.withValues(alpha: 0.15)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -912,7 +909,7 @@ class _ScholarCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor: primary.withOpacity(0.15),
+                  backgroundColor: primary.withValues(alpha: 0.15),
                   child: Text(
                     scholar['initials']!,
                     style: TextStyle(
@@ -941,7 +938,7 @@ class _ScholarCard extends StatelessWidget {
                         scholar['era']!,
                         style: TextStyle(
                           fontSize: 11,
-                          color: context.onSurface.withOpacity(0.45),
+                          color: context.onSurface.withValues(alpha: 0.45),
                         ),
                       ),
                     ],
@@ -954,7 +951,7 @@ class _ScholarCard extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border(
                     right:
-                        BorderSide(color: primary.withOpacity(0.3), width: 2)),
+                        BorderSide(color: primary.withValues(alpha: 0.3), width: 2)),
               ),
               padding: const EdgeInsets.only(right: 10),
               child: Text(
@@ -962,7 +959,7 @@ class _ScholarCard extends StatelessWidget {
                 style: TextStyle(
                     fontSize: 13.5,
                     height: 1.9,
-                    color: context.onSurface.withOpacity(0.85)),
+                    color: context.onSurface.withValues(alpha: 0.85)),
               ),
             ),
           ] else ...[
@@ -977,7 +974,7 @@ class _ScholarCard extends StatelessWidget {
               style: TextStyle(
                   fontSize: 13,
                   height: 1.9,
-                  color: context.onSurface.withOpacity(0.85)),
+                  color: context.onSurface.withValues(alpha: 0.85)),
             ),
           ],
         ],
@@ -1005,26 +1002,26 @@ class _DifferenceCard extends StatelessWidget {
 
     switch (type) {
       case 'primary':
-        bgColor = context.primary.withOpacity(0.05);
-        borderColor = context.primary.withOpacity(0.2);
-        badgeColor = context.primary.withOpacity(0.1);
+        bgColor = context.primary.withValues(alpha: 0.05);
+        borderColor = context.primary.withValues(alpha: 0.2);
+        badgeColor = context.primary.withValues(alpha: 0.1);
         badgeTextColor = context.primary;
       case 'accent':
         bgColor = isDark
-            ? context.primary.withOpacity(0.08)
+            ? context.primary.withValues(alpha: 0.08)
             : const Color(0xFFF3E5F5);
         borderColor = isDark
-            ? context.primary.withOpacity(0.3)
-            : const Color(0xFFCE93D8).withOpacity(0.5);
+            ? context.primary.withValues(alpha: 0.3)
+            : const Color(0xFFCE93D8).withValues(alpha: 0.5);
         badgeColor = isDark
-            ? context.primary.withOpacity(0.18)
+            ? context.primary.withValues(alpha: 0.18)
             : const Color(0xFFE1BEE7);
         badgeTextColor = isDark ? context.primary : const Color(0xFF6A1B9A);
       default:
-        bgColor = context.surfaceVariant.withOpacity(0.6);
-        borderColor = context.onSurface.withOpacity(0.1);
-        badgeColor = context.surfaceVariant;
-        badgeTextColor = context.onSurface.withOpacity(0.7);
+        bgColor = context.surfaceContainerHighest.withValues(alpha: 0.6);
+        borderColor = context.onSurface.withValues(alpha: 0.1);
+        badgeColor = context.surfaceContainerHighest;
+        badgeTextColor = context.onSurface.withValues(alpha: 0.7);
     }
 
     return Container(
@@ -1042,7 +1039,7 @@ class _DifferenceCard extends StatelessWidget {
               if (showIndex) ...[
                 CircleAvatar(
                   radius: 14,
-                  backgroundColor: context.surface.withOpacity(0.7),
+                  backgroundColor: context.surface.withValues(alpha: 0.7),
                   child: Text(
                     '$index',
                     style: TextStyle(
@@ -1070,7 +1067,7 @@ class _DifferenceCard extends StatelessWidget {
                       data['detail']!,
                       style: TextStyle(
                         fontSize: 11,
-                        color: context.onSurface.withOpacity(0.5),
+                        color: context.onSurface.withValues(alpha: 0.5),
                       ),
                     ),
                   ],
@@ -1101,7 +1098,7 @@ class _DifferenceCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               height: 1.8,
-              color: context.onSurface.withOpacity(0.8),
+              color: context.onSurface.withValues(alpha: 0.8),
             ),
           ),
         ],
@@ -1133,7 +1130,7 @@ class _AdviceStep extends StatelessWidget {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: context.primary.withOpacity(0.1),
+            color: context.primary.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(_icon(step['icon']!), size: 18, color: context.primary),
@@ -1157,7 +1154,7 @@ class _AdviceStep extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 13,
                   height: 1.8,
-                  color: context.onSurface.withOpacity(0.75),
+                  color: context.onSurface.withValues(alpha: 0.75),
                 ),
               ),
             ],
@@ -1190,7 +1187,7 @@ class _AdviceCardArticle extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: context.onSurface.withOpacity(0.08)),
+        border: Border.all(color: context.onSurface.withValues(alpha: 0.08)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1201,7 +1198,7 @@ class _AdviceCardArticle extends StatelessWidget {
                 width: 36,
                 height: 36,
                 decoration: BoxDecoration(
-                  color: context.primary.withOpacity(0.1),
+                  color: context.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(_icon(step['icon']!),
@@ -1213,7 +1210,7 @@ class _AdviceCardArticle extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
-                  color: context.primary.withOpacity(0.45),
+                  color: context.primary.withValues(alpha: 0.45),
                 ),
               ),
             ],
@@ -1239,7 +1236,7 @@ class _AdviceCardArticle extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       height: 1.8,
-                      color: context.onSurface.withOpacity(0.75),
+                      color: context.onSurface.withValues(alpha: 0.75),
                     ),
                   ),
                 ],
@@ -1264,9 +1261,9 @@ class _ConceptCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
-          color: context.primary.withOpacity(0.05),
+          color: context.primary.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: context.primary.withOpacity(0.15)),
+          border: Border.all(color: context.primary.withValues(alpha: 0.15)),
         ),
         child: Column(
           children: [
@@ -1285,7 +1282,7 @@ class _ConceptCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 height: 1.5,
-                color: context.onSurface.withOpacity(0.65),
+                color: context.onSurface.withValues(alpha: 0.65),
               ),
             ),
           ],
@@ -1302,18 +1299,18 @@ class _Divider extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 20),
       child: Row(
         children: [
-          Expanded(child: Divider(color: context.onSurface.withOpacity(0.1))),
+          Expanded(child: Divider(color: context.onSurface.withValues(alpha: 0.1))),
           const SizedBox(width: 8),
           Container(
             width: 6,
             height: 6,
             decoration: BoxDecoration(
-              color: context.primary.withOpacity(0.3),
+              color: context.primary.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
           ),
           const SizedBox(width: 8),
-          Expanded(child: Divider(color: context.onSurface.withOpacity(0.1))),
+          Expanded(child: Divider(color: context.onSurface.withValues(alpha: 0.1))),
         ],
       ),
     );
@@ -1334,7 +1331,7 @@ class _FooterAyah extends StatelessWidget {
           fontSize: 12,
           fontStyle: FontStyle.italic,
           height: 1.7,
-          color: context.onSurface.withOpacity(0.38),
+          color: context.onSurface.withValues(alpha: 0.38),
         ),
       ),
     );

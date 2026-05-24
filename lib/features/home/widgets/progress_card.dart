@@ -15,9 +15,11 @@ class ProgressCard extends ConsumerWidget {
     final summaryAsync = ref.watch(summaryProvider);
     final useArabic = ref.watch(digitStyleProvider);
     final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
 
     return summaryAsync.when(
-      loading: () => _buildSkeleton(),
+      loading: () => _buildSkeleton(context),
       error: (e, _) => const SizedBox.shrink(),
       data: (summary) {
         final pct = summary.percentComplete;
@@ -34,8 +36,8 @@ class ProgressCard extends ConsumerWidget {
                     Text('التقدم الكلي', style: theme.textTheme.titleLarge),
                     Text(
                       '${formatNumber(pct.round(), useArabic: useArabic)}٪',
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(color: AppColors.mutedFg),
+                      style:
+                          theme.textTheme.titleMedium?.copyWith(color: mutedFg),
                     ),
                   ],
                 ),
@@ -47,9 +49,8 @@ class ProgressCard extends ConsumerWidget {
                   child: LinearProgressIndicator(
                     value: pct / 100,
                     minHeight: 12,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                    valueColor:
-                        const AlwaysStoppedAnimation<Color>(AppColors.primary),
+                    backgroundColor: AppColors.progressTrackOf(context),
+                    valueColor: AlwaysStoppedAnimation<Color>(primary),
                   ),
                 ).animate().scaleX(
                       alignment: Alignment.centerRight,
@@ -64,13 +65,13 @@ class ProgressCard extends ConsumerWidget {
                   children: [
                     Text(
                       'أنجزت: ${formatNumber(summary.completedPrayers, useArabic: useArabic)} صلاة',
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: AppColors.mutedFg),
+                      style:
+                          theme.textTheme.bodySmall?.copyWith(color: mutedFg),
                     ),
                     Text(
                       'متبقي: ${formatNumber(summary.remainingPrayers, useArabic: useArabic)} صلاة',
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: AppColors.mutedFg),
+                      style:
+                          theme.textTheme.bodySmall?.copyWith(color: mutedFg),
                     ),
                   ],
                 ),
@@ -82,10 +83,9 @@ class ProgressCard extends ConsumerWidget {
                     Expanded(
                       child: _StatBox(
                         label: 'أيام مكافئة منجزة',
-                        value: formatNumber(
-                            summary.completedDays.floor(),
+                        value: formatNumber(summary.completedDays.floor(),
                             useArabic: useArabic),
-                        color: AppColors.primary,
+                        color: primary,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -112,18 +112,20 @@ class ProgressCard extends ConsumerWidget {
     );
   }
 
-  Widget _buildSkeleton() {
+  Widget _buildSkeleton(BuildContext context) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Container(height: 20, color: AppColors.muted),
+            Container(height: 20, color: AppColors.mutedOf(context)),
             const SizedBox(height: 12),
-            Container(height: 12, decoration: BoxDecoration(
-              color: AppColors.muted,
-              borderRadius: BorderRadius.circular(8),
-            )),
+            Container(
+                height: 12,
+                decoration: BoxDecoration(
+                  color: AppColors.mutedOf(context),
+                  borderRadius: BorderRadius.circular(8),
+                )),
           ],
         ),
       ),
@@ -147,6 +149,7 @@ class _StatBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final mutedFg = AppColors.mutedFgOf(context);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -158,7 +161,7 @@ class _StatBox extends StatelessWidget {
         children: [
           Text(
             label,
-            style: theme.textTheme.bodySmall?.copyWith(color: AppColors.mutedFg),
+            style: theme.textTheme.bodySmall?.copyWith(color: mutedFg),
           ),
           const SizedBox(height: 6),
           Text(

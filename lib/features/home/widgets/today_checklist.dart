@@ -15,6 +15,7 @@ class TodayChecklist extends ConsumerWidget {
     final logsAsync = ref.watch(todayLogsProvider);
     final planAsync = ref.watch(planProvider);
     final useArabic = ref.watch(digitStyleProvider);
+    final primary = AppColors.primaryOf(context);
 
     return planAsync.when(
       loading: () => const SizedBox.shrink(),
@@ -32,28 +33,37 @@ class TodayChecklist extends ConsumerWidget {
                 children: [
                   // Header
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.05),
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                      color: primary.withValues(alpha: 0.08),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(16)),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text('الصلوات المنجزة اليوم',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AppColors.primary,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  color: primary,
                                 )),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
+                            color: primary.withValues(alpha: 0.14),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             '${formatNumber(completedCount, useArabic: useArabic)} / ${formatNumber(target, useArabic: useArabic)}',
-                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                  color: AppColors.primary,
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelLarge
+                                ?.copyWith(
+                                  color: primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                           ),
@@ -72,9 +82,8 @@ class TodayChecklist extends ConsumerWidget {
                       count: count,
                       useArabic: useArabic,
                       isLast: i == kPrayerNames.length - 1,
-                      onDecrement: count > 0
-                          ? () => _decrementCount(ref, prayer)
-                          : null,
+                      onDecrement:
+                          count > 0 ? () => _decrementCount(ref, prayer) : null,
                       onIncrement: () => _incrementCount(ref, prayer),
                     ).animate().fadeIn(delay: Duration(milliseconds: i * 80));
                   }),
@@ -118,7 +127,7 @@ class TodayChecklist extends ConsumerWidget {
             height: 64,
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.muted,
+              color: AppColors.mutedOf(context),
               borderRadius: BorderRadius.circular(8),
             ),
           ),
@@ -149,11 +158,16 @@ class _PrayerRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isCompleted = count > 0;
+    final primary = AppColors.primaryOf(context);
+    final foreground = AppColors.foregroundOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
 
     return Column(
       children: [
         Container(
-          color: isCompleted ? AppColors.primary.withValues(alpha: 0.04) : Colors.transparent,
+          color: isCompleted
+              ? primary.withValues(alpha: 0.06)
+              : Colors.transparent,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             children: [
@@ -164,17 +178,18 @@ class _PrayerRow extends StatelessWidget {
                 height: 40,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isCompleted ? AppColors.primary : Colors.transparent,
+                  color: isCompleted ? primary : Colors.transparent,
                   border: isCompleted
                       ? null
-                      : Border.all(color: AppColors.mutedFg.withValues(alpha: 0.3), width: 2),
+                      : Border.all(
+                          color: mutedFg.withValues(alpha: 0.35), width: 2),
                 ),
                 child: Center(
                   child: isCompleted
                       ? const Icon(Icons.check, color: Colors.white, size: 20)
                       : Text('٠',
-                          style: theme.textTheme.bodySmall
-                              ?.copyWith(color: AppColors.mutedFg.withValues(alpha: 0.4))),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                              color: mutedFg.withValues(alpha: 0.5))),
                 ),
               ),
               const SizedBox(width: 12),
@@ -182,13 +197,15 @@ class _PrayerRow extends StatelessWidget {
               Expanded(
                 child: Row(
                   children: [
-                    Text(kPrayerIcons[prayer] ?? '', style: const TextStyle(fontSize: 18)),
+                    Text(kPrayerIcons[prayer] ?? '',
+                        style: const TextStyle(fontSize: 18)),
                     const SizedBox(width: 8),
                     Text(
                       kPrayerNamesAr[prayer] ?? prayer,
                       style: theme.textTheme.titleMedium?.copyWith(
-                        color: isCompleted ? AppColors.primary : AppColors.foreground,
-                        fontWeight: isCompleted ? FontWeight.bold : FontWeight.normal,
+                        color: isCompleted ? primary : foreground,
+                        fontWeight:
+                            isCompleted ? FontWeight.bold : FontWeight.normal,
                       ),
                     ),
                   ],
@@ -200,7 +217,7 @@ class _PrayerRow extends StatelessWidget {
                   _CounterButton(
                     icon: Icons.remove,
                     onPressed: onDecrement,
-                    color: AppColors.mutedFg,
+                    color: mutedFg,
                   ),
                   SizedBox(
                     width: 40,
@@ -215,15 +232,14 @@ class _PrayerRow extends StatelessWidget {
                   _CounterButton(
                     icon: Icons.add,
                     onPressed: onIncrement,
-                    color: AppColors.primary,
+                    color: primary,
                   ),
                 ],
               ),
             ],
           ),
         ),
-        if (!isLast)
-          const Divider(height: 1, indent: 16, endIndent: 16),
+        if (!isLast) const Divider(height: 1, indent: 16, endIndent: 16),
       ],
     );
   }
@@ -254,14 +270,16 @@ class _CounterButton extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(
               color: onPressed == null
-                  ? AppColors.mutedFg.withValues(alpha: 0.2)
+                  ? AppColors.mutedFgOf(context).withValues(alpha: 0.2)
                   : color.withValues(alpha: 0.4),
             ),
           ),
           child: Icon(
             icon,
             size: 16,
-            color: onPressed == null ? AppColors.mutedFg.withValues(alpha: 0.3) : color,
+            color: onPressed == null
+                ? AppColors.mutedFgOf(context).withValues(alpha: 0.3)
+                : color,
           ),
         ),
       ),

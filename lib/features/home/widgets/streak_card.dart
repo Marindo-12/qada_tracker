@@ -15,6 +15,8 @@ class StreakCard extends ConsumerWidget {
     final streakAsync = ref.watch(streakProvider);
     final useArabic = ref.watch(digitStyleProvider);
     final theme = Theme.of(context);
+    final accent = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
 
     return streakAsync.when(
       loading: () => const SizedBox.shrink(),
@@ -22,10 +24,10 @@ class StreakCard extends ConsumerWidget {
       data: (streak) {
         if (streak.current == 0) return const SizedBox.shrink();
         return Card(
-          color: AppColors.accent.withValues(alpha: 0.08),
+          color: accent.withValues(alpha: 0.08),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: AppColors.accent.withValues(alpha: 0.3)),
+            side: BorderSide(color: accent.withValues(alpha: 0.3)),
           ),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -35,14 +37,14 @@ class StreakCard extends ConsumerWidget {
                   width: 48,
                   height: 48,
                   decoration: BoxDecoration(
-                    color: AppColors.accent.withValues(alpha: 0.15),
+                    color: accent.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.local_fire_department,
-                      color: AppColors.accent, size: 28),
+                  child: Icon(Icons.local_fire_department,
+                      color: accent, size: 28),
                 ).animate(onPlay: (c) => c.repeat()).shimmer(
                       duration: 2.seconds,
-                      color: AppColors.accent.withValues(alpha: 0.3),
+                      color: accent.withValues(alpha: 0.3),
                     ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -51,18 +53,17 @@ class StreakCard extends ConsumerWidget {
                     children: [
                       Text('سلسلة المواظبة',
                           style: theme.textTheme.titleMedium?.copyWith(
-                              color: AppColors.accent,
-                              fontWeight: FontWeight.bold)),
+                              color: accent, fontWeight: FontWeight.bold)),
                       Text('أيام متتالية من الالتزام',
                           style: theme.textTheme.bodySmall
-                              ?.copyWith(color: AppColors.mutedFg)),
+                              ?.copyWith(color: mutedFg)),
                     ],
                   ),
                 ),
                 Text(
                   formatNumber(streak.current, useArabic: useArabic),
-                  style: theme.textTheme.displaySmall?.copyWith(
-                      color: AppColors.accent, fontWeight: FontWeight.bold),
+                  style: theme.textTheme.displaySmall
+                      ?.copyWith(color: accent, fontWeight: FontWeight.bold),
                 ),
               ],
             ),

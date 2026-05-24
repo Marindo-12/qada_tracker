@@ -25,6 +25,11 @@ class _PreviousDayLoggerState extends ConsumerState<PreviousDayLogger> {
     final useArabic = ref.watch(digitStyleProvider);
     final today = todayIso();
     final yesterday = addDays(today, -1);
+    final primary = AppColors.primaryOf(context);
+    final foreground = AppColors.foregroundOf(context);
+    final muted = AppColors.mutedOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+    final border = AppColors.borderOf(context);
 
     if (!_expanded) {
       return Card(
@@ -35,22 +40,21 @@ class _PreviousDayLoggerState extends ConsumerState<PreviousDayLogger> {
               Container(
                 width: 42,
                 height: 42,
-                decoration: const BoxDecoration(
-                  color: AppColors.muted,
+                decoration: BoxDecoration(
+                  color: muted,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.history, color: AppColors.mutedFg),
+                child: Icon(Icons.history, color: mutedFg),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('أضف من يوم سابق',
-                        style: theme.textTheme.titleSmall),
+                    Text('أضف من يوم سابق', style: theme.textTheme.titleSmall),
                     Text('نسيت تسجيل صلوات الأمس؟',
                         style: theme.textTheme.bodySmall
-                            ?.copyWith(color: AppColors.mutedFg)),
+                            ?.copyWith(color: mutedFg)),
                   ],
                 ),
               ),
@@ -74,8 +78,9 @@ class _PreviousDayLoggerState extends ConsumerState<PreviousDayLogger> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: AppColors.muted.withValues(alpha: 0.4),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              color: muted.withValues(alpha: 0.6),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(16)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -101,21 +106,19 @@ class _PreviousDayLoggerState extends ConsumerState<PreviousDayLogger> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 14),
                     decoration: BoxDecoration(
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: border),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.calendar_today,
-                            size: 18, color: AppColors.mutedFg),
+                        Icon(Icons.calendar_today, size: 18, color: mutedFg),
                         const SizedBox(width: 12),
                         Text(
                           formatArabicDate(_selectedDate),
                           style: theme.textTheme.bodyMedium,
                         ),
                         const Spacer(),
-                        const Icon(Icons.arrow_drop_down,
-                            color: AppColors.mutedFg),
+                        Icon(Icons.arrow_drop_down, color: mutedFg),
                       ],
                     ),
                   ),
@@ -146,17 +149,15 @@ class _PreviousDayLoggerState extends ConsumerState<PreviousDayLogger> {
                                     ? Icons.check_circle
                                     : Icons.radio_button_unchecked,
                                 color: isCompleted
-                                    ? AppColors.primary
-                                    : AppColors.mutedFg.withValues(alpha: 0.3),
+                                    ? primary
+                                    : mutedFg.withValues(alpha: 0.3),
                                 size: 22,
                               ),
                               const SizedBox(width: 10),
                               Text(
                                 '${kPrayerIcons[prayer] ?? ''} ${kPrayerNamesAr[prayer] ?? prayer}',
                                 style: theme.textTheme.titleSmall?.copyWith(
-                                  color: isCompleted
-                                      ? AppColors.primary
-                                      : AppColors.foreground,
+                                  color: isCompleted ? primary : foreground,
                                 ),
                               ),
                               const Spacer(),
@@ -236,7 +237,7 @@ class _SmallCounter extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        _btn(Icons.remove, onDecrement, AppColors.mutedFg),
+        _btn(context, Icons.remove, onDecrement, AppColors.mutedFgOf(context)),
         SizedBox(
           width: 36,
           child: Text(
@@ -248,12 +249,17 @@ class _SmallCounter extends StatelessWidget {
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
-        _btn(Icons.add, onIncrement, AppColors.primary),
+        _btn(context, Icons.add, onIncrement, AppColors.primaryOf(context)),
       ],
     );
   }
 
-  Widget _btn(IconData icon, VoidCallback? onPressed, Color color) {
+  Widget _btn(
+    BuildContext context,
+    IconData icon,
+    VoidCallback? onPressed,
+    Color color,
+  ) {
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(16),
@@ -270,8 +276,7 @@ class _SmallCounter extends StatelessWidget {
         ),
         child: Icon(icon,
             size: 14,
-            color:
-                onPressed == null ? color.withValues(alpha: 0.3) : color),
+            color: onPressed == null ? color.withValues(alpha: 0.3) : color),
       ),
     );
   }

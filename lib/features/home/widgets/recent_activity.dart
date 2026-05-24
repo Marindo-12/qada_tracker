@@ -14,6 +14,9 @@ class RecentActivityWidget extends ConsumerWidget {
     final recentAsync = ref.watch(recentActivityProvider);
     final useArabic = ref.watch(digitStyleProvider);
     final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+    final border = AppColors.borderOf(context);
 
     return recentAsync.when(
       loading: () => const SizedBox.shrink(),
@@ -27,17 +30,17 @@ class RecentActivityWidget extends ConsumerWidget {
             const SizedBox(height: 12),
             ...logs.map((log) => Container(
                   margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: AppColors.border.withValues(alpha: 0.5), width: 0.5),
+                        color: border.withValues(alpha: 0.5), width: 0.5),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.check_circle,
-                          color: AppColors.primary, size: 18),
+                      Icon(Icons.check_circle, color: primary, size: 18),
                       const SizedBox(width: 12),
                       Text(
                         '${kPrayerIcons[log.prayer] ?? ''} ${kPrayerNamesAr[log.prayer] ?? log.prayer}',
@@ -49,21 +52,21 @@ class RecentActivityWidget extends ConsumerWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
+                            color: primary.withValues(alpha: 0.14),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
                             '×${formatNumber(log.count, useArabic: useArabic)}',
                             style: theme.textTheme.labelSmall
-                                ?.copyWith(color: AppColors.primary),
+                                ?.copyWith(color: primary),
                           ),
                         ),
                       ],
                       const Spacer(),
                       Text(
                         formatArabicDateShort(log.date),
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(color: AppColors.mutedFg),
+                        style:
+                            theme.textTheme.bodySmall?.copyWith(color: mutedFg),
                       ),
                     ],
                   ),

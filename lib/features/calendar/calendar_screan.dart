@@ -16,6 +16,23 @@ class CalendarScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final selectedMonth = ref.watch(selectedMonthProvider);
     final useArabic = ref.watch(digitStyleProvider);
+    final mutedFg = AppColors.mutedFgOf(context);
+    final border = AppColors.borderOf(context);
+    final heatmapColors = Theme.of(context).brightness == Brightness.dark
+        ? const [
+            AppColors.darkPrimary,
+            Color(0xFF8F7626),
+            AppColors.darkGreen,
+            Color(0xFF1C4F3D),
+            AppColors.darkMuted,
+          ]
+        : const [
+            AppColors.heatmap4,
+            AppColors.heatmap3,
+            AppColors.heatmap2,
+            AppColors.heatmap1,
+            AppColors.heatmap0,
+          ];
 
     final now = DateTime.now();
     final currentMonth = DateTime.parse('$selectedMonth-01');
@@ -34,27 +51,34 @@ class CalendarScreen extends ConsumerWidget {
               children: [
                 IconButton(
                   onPressed: () {
-                    final prev = DateTime(currentMonth.year, currentMonth.month - 1);
-                    ref.read(selectedMonthProvider.notifier).state = toYearMonth(prev);
+                    final prev =
+                        DateTime(currentMonth.year, currentMonth.month - 1);
+                    ref.read(selectedMonthProvider.notifier).state =
+                        toYearMonth(prev);
                   },
                   icon: const Icon(Icons.arrow_back_ios, size: 18),
                   style: IconButton.styleFrom(
                     backgroundColor: Theme.of(context).colorScheme.surface,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: const BorderSide(color: AppColors.border, width: 0.5),
+                      side: BorderSide(color: border, width: 0.5),
                     ),
                   ),
                 ),
                 Text(
                   formatMonthYear(selectedMonth),
                   style: theme.textTheme.headlineSmall,
-                ).animate(key: ValueKey(selectedMonth)).fadeIn(duration: 300.ms),
+                )
+                    .animate(key: ValueKey(selectedMonth))
+                    .fadeIn(duration: 300.ms),
                 IconButton(
-                  onPressed: currentMonth.month < now.month || currentMonth.year < now.year
+                  onPressed: currentMonth.month < now.month ||
+                          currentMonth.year < now.year
                       ? () {
-                          final next = DateTime(currentMonth.year, currentMonth.month + 1);
-                          ref.read(selectedMonthProvider.notifier).state = toYearMonth(next);
+                          final next = DateTime(
+                              currentMonth.year, currentMonth.month + 1);
+                          ref.read(selectedMonthProvider.notifier).state =
+                              toYearMonth(next);
                         }
                       : null,
                   icon: const Icon(Icons.arrow_forward_ios, size: 18),
@@ -62,7 +86,7 @@ class CalendarScreen extends ConsumerWidget {
                     backgroundColor: Theme.of(context).colorScheme.surface,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: const BorderSide(color: AppColors.border, width: 0.5),
+                      side: BorderSide(color: border, width: 0.5),
                     ),
                   ),
                 ),
@@ -74,16 +98,17 @@ class CalendarScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Row(
-              children: ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت']
-                  .map((d) => Expanded(
-                        child: Text(
-                          d,
-                          textAlign: TextAlign.center,
-                          style: theme.textTheme.labelSmall
-                              ?.copyWith(color: AppColors.mutedFg),
-                        ),
-                      ))
-                  .toList(),
+              children:
+                  ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت']
+                      .map((d) => Expanded(
+                            child: Text(
+                              d,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.labelSmall
+                                  ?.copyWith(color: mutedFg),
+                            ),
+                          ))
+                      .toList(),
             ),
           ),
 
@@ -92,48 +117,52 @@ class CalendarScreen extends ConsumerWidget {
           // Calendar grid
           Expanded(
             child: ref.watch(calendarDataProvider).when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('خطأ: $e')),
-              data: (calendarData) {
-                final dates = allDatesInMonth(selectedMonth);
-                final firstDay = DateTime.parse('$selectedMonth-01');
-                // 0=Sun in dart, we want Sun=0
-                final startPadding = firstDay.weekday % 7;
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => Center(child: Text('خطأ: $e')),
+                  data: (calendarData) {
+                    final dates = allDatesInMonth(selectedMonth);
+                    final firstDay = DateTime.parse('$selectedMonth-01');
+                    // 0=Sun in dart, we want Sun=0
+                    final startPadding = firstDay.weekday % 7;
 
-                return GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 7,
-                    childAspectRatio: 1,
-                    crossAxisSpacing: 6,
-                    mainAxisSpacing: 6,
-                  ),
-                  itemCount: startPadding + dates.length,
-                  itemBuilder: (context, index) {
-                    if (index < startPadding) return const SizedBox.shrink();
-                    final date = dates[index - startPadding];
-                    final data = calendarData[date];
-                    final isFuture = date.compareTo(todayIso()) > 0;
-                    final isToday = date == todayIso();
-                    final day = int.parse(date.split('-').last);
+                    return GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 7,
+                        childAspectRatio: 1,
+                        crossAxisSpacing: 6,
+                        mainAxisSpacing: 6,
+                      ),
+                      itemCount: startPadding + dates.length,
+                      itemBuilder: (context, index) {
+                        if (index < startPadding) {
+                          return const SizedBox.shrink();
+                        }
+                        final date = dates[index - startPadding];
+                        final data = calendarData[date];
+                        final isFuture = date.compareTo(todayIso()) > 0;
+                        final isToday = date == todayIso();
+                        final day = int.parse(date.split('-').last);
 
-                    return _CalendarCell(
-                      day: day,
-                      data: data,
-                      isToday: isToday,
-                      isFuture: isFuture,
-                      useArabic: useArabic,
-                      onTap: isFuture
-                          ? null
-                          : () => showDialog(
-                                context: context,
-                                builder: (_) => DayEditDialog(date: date),
-                              ),
-                    );
+                        return _CalendarCell(
+                          day: day,
+                          data: data,
+                          isToday: isToday,
+                          isFuture: isFuture,
+                          useArabic: useArabic,
+                          onTap: isFuture
+                              ? null
+                              : () => showDialog(
+                                    context: context,
+                                    builder: (_) => DayEditDialog(date: date),
+                                  ),
+                        );
+                      },
+                    ).animate().fadeIn(duration: 400.ms);
                   },
-                ).animate().fadeIn(duration: 400.ms);
-              },
-            ),
+                ),
           ),
 
           // Legend
@@ -142,15 +171,11 @@ class CalendarScreen extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('مكتمل', style: theme.textTheme.labelSmall?.copyWith(color: AppColors.mutedFg)),
+                Text('مكتمل',
+                    style:
+                        theme.textTheme.labelSmall?.copyWith(color: mutedFg)),
                 const SizedBox(width: 8),
-                ...[
-                  AppColors.heatmap4,
-                  AppColors.heatmap3,
-                  AppColors.heatmap2,
-                  AppColors.heatmap1,
-                  AppColors.heatmap0,
-                ].map((c) => Container(
+                ...heatmapColors.map((c) => Container(
                       width: 16,
                       height: 16,
                       margin: const EdgeInsets.only(right: 4),
@@ -160,7 +185,9 @@ class CalendarScreen extends ConsumerWidget {
                       ),
                     )),
                 const SizedBox(width: 4),
-                Text('فارغ', style: theme.textTheme.labelSmall?.copyWith(color: AppColors.mutedFg)),
+                Text('فارغ',
+                    style:
+                        theme.textTheme.labelSmall?.copyWith(color: mutedFg)),
               ],
             ),
           ),
@@ -187,7 +214,16 @@ class _CalendarCell extends StatelessWidget {
     required this.onTap,
   });
 
-  Color _cellColor() {
+  Color _cellColor(BuildContext context) {
+    if (Theme.of(context).brightness == Brightness.dark) {
+      if (data == null || data!.completed == 0) return AppColors.darkMuted;
+      final ratio = data!.ratio;
+      if (ratio >= 1.0) return AppColors.darkPrimary;
+      if (ratio >= 0.75) return const Color(0xFF8F7626);
+      if (ratio >= 0.5) return AppColors.darkGreen;
+      if (ratio >= 0.25) return const Color(0xFF1C4F3D);
+      return AppColors.darkMuted;
+    }
     if (data == null || data!.completed == 0) return AppColors.heatmap0;
     final ratio = data!.ratio;
     if (ratio >= 1.0) return AppColors.heatmap4;
@@ -197,28 +233,37 @@ class _CalendarCell extends StatelessWidget {
     return AppColors.heatmap0;
   }
 
-  Color _textColor() {
-    final bg = _cellColor();
-    if (bg == AppColors.heatmap4 || bg == AppColors.heatmap3) return Colors.white;
-    if (bg == AppColors.heatmap2) return Colors.white;
-    return AppColors.foreground;
+  Color _textColor(BuildContext context) {
+    if (Theme.of(context).brightness == Brightness.dark) {
+      return AppColors.foregroundOf(context);
+    }
+    final bg = _cellColor(context);
+    if (bg == AppColors.heatmap4 || bg == AppColors.heatmap3) {
+      return Colors.white;
+    }
+    if (bg == AppColors.heatmap2) {
+      return Colors.white;
+    }
+    return AppColors.foregroundOf(context);
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cellColor = _cellColor();
-    final textColor = _textColor();
+    final cellColor = _cellColor(context);
+    final textColor = _textColor(context);
 
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         duration: 200.ms,
         decoration: BoxDecoration(
-          color: isFuture ? AppColors.muted.withValues(alpha: 0.3) : cellColor,
+          color: isFuture
+              ? AppColors.mutedOf(context).withValues(alpha: 0.3)
+              : cellColor,
           borderRadius: BorderRadius.circular(10),
           border: isToday
-              ? Border.all(color: AppColors.primary, width: 2)
+              ? Border.all(color: AppColors.primaryOf(context), width: 2)
               : null,
         ),
         child: Opacity(
@@ -229,7 +274,7 @@ class _CalendarCell extends StatelessWidget {
               Text(
                 formatNumber(day, useArabic: useArabic),
                 style: theme.textTheme.labelMedium?.copyWith(
-                  color: isFuture ? AppColors.mutedFg : textColor,
+                  color: isFuture ? AppColors.mutedFgOf(context) : textColor,
                   fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
                 ),
               ),

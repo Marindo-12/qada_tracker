@@ -8,16 +8,42 @@ import 'setup_screan.dart';
 
 // ─── Design System Colors ─────────────────────────────────────────────────────
 class AppColors {
-  static const bg        = Color(0xFFF5F0E8);
-  static const fg        = Color(0xFF1A2332);
-  static const card      = Color(0xFFFFFFFF);
-  static const border    = Color(0xFFD9CCB5);
-  static const primary   = Color(0xFF0D6B45);
+  static const bg = Color(0xFFF5F0E8);
+  static const fg = Color(0xFF1A2332);
+  static const card = Color(0xFFFFFFFF);
+  static const border = Color(0xFFD9CCB5);
+  static const primary = Color(0xFF0D6B45);
   static const primaryFg = Color(0xFFFFFFFF);
   static const secondary = Color(0xFFE8DFC8);
-  static const muted     = Color(0xFFE8DFC8);
-  static const mutedFg   = Color(0xFF5A6A7A);
-  static const accent    = Color(0xFFB8932A);
+  static const muted = Color(0xFFE8DFC8);
+  static const mutedFg = Color(0xFF5A6A7A);
+  static const accent = Color(0xFFB8932A);
+
+  static const darkBg = Color(0xFF0F1621);
+  static const darkFg = Color(0xFFF5F0E8);
+  static const darkCard = Color(0xFF1A2535);
+  static const darkBorder = Color(0xFF2A3545);
+  static const darkMuted = Color(0xFF263447);
+  static const darkMutedFg = Color(0xFFC7BFAE);
+  static const darkPrimary = Color(0xFFB8932A);
+  static const darkGreen = Color(0xFF0D6B45);
+
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+  static Color bgOf(BuildContext context) => isDark(context) ? darkBg : bg;
+  static Color fgOf(BuildContext context) => isDark(context) ? darkFg : fg;
+  static Color cardOf(BuildContext context) =>
+      isDark(context) ? darkCard : card;
+  static Color borderOf(BuildContext context) =>
+      isDark(context) ? darkBorder : border;
+  static Color mutedOf(BuildContext context) =>
+      isDark(context) ? darkMuted : muted;
+  static Color mutedFgOf(BuildContext context) =>
+      isDark(context) ? darkMutedFg : mutedFg;
+  static Color primaryOf(BuildContext context) =>
+      isDark(context) ? darkPrimary : primary;
+  static Color greenOf(BuildContext context) =>
+      isDark(context) ? darkGreen : primary;
 }
 
 class SetupIntroScreen extends StatefulWidget {
@@ -29,10 +55,9 @@ class SetupIntroScreen extends StatefulWidget {
 
 class _SetupIntroScreenState extends State<SetupIntroScreen>
     with TickerProviderStateMixin {
-
   // قضاء individual letters (RTL order as displayed: ق ض ا ء)
-  static const _letters    = ['ق', 'ض', 'ا', 'ء'];
-  static const _fullWord   = 'قَضَاءُ';
+  static const _letters = ['ق', 'ض', 'ا', 'ء'];
+  static const _fullWord = 'قَضَاءُ';
 
   // ── Flash-letter animation (single letter shown/hidden) ────────────────────
   late final AnimationController _flashInCtl;
@@ -40,23 +65,23 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
 
   // ── Full word build-up (char by char) ─────────────────────────────────────
   late final List<AnimationController> _charCtls;
-  late final List<Animation<double>>   _charFades;
-  late final List<Animation<Offset>>   _charSlides;
+  late final List<Animation<double>> _charFades;
+  late final List<Animation<Offset>> _charSlides;
 
   // ── Phase controllers ──────────────────────────────────────────────────────
-  late final AnimationController _glowCtl;     // accent pulse on full word
-  late final AnimationController _sweepCtl;    // white light sweep
-  late final AnimationController _ornCtl;      // ornament line
-  late final AnimationController _migrateCtl;  // full word shrinks → header
-  late final AnimationController _headerCtl;   // header word slides in
-  late final AnimationController _stageCtl;    // stage height collapse
+  late final AnimationController _glowCtl; // accent pulse on full word
+  late final AnimationController _sweepCtl; // white light sweep
+  late final AnimationController _ornCtl; // ornament line
+  late final AnimationController _migrateCtl; // full word shrinks → header
+  late final AnimationController _headerCtl; // header word slides in
+  late final AnimationController _stageCtl; // stage height collapse
   late final AnimationController _r1Ctl, _r2Ctl, _r3Ctl, _r4Ctl;
 
   // ── Runtime state ─────────────────────────────────────────────────────────
-  int  _currentFlashIndex = -1; // which letter is currently shown (-1 = none)
-  bool _showFullWord       = false;
-  bool _sweepRunning       = false;
-  bool _stageCollapsed     = false;
+  int _currentFlashIndex = -1; // which letter is currently shown (-1 = none)
+  bool _showFullWord = false;
+  bool _sweepRunning = false;
+  bool _stageCollapsed = false;
 
   @override
   void initState() {
@@ -70,7 +95,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
 
   void _buildControllers() {
     // Flash in/out for single letter
-    _flashInCtl  = _ctl(220);
+    _flashInCtl = _ctl(220);
     _flashOutCtl = _ctl(180);
 
     // Per-char controllers for full word build-up
@@ -79,21 +104,22 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
     _charFades = _charCtls
         .map((c) => CurvedAnimation(parent: c, curve: Curves.easeOut))
         .toList();
-    _charSlides = _charCtls.map((c) =>
-        Tween<Offset>(begin: const Offset(0, 0.35), end: Offset.zero)
+    _charSlides = _charCtls
+        .map((c) => Tween<Offset>(
+                begin: const Offset(0, 0.35), end: Offset.zero)
             .animate(CurvedAnimation(parent: c, curve: Curves.easeOutCubic)))
         .toList();
 
-    _glowCtl    = _ctl(280);
-    _sweepCtl   = _ctl(1000);
-    _ornCtl     = _ctl(480);
+    _glowCtl = _ctl(280);
+    _sweepCtl = _ctl(1000);
+    _ornCtl = _ctl(480);
     _migrateCtl = _ctl(420);
-    _headerCtl  = _ctl(480);
-    _stageCtl   = _ctl(480);
-    _r1Ctl      = _ctl(650);
-    _r2Ctl      = _ctl(650);
-    _r3Ctl      = _ctl(650);
-    _r4Ctl      = _ctl(650);
+    _headerCtl = _ctl(480);
+    _stageCtl = _ctl(480);
+    _r1Ctl = _ctl(650);
+    _r2Ctl = _ctl(650);
+    _r3Ctl = _ctl(650);
+    _r4Ctl = _ctl(650);
   }
 
   // ── Main sequence ──────────────────────────────────────────────────────────
@@ -184,9 +210,16 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
       c.dispose();
     }
     for (final c in [
-      _glowCtl, _sweepCtl, _ornCtl,
-      _migrateCtl, _headerCtl, _stageCtl,
-      _r1Ctl, _r2Ctl, _r3Ctl, _r4Ctl,
+      _glowCtl,
+      _sweepCtl,
+      _ornCtl,
+      _migrateCtl,
+      _headerCtl,
+      _stageCtl,
+      _r1Ctl,
+      _r2Ctl,
+      _r3Ctl,
+      _r4Ctl,
     ]) {
       c.dispose();
     }
@@ -196,16 +229,18 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
   // ─────────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    final isDark = AppColors.isDark(context);
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     ));
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: AppColors.bgOf(context),
       body: Stack(
         children: [
-          const Positioned.fill(child: _GridPattern()),
+          Positioned.fill(
+              child: _GridPattern(color: AppColors.primaryOf(context))),
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -268,14 +303,14 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
                   child: Transform.scale(
                     scale: 0.88 + t * 0.12,
                     alignment: Alignment.centerLeft,
-                    child: const Text(
+                    child: Text(
                       'قَضَاء',
                       textDirection: TextDirection.rtl,
                       style: TextStyle(
                         fontFamily: 'ScheherazadeNew',
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
+                        color: AppColors.primaryOf(context),
                       ),
                     ),
                   ),
@@ -307,8 +342,11 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
           child: Center(
             child: AnimatedBuilder(
               animation: Listenable.merge([
-                _flashInCtl, _flashOutCtl,
-                _glowCtl, _sweepCtl, _migrateCtl,
+                _flashInCtl,
+                _flashOutCtl,
+                _glowCtl,
+                _sweepCtl,
+                _migrateCtl,
               ]),
               builder: (context, _) {
                 final migrateT = CurvedAnimation(
@@ -334,7 +372,6 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
 
                           // Full word build-up
                           if (_showFullWord) _buildFullWord(glowT),
-
                         ],
                       ),
                     ),
@@ -357,16 +394,18 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
       animation: Listenable.merge([_flashInCtl, _flashOutCtl]),
       builder: (context, _) {
         // Flash IN: scale up from small + fade in
-        final inT  = CurvedAnimation(parent: _flashInCtl,  curve: Curves.easeOutBack).value;
+        final inT =
+            CurvedAnimation(parent: _flashInCtl, curve: Curves.easeOutBack)
+                .value;
         // Flash OUT: fade out + slight scale up
-        final outT = CurvedAnimation(parent: _flashOutCtl, curve: Curves.easeIn).value;
+        final outT =
+            CurvedAnimation(parent: _flashOutCtl, curve: Curves.easeIn).value;
 
         final opacity = _flashOutCtl.isAnimating
             ? (1.0 - outT).clamp(0.0, 1.0)
             : inT.clamp(0.0, 1.0);
-        final scale   = _flashOutCtl.isAnimating
-            ? 1.0 + outT * 0.08
-            : 0.65 + inT * 0.35;
+        final scale =
+            _flashOutCtl.isAnimating ? 1.0 + outT * 0.08 : 0.65 + inT * 0.35;
 
         return Opacity(
           opacity: opacity,
@@ -375,11 +414,11 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
             child: Text(
               letter,
               textDirection: TextDirection.rtl,
-              style: const TextStyle(
+              style: TextStyle(
                 fontFamily: 'ScheherazadeNew',
                 fontSize: 120,
                 fontWeight: FontWeight.w700,
-                color: AppColors.primary,
+                color: AppColors.primaryOf(context),
                 height: 1.0,
               ),
             ),
@@ -392,7 +431,8 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
   // ── Full word (char by char build-up) ────────────────────────────────────
   Widget _buildFullWord(double glowT) {
     final chars = _fullWord.characters.toList();
-    final baseColor = Color.lerp(AppColors.primary, AppColors.accent, glowT) ?? AppColors.primary;
+    final primary = AppColors.primaryOf(context);
+    final baseColor = Color.lerp(primary, AppColors.accent, glowT) ?? primary;
     final word = Directionality(
       textDirection: TextDirection.rtl,
       child: Row(
@@ -422,7 +462,8 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
 
     if (!_sweepRunning) return word;
 
-    final sweepT = CurvedAnimation(parent: _sweepCtl, curve: Curves.easeInOut).value;
+    final sweepT =
+        CurvedAnimation(parent: _sweepCtl, curve: Curves.easeInOut).value;
     final center = (1.05 - sweepT * 1.25).clamp(0.0, 1.0);
     final left = (center - 0.18).clamp(0.0, 1.0);
     final right = (center + 0.18).clamp(0.0, 1.0);
@@ -454,7 +495,9 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
     return AnimatedBuilder(
       animation: _ornCtl,
       builder: (context, _) {
-        final t = CurvedAnimation(parent: _ornCtl, curve: Curves.elasticOut).value.clamp(0.0, 1.0);
+        final t = CurvedAnimation(parent: _ornCtl, curve: Curves.elasticOut)
+            .value
+            .clamp(0.0, 1.0);
         return Opacity(
           opacity: t,
           child: Transform.scale(
@@ -483,33 +526,35 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
   }
 
   Widget _line(bool reversed) => Container(
-    width: 52, height: 1,
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: reversed
-            ? [AppColors.accent, Colors.transparent]
-            : [Colors.transparent, AppColors.accent],
-      ),
-    ),
-  );
+        width: 52,
+        height: 1,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: reversed
+                ? [AppColors.accent, Colors.transparent]
+                : [Colors.transparent, AppColors.accent],
+          ),
+        ),
+      );
 
   Widget _diamond(double size, double opacity) => Opacity(
-    opacity: opacity,
-    child: Transform.rotate(
-      angle: math.pi / 4,
-      child: Container(
-        width: size, height: size,
-        decoration: BoxDecoration(
-          color: AppColors.accent,
-          borderRadius: BorderRadius.circular(1),
+        opacity: opacity,
+        child: Transform.rotate(
+          angle: math.pi / 4,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: AppColors.accent,
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 
   // ── Welcome ───────────────────────────────────────────────────────────────
   Widget _buildWelcome() {
-    return const Column(
+    return Column(
       children: [
         Text(
           'أهلاً بك في قضاء ',
@@ -519,11 +564,11 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
             fontFamily: 'Amiri',
             fontSize: 20,
             fontWeight: FontWeight.w700,
-            color: AppColors.fg,
+            color: AppColors.fgOf(context),
             height: 1.5,
           ),
         ),
-        SizedBox(height: 5),
+        const SizedBox(height: 5),
         Text(
           'رفيق هادئ يساعدك على قضاء صلواتك الفائتة\nبخطة يومية واضحة ومتابعة مستمرة.',
           textAlign: TextAlign.center,
@@ -531,7 +576,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
           style: TextStyle(
             fontFamily: 'Amiri',
             fontSize: 15,
-            color: AppColors.mutedFg,
+            color: AppColors.mutedFgOf(context),
             height: 1.8,
           ),
         ),
@@ -541,14 +586,15 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
 
   // ── Citation card ──────────────────────────────────────────────────────────
   Widget _buildCitationCard() {
+    final primary = AppColors.primaryOf(context);
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: AppColors.cardOf(context),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.border),
+        border: Border.all(color: AppColors.borderOf(context)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.06),
+            color: primary.withValues(alpha: 0.08),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -557,11 +603,13 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
       child: Stack(
         children: [
           Positioned(
-            right: 0, top: 0, bottom: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
             child: Container(
               width: 3,
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
+              decoration: BoxDecoration(
+                color: primary,
                 borderRadius: BorderRadius.only(
                   topRight: Radius.circular(14),
                   bottomRight: Radius.circular(14),
@@ -573,7 +621,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
             padding: const EdgeInsets.fromLTRB(20, 18, 22, 18),
             child: Column(
               children: [
-                const Text(
+                Text(
                   'إِنَّ الصَّلَاةَ كَانَتْ عَلَى الْمُؤْمِنِينَ كِتَابًا مَّوْقُوتًا',
                   textAlign: TextAlign.center,
                   textDirection: TextDirection.rtl,
@@ -581,19 +629,19 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
                     fontFamily: 'ScheherazadeNew',
                     fontSize: 17,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+                    color: primary,
                     height: 2.1,
                   ),
                 ),
                 const SizedBox(height: 10),
-                Container(height: 1, color: AppColors.border),
+                Container(height: 1, color: AppColors.borderOf(context)),
                 const SizedBox(height: 10),
-                const Text(
+                Text(
                   'سورة النساء — الآية ١٠٣',
                   style: TextStyle(
                     fontFamily: 'Amiri',
                     fontSize: 12,
-                    color: AppColors.mutedFg,
+                    color: AppColors.mutedFgOf(context),
                   ),
                 ),
               ],
@@ -606,10 +654,11 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
 
   // ── Features ──────────────────────────────────────────────────────────────
   Widget _buildFeatures() {
+    final primary = AppColors.primaryOf(context);
     const features = [
       (Icons.calendar_month_outlined, 'حدد الفترة'),
-      (Icons.track_changes_outlined,  'اختر روتينك'),
-      (Icons.insights_outlined,       'تابع الإنجاز'),
+      (Icons.track_changes_outlined, 'اختر روتينك'),
+      (Icons.insights_outlined, 'تابع الإنجاز'),
     ];
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -621,30 +670,31 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
               margin: const EdgeInsets.symmetric(horizontal: 4),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
               decoration: BoxDecoration(
-                color: AppColors.card,
+                color: AppColors.cardOf(context),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.border),
+                border: Border.all(color: AppColors.borderOf(context)),
               ),
               child: Column(
                 children: [
                   Container(
-                    width: 38, height: 38,
+                    width: 38,
+                    height: 38,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.10),
+                      color: primary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(icon, color: AppColors.primary, size: 20),
+                    child: Icon(icon, color: primary, size: 20),
                   ),
                   const SizedBox(height: 7),
                   Text(
                     label,
                     textAlign: TextAlign.center,
                     textDirection: TextDirection.rtl,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontFamily: 'Amiri',
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
-                      color: AppColors.fg,
+                      color: AppColors.fgOf(context),
                     ),
                   ),
                 ],
@@ -669,13 +719,13 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
   }
 
   Widget _buildHint() {
-    return const Text(
+    return Text(
       'يمكنك تعديل الخطة لاحقاً من الإعدادات.',
       textAlign: TextAlign.center,
       style: TextStyle(
         fontFamily: 'Amiri',
         fontSize: 12,
-        color: AppColors.mutedFg,
+        color: AppColors.mutedFgOf(context),
       ),
     );
   }
@@ -685,7 +735,8 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
     return AnimatedBuilder(
       animation: ctl,
       builder: (context, _) {
-        final t = CurvedAnimation(parent: ctl, curve: Curves.easeOutCubic).value;
+        final t =
+            CurvedAnimation(parent: ctl, curve: Curves.easeOutCubic).value;
         return Opacity(
           opacity: t,
           child: Transform.translate(
@@ -716,18 +767,25 @@ class _ShimmerButtonState extends State<_ShimmerButton>
   @override
   void initState() {
     super.initState();
-    _ctl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2400))
+    _ctl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 2400))
       ..repeat();
   }
 
   @override
-  void dispose() { _ctl.dispose(); super.dispose(); }
+  void dispose() {
+    _ctl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTapDown:   (_) => setState(() => _pressed = true),
-      onTapUp:     (_) { setState(() => _pressed = false); widget.onPressed(); },
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onPressed();
+      },
       onTapCancel: () => setState(() => _pressed = false),
       child: AnimatedScale(
         scale: _pressed ? 0.97 : 1.0,
@@ -736,15 +794,19 @@ class _ShimmerButtonState extends State<_ShimmerButton>
           animation: _ctl,
           builder: (context, _) {
             final pos = _ctl.value;
+            final primary = AppColors.primaryOf(context);
+            final mid = AppColors.isDark(context)
+                ? const Color(0xFFD1A943)
+                : const Color(0xFF0F8055);
             return Container(
               height: 54,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(13),
                 gradient: LinearGradient(
-                  colors: const [
-                    AppColors.primary,
-                    Color(0xFF0F8055),
-                    AppColors.primary,
+                  colors: [
+                    primary,
+                    mid,
+                    primary,
                   ],
                   stops: [
                     (pos - 0.35).clamp(0.0, 1.0),
@@ -754,7 +816,7 @@ class _ShimmerButtonState extends State<_ShimmerButton>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.28),
+                    color: primary.withValues(alpha: 0.28),
                     blurRadius: 18,
                     offset: const Offset(0, 5),
                   ),
@@ -781,17 +843,22 @@ class _ShimmerButtonState extends State<_ShimmerButton>
 
 // ─── Subtle grid background ────────────────────────────────────────────────────
 class _GridPattern extends StatelessWidget {
-  const _GridPattern();
+  final Color color;
+  const _GridPattern({required this.color});
 
   @override
-  Widget build(BuildContext context) => CustomPaint(painter: _GridPainter());
+  Widget build(BuildContext context) =>
+      CustomPaint(painter: _GridPainter(color));
 }
 
 class _GridPainter extends CustomPainter {
+  final Color color;
+  const _GridPainter(this.color);
+
   @override
   void paint(Canvas canvas, Size size) {
     final p = Paint()
-      ..color = AppColors.primary.withValues(alpha: 0.025)
+      ..color = color.withValues(alpha: 0.035)
       ..strokeWidth = 0.8;
     const s = 40.0;
     for (double x = 0; x < size.width; x += s) {

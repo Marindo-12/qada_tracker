@@ -13,6 +13,7 @@ class PrayerProgressBreakdown extends ConsumerWidget {
     final progressAsync = ref.watch(prayerProgressProvider);
     final useArabic = ref.watch(digitStyleProvider);
     final theme = Theme.of(context);
+    final foreground = AppColors.foregroundOf(context);
 
     return progressAsync.when(
       loading: () => const SizedBox.shrink(),
@@ -29,7 +30,7 @@ class PrayerProgressBreakdown extends ConsumerWidget {
                 'تقدم كل صلاة على حدة',
                 textAlign: TextAlign.right,
                 style: theme.textTheme.titleLarge?.copyWith(
-                  color: AppColors.foreground.withValues(alpha: 0.86),
+                  color: foreground.withValues(alpha: 0.86),
                   fontWeight: FontWeight.w700,
                   fontSize: 16,
                 ),
@@ -69,6 +70,9 @@ class _PrayerProgressRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final prayerName = kPrayerNamesAr[item.prayer] ?? item.prayer;
+    final primary = AppColors.primaryOf(context);
+    final foreground = AppColors.foregroundOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
@@ -80,7 +84,7 @@ class _PrayerProgressRow extends StatelessWidget {
               Text(
                 '${formatNumber(item.total, useArabic: useArabic)} / ${formatNumber(item.completed, useArabic: useArabic)}',
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: AppColors.mutedFg,
+                  color: mutedFg,
                   fontWeight: FontWeight.w700,
                   fontSize: 12,
                 ),
@@ -89,7 +93,7 @@ class _PrayerProgressRow extends StatelessWidget {
               Text(
                 prayerName,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  color: AppColors.foreground.withValues(alpha: 0.88),
+                  color: foreground.withValues(alpha: 0.88),
                   fontWeight: FontWeight.w700,
                   fontSize: 13,
                 ),
@@ -102,8 +106,8 @@ class _PrayerProgressRow extends StatelessWidget {
             child: LinearProgressIndicator(
               value: item.ratio,
               minHeight: 9,
-              backgroundColor: const Color(0xFFCDE3DB),
-              color: AppColors.primary,
+              backgroundColor: AppColors.progressTrackOf(context),
+              color: primary,
             ),
           ),
           const SizedBox(height: 9),
@@ -112,7 +116,7 @@ class _PrayerProgressRow extends StatelessWidget {
               Text(
                 'متبقي: ${formatNumber(item.remaining, useArabic: useArabic)}',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.mutedFg,
+                  color: mutedFg,
                   fontWeight: FontWeight.w700,
                   fontSize: 11,
                 ),
@@ -121,7 +125,7 @@ class _PrayerProgressRow extends StatelessWidget {
               Text(
                 'أنجزت: ${formatNumber(item.completed, useArabic: useArabic)}',
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.primary,
+                  color: primary,
                   fontWeight: FontWeight.w700,
                   fontSize: 11,
                 ),

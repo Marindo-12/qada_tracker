@@ -49,6 +49,9 @@ class _DayEditDialogState extends ConsumerState<DayEditDialog> {
     final theme = Theme.of(context);
     final useArabic = ref.watch(digitStyleProvider);
     final total = _counts.values.fold(0, (sum, c) => sum + c);
+    final primary = AppColors.primaryOf(context);
+    final foreground = AppColors.foregroundOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -60,37 +63,32 @@ class _DayEditDialogState extends ConsumerState<DayEditDialog> {
             // Header
             Text(
               formatArabicDate(widget.date),
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(color: AppColors.primary),
+              style: theme.textTheme.headlineSmall?.copyWith(color: primary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
             Text(
               'عدّل عدد كل صلاة قضاء صليتها في هذا اليوم',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: AppColors.mutedFg),
+              style: theme.textTheme.bodySmall?.copyWith(color: mutedFg),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
 
             // Total badge
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: primary.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.check_circle,
-                      size: 16, color: AppColors.primary),
+                  Icon(Icons.check_circle, size: 16, color: primary),
                   const SizedBox(width: 6),
                   Text(
                     'مجموع اليوم: ${formatNumber(total, useArabic: useArabic)}',
-                    style: theme.textTheme.labelLarge
-                        ?.copyWith(color: AppColors.primary),
+                    style: theme.textTheme.labelLarge?.copyWith(color: primary),
                   ),
                 ],
               ),
@@ -116,7 +114,7 @@ class _DayEditDialogState extends ConsumerState<DayEditDialog> {
                     AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       color: isCompleted
-                          ? AppColors.primary.withValues(alpha: 0.04)
+                          ? primary.withValues(alpha: 0.06)
                           : Colors.transparent,
                       padding: const EdgeInsets.symmetric(
                           vertical: 10, horizontal: 4),
@@ -125,9 +123,7 @@ class _DayEditDialogState extends ConsumerState<DayEditDialog> {
                           Text(
                             '${kPrayerIcons[prayer] ?? ''} ${kPrayerNamesAr[prayer] ?? prayer}',
                             style: theme.textTheme.titleSmall?.copyWith(
-                              color: isCompleted
-                                  ? AppColors.primary
-                                  : AppColors.foreground,
+                              color: isCompleted ? primary : foreground,
                               fontWeight: isCompleted
                                   ? FontWeight.bold
                                   : FontWeight.normal,
@@ -137,7 +133,7 @@ class _DayEditDialogState extends ConsumerState<DayEditDialog> {
                           // Decrement
                           _RoundButton(
                             icon: Icons.remove,
-                            color: AppColors.mutedFg,
+                            color: mutedFg,
                             enabled: count > 0,
                             onTap: count > 0
                                 ? () => _setCount(prayer, count - 1)
@@ -156,7 +152,7 @@ class _DayEditDialogState extends ConsumerState<DayEditDialog> {
                           // Increment
                           _RoundButton(
                             icon: Icons.add,
-                            color: AppColors.primary,
+                            color: primary,
                             enabled: true,
                             onTap: () => _setCount(prayer, count + 1),
                           ),
@@ -171,7 +167,7 @@ class _DayEditDialogState extends ConsumerState<DayEditDialog> {
             Text(
               'إذا صليت أكثر من صلاة من نفس النوع، اضغط + عدة مرات',
               style: theme.textTheme.bodySmall
-                  ?.copyWith(color: AppColors.mutedFg, fontStyle: FontStyle.italic),
+                  ?.copyWith(color: mutedFg, fontStyle: FontStyle.italic),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),

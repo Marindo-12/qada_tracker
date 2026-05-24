@@ -4,17 +4,17 @@ import 'package:google_fonts/google_fonts.dart';
 
 class AppColors {
   // ─── Light Mode ──────────────────────────────────────────────────────────────
-  static const background = Color(0xFFF5F0E8);   // Sand/Cream
-  static const foreground = Color(0xFF1A2332);   // Deep Indigo
+  static const background = Color(0xFFF5F0E8); // Sand/Cream
+  static const foreground = Color(0xFF1A2332); // Deep Indigo
   static const card = Color(0xFFFFFFFF);
   static const border = Color(0xFFD9CCB5);
-  static const primary = Color(0xFF0D6B45);      // Emerald green
+  static const primary = Color(0xFF0D6B45); // Emerald green
   static const primaryFg = Color(0xFFFFFFFF);
   static const secondary = Color(0xFFE8DFC8);
   static const secondaryFg = Color(0xFF1A2332);
   static const muted = Color(0xFFE8DFC8);
   static const mutedFg = Color(0xFF5A6A7A);
-  static const accent = Color(0xFFB8932A);       // Muted Gold
+  static const accent = Color(0xFFB8932A); // Muted Gold
   static const accentFg = Color(0xFFFFFFFF);
   static const destructive = Color(0xFFCC3333);
   static const destructiveFg = Color(0xFFFFFFFF);
@@ -30,9 +30,38 @@ class AppColors {
   static const darkBackground = Color(0xFF0F1621);
   static const darkCard = Color(0xFF1A2535);
   static const darkBorder = Color(0xFF2A3545);
-  static const darkPrimary = Color(0xFFB8932A);  // Gold in dark mode
+  static const darkPrimary = Color(0xFFB8932A); // Gold in dark mode
   static const darkPrimaryFg = Color(0xFF0F1621);
-  static const darkMutedFg = Color(0xFF7A8A9A);
+  static const darkMutedFg = Color(0xFFC7BFAE);
+  static const darkMuted = Color(0xFF263447);
+  static const darkGreen = Color(0xFF0D6B45);
+
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
+  static Color primaryOf(BuildContext context) =>
+      isDark(context) ? darkPrimary : primary;
+
+  static Color greenOf(BuildContext context) =>
+      isDark(context) ? darkGreen : primary;
+
+  static Color foregroundOf(BuildContext context) =>
+      isDark(context) ? const Color(0xFFF5F0E8) : foreground;
+
+  static Color mutedFgOf(BuildContext context) =>
+      isDark(context) ? darkMutedFg : mutedFg;
+
+  static Color mutedOf(BuildContext context) =>
+      isDark(context) ? darkMuted : muted;
+
+  static Color borderOf(BuildContext context) =>
+      isDark(context) ? darkBorder : border;
+
+  static Color surfaceOf(BuildContext context) =>
+      isDark(context) ? darkCard : card;
+
+  static Color progressTrackOf(BuildContext context) =>
+      isDark(context) ? darkMuted : const Color(0xFFCDE8DA);
 }
 
 class AppTheme {
@@ -72,7 +101,8 @@ class AppTheme {
             foregroundColor: AppColors.primaryFg,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             textStyle: GoogleFonts.cairo(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -84,7 +114,8 @@ class AppTheme {
             foregroundColor: AppColors.primary,
             side: const BorderSide(color: AppColors.primary),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
@@ -102,7 +133,8 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: AppColors.primary, width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         dividerTheme: const DividerThemeData(
           color: AppColors.border,
@@ -150,6 +182,56 @@ class AppTheme {
           elevation: 0,
           centerTitle: true,
         ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.darkPrimary,
+            foregroundColor: AppColors.darkPrimaryFg,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            textStyle: GoogleFonts.cairo(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: AppColors.darkPrimary,
+            side: const BorderSide(color: AppColors.darkPrimary),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: AppColors.darkCard,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.darkBorder),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.darkBorder),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide:
+                const BorderSide(color: AppColors.darkPrimary, width: 2),
+          ),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+        dividerTheme: const DividerThemeData(
+          color: AppColors.darkBorder,
+          thickness: 0.5,
+        ),
+        progressIndicatorTheme: const ProgressIndicatorThemeData(
+          color: AppColors.darkPrimary,
+          linearTrackColor: AppColors.darkMuted,
+        ),
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           backgroundColor: AppColors.darkCard,
           selectedItemColor: AppColors.darkPrimary,
@@ -160,23 +242,40 @@ class AppTheme {
       );
 
   static TextTheme _buildTextTheme(Brightness brightness) {
-    final color = brightness == Brightness.light ? AppColors.foreground : const Color(0xFFF5F0E8);
+    final color = brightness == Brightness.light
+        ? AppColors.foreground
+        : const Color(0xFFF5F0E8);
     return TextTheme(
-      displayLarge: GoogleFonts.cairo(fontSize: 32, fontWeight: FontWeight.w700, color: color),
-      displayMedium: GoogleFonts.cairo(fontSize: 28, fontWeight: FontWeight.w700, color: color),
-      displaySmall: GoogleFonts.cairo(fontSize: 24, fontWeight: FontWeight.w700, color: color),
-      headlineLarge: GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.w700, color: color),
-      headlineMedium: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.w600, color: color),
-      headlineSmall: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w600, color: color),
-      titleLarge: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.w600, color: color),
-      titleMedium: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: color),
-      titleSmall: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w600, color: color),
-      bodyLarge: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.w400, color: color),
-      bodyMedium: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w400, color: color),
-      bodySmall: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w400, color: color),
-      labelLarge: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: color),
-      labelMedium: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w500, color: color),
-      labelSmall: GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.w500, color: color),
+      displayLarge: GoogleFonts.cairo(
+          fontSize: 32, fontWeight: FontWeight.w700, color: color),
+      displayMedium: GoogleFonts.cairo(
+          fontSize: 28, fontWeight: FontWeight.w700, color: color),
+      displaySmall: GoogleFonts.cairo(
+          fontSize: 24, fontWeight: FontWeight.w700, color: color),
+      headlineLarge: GoogleFonts.cairo(
+          fontSize: 22, fontWeight: FontWeight.w700, color: color),
+      headlineMedium: GoogleFonts.cairo(
+          fontSize: 20, fontWeight: FontWeight.w600, color: color),
+      headlineSmall: GoogleFonts.cairo(
+          fontSize: 18, fontWeight: FontWeight.w600, color: color),
+      titleLarge: GoogleFonts.cairo(
+          fontSize: 16, fontWeight: FontWeight.w600, color: color),
+      titleMedium: GoogleFonts.cairo(
+          fontSize: 14, fontWeight: FontWeight.w600, color: color),
+      titleSmall: GoogleFonts.cairo(
+          fontSize: 12, fontWeight: FontWeight.w600, color: color),
+      bodyLarge: GoogleFonts.cairo(
+          fontSize: 16, fontWeight: FontWeight.w400, color: color),
+      bodyMedium: GoogleFonts.cairo(
+          fontSize: 14, fontWeight: FontWeight.w400, color: color),
+      bodySmall: GoogleFonts.cairo(
+          fontSize: 12, fontWeight: FontWeight.w400, color: color),
+      labelLarge: GoogleFonts.cairo(
+          fontSize: 14, fontWeight: FontWeight.w600, color: color),
+      labelMedium: GoogleFonts.cairo(
+          fontSize: 12, fontWeight: FontWeight.w500, color: color),
+      labelSmall: GoogleFonts.cairo(
+          fontSize: 10, fontWeight: FontWeight.w500, color: color),
     );
   }
 }

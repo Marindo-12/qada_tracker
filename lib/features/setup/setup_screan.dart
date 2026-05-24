@@ -63,7 +63,9 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final mutedFg = AppColors.mutedFgOf(context);
     final useArabic = ref.watch(digitStyleProvider);
+    final primary = AppColors.primaryOf(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -89,13 +91,13 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                   children: [
                     Text(
                       'الخطوة ${formatNumber(_step + 1, useArabic: useArabic)} من ${formatNumber(_totalSteps, useArabic: useArabic)}',
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: AppColors.mutedFg),
+                      style:
+                          theme.textTheme.bodySmall?.copyWith(color: mutedFg),
                     ),
                     Text(
                       _stepTitle(_step),
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: AppColors.mutedFg),
+                      style:
+                          theme.textTheme.bodySmall?.copyWith(color: mutedFg),
                     ),
                   ],
                 ),
@@ -105,7 +107,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
                   child: LinearProgressIndicator(
                     value: (_step + 1) / _totalSteps,
                     minHeight: 6,
-                    backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                    backgroundColor: AppColors.progressTrackOf(context),
+                    valueColor: AlwaysStoppedAnimation<Color>(primary),
                   ),
                 ),
               ],
@@ -371,6 +374,8 @@ class _StepIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
 
     return Column(
       children: [
@@ -379,11 +384,10 @@ class _StepIntro extends StatelessWidget {
           width: 100,
           height: 100,
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
+            color: primary.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: const Icon(Icons.menu_book_rounded,
-              size: 52, color: AppColors.primary),
+          child: Icon(Icons.menu_book_rounded, size: 52, color: primary),
         ).animate().scale(duration: 500.ms, curve: Curves.elasticOut),
         const SizedBox(height: 32),
         Text('بسم الله نبدأ رحلة التدارك.',
@@ -392,7 +396,7 @@ class _StepIntro extends StatelessWidget {
         Text(
           'سنقوم بجمع بعض التواريخ لنحسب تقديراً للأيام التي فاتتك فيها الصلاة، ثم نضع خطة يسيرة لقضائها بإذن الله.',
           style: theme.textTheme.bodyLarge?.copyWith(
-            color: AppColors.mutedFg,
+            color: mutedFg,
             height: 1.8,
           ),
           textAlign: TextAlign.center,
@@ -468,6 +472,7 @@ class _StepCommitment extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
     final diff = bulughDate != null && commitmentDate != null
         ? commitmentDate!.difference(bulughDate!).inDays
         : null;
@@ -487,21 +492,18 @@ class _StepCommitment extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.06),
+              color: primary.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(12),
-              border:
-                  Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+              border: Border.all(color: primary.withValues(alpha: 0.15)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline,
-                    color: AppColors.primary, size: 20),
+                Icon(Icons.info_outline, color: primary, size: 20),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     'المدة بين البلوغ والالتزام: ${(diff / 365).floor()} سنوات و ${((diff % 365) / 30).floor()} أشهر ($diff يوماً)',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: AppColors.primary),
+                    style: theme.textTheme.bodySmall?.copyWith(color: primary),
                   ),
                 ),
               ],
@@ -549,13 +551,17 @@ class _StepEstimate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+    final muted = AppColors.mutedOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+    final activeSurface = AppColors.surfaceOf(context);
 
     return Column(
       children: [
         Text(
           'قدّر بصدق الفترة التي فاتتك فيها الصلاة فعلياً.',
-          style: theme.textTheme.bodyMedium
-              ?.copyWith(color: AppColors.mutedFg, height: 1.7),
+          style:
+              theme.textTheme.bodyMedium?.copyWith(color: mutedFg, height: 1.7),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 20),
@@ -563,7 +569,7 @@ class _StepEstimate extends StatelessWidget {
         // Mode toggle
         Container(
           decoration: BoxDecoration(
-            color: AppColors.muted.withValues(alpha: 0.5),
+            color: muted.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.all(4),
@@ -576,9 +582,7 @@ class _StepEstimate extends StatelessWidget {
                     duration: 200.ms,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                      color: granularMode
-                          ? Colors.white
-                          : Colors.transparent,
+                      color: granularMode ? activeSurface : Colors.transparent,
                       borderRadius: BorderRadius.circular(10),
                       boxShadow: granularMode
                           ? [
@@ -591,9 +595,7 @@ class _StepEstimate extends StatelessWidget {
                     child: Text('سنوات / شهور / أيام',
                         textAlign: TextAlign.center,
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: granularMode
-                              ? AppColors.primary
-                              : AppColors.mutedFg,
+                          color: granularMode ? primary : mutedFg,
                         )),
                   ),
                 ),
@@ -605,17 +607,13 @@ class _StepEstimate extends StatelessWidget {
                     duration: 200.ms,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                      color: !granularMode
-                          ? Colors.white
-                          : Colors.transparent,
+                      color: !granularMode ? activeSurface : Colors.transparent,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text('عدد الأيام مباشرة',
                         textAlign: TextAlign.center,
                         style: theme.textTheme.labelLarge?.copyWith(
-                          color: !granularMode
-                              ? AppColors.primary
-                              : AppColors.mutedFg,
+                          color: !granularMode ? primary : mutedFg,
                         )),
                   ),
                 ),
@@ -630,9 +628,7 @@ class _StepEstimate extends StatelessWidget {
             children: [
               Expanded(
                   child: _NumberInput(
-                      label: 'سنوات',
-                      value: years,
-                      onChanged: onYearsChanged)),
+                      label: 'سنوات', value: years, onChanged: onYearsChanged)),
               const SizedBox(width: 8),
               Expanded(
                   child: _NumberInput(
@@ -643,9 +639,7 @@ class _StepEstimate extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                   child: _NumberInput(
-                      label: 'أيام',
-                      value: days,
-                      onChanged: onDaysChanged)),
+                      label: 'أيام', value: days, onChanged: onDaysChanged)),
             ],
           )
         else
@@ -704,8 +698,10 @@ class _StepTarget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final daysNeeded =
-        dailyTarget > 0 ? (missedDays / dailyTarget).ceil() : 0;
+    final daysNeeded = dailyTarget > 0 ? (missedDays / dailyTarget).ceil() : 0;
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+    final border = AppColors.borderOf(context);
 
     final presets = [
       {'value': 1, 'label': 'خفيف', 'hint': 'يوم قضاء يومياً (٥ صلوات)'},
@@ -725,17 +721,14 @@ class _StepTarget extends StatelessWidget {
             child: AnimatedContainer(
               duration: 200.ms,
               margin: const EdgeInsets.only(bottom: 10),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
                 color: active
-                    ? AppColors.primary.withValues(alpha: 0.08)
+                    ? primary.withValues(alpha: 0.08)
                     : Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: active
-                      ? AppColors.primary.withValues(alpha: 0.4)
-                      : AppColors.border,
+                  color: active ? primary.withValues(alpha: 0.4) : border,
                 ),
               ),
               child: Row(
@@ -746,17 +739,16 @@ class _StepTarget extends StatelessWidget {
                       children: [
                         Text(p['label'] as String,
                             style: theme.textTheme.titleSmall?.copyWith(
-                              color: active ? AppColors.primary : null,
+                              color: active ? primary : null,
                             )),
                         Text(p['hint'] as String,
                             style: theme.textTheme.bodySmall
-                                ?.copyWith(color: AppColors.mutedFg)),
+                                ?.copyWith(color: mutedFg)),
                       ],
                     ),
                   ),
                   if (active)
-                    const Icon(Icons.check_circle,
-                        color: AppColors.primary, size: 20),
+                    Icon(Icons.check_circle, color: primary, size: 20),
                 ],
               ),
             ),
@@ -768,13 +760,12 @@ class _StepTarget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.06),
+              color: primary.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               'بهذا المعدل، ستنهي القضاء خلال ${formatNumber(daysNeeded, useArabic: useArabic)} يوماً',
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: AppColors.primary),
+              style: theme.textTheme.bodySmall?.copyWith(color: primary),
               textAlign: TextAlign.center,
             ),
           ),
@@ -827,25 +818,51 @@ class _StepReview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final daysNeeded =
-        dailyTarget > 0 ? (missedDays / dailyTarget).ceil() : 0;
+    final primary = AppColors.primaryOf(context);
+    final muted = AppColors.mutedOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+    final border = AppColors.borderOf(context);
+    final daysNeeded = dailyTarget > 0 ? (missedDays / dailyTarget).ceil() : 0;
 
     final rows = [
-      ['تاريخ الميلاد', birthDate != null ? formatArabicDate(dateToIso(birthDate!)) : '-'],
-      ['تاريخ البلوغ', bulughDate != null ? formatArabicDate(dateToIso(bulughDate!)) : '-'],
-      ['تاريخ الالتزام', commitmentDate != null ? formatArabicDate(dateToIso(commitmentDate!)) : '-'],
-      ['الأيام الفائتة', '${formatNumber(missedDays, useArabic: useArabic)} يوماً'],
-      ['إجمالي الصلوات', '${formatNumber(missedDays * 5, useArabic: useArabic)} صلاة'],
-      ['الهدف اليومي', '${formatNumber(dailyTarget, useArabic: useArabic)} يوم (${formatNumber(dailyTarget * 5, useArabic: useArabic)} صلاة)'],
+      [
+        'تاريخ الميلاد',
+        birthDate != null ? formatArabicDate(dateToIso(birthDate!)) : '-'
+      ],
+      [
+        'تاريخ البلوغ',
+        bulughDate != null ? formatArabicDate(dateToIso(bulughDate!)) : '-'
+      ],
+      [
+        'تاريخ الالتزام',
+        commitmentDate != null
+            ? formatArabicDate(dateToIso(commitmentDate!))
+            : '-'
+      ],
+      [
+        'الأيام الفائتة',
+        '${formatNumber(missedDays, useArabic: useArabic)} يوماً'
+      ],
+      [
+        'إجمالي الصلوات',
+        '${formatNumber(missedDays * 5, useArabic: useArabic)} صلاة'
+      ],
+      [
+        'الهدف اليومي',
+        '${formatNumber(dailyTarget, useArabic: useArabic)} يوم (${formatNumber(dailyTarget * 5, useArabic: useArabic)} صلاة)'
+      ],
       ['تاريخ البدء', formatArabicDate(dateToIso(startDate))],
-      if (daysNeeded > 0) ['مدة الإنجاز التقديرية', '${formatNumber(daysNeeded, useArabic: useArabic)} يوماً'],
+      if (daysNeeded > 0)
+        [
+          'مدة الإنجاز التقديرية',
+          '${formatNumber(daysNeeded, useArabic: useArabic)} يوماً'
+        ],
     ];
 
     return Column(
       children: [
         Text('راجع البيانات أدناه قبل الاعتماد.',
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: AppColors.mutedFg),
+            style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg),
             textAlign: TextAlign.center),
         const SizedBox(height: 16),
 
@@ -866,7 +883,7 @@ class _StepReview extends StatelessWidget {
                       children: [
                         Text(row[0],
                             style: theme.textTheme.bodySmall
-                                ?.copyWith(color: AppColors.mutedFg)),
+                                ?.copyWith(color: mutedFg)),
                         Text(row[1],
                             style: theme.textTheme.titleSmall
                                 ?.copyWith(fontWeight: FontWeight.bold)),
@@ -889,13 +906,11 @@ class _StepReview extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: confirmed
-                  ? AppColors.primary.withValues(alpha: 0.07)
-                  : AppColors.muted.withValues(alpha: 0.3),
+                  ? primary.withValues(alpha: 0.07)
+                  : muted.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: confirmed
-                    ? AppColors.primary.withValues(alpha: 0.4)
-                    : AppColors.border,
+                color: confirmed ? primary.withValues(alpha: 0.4) : border,
                 width: 2,
               ),
             ),
@@ -906,10 +921,10 @@ class _StepReview extends StatelessWidget {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: confirmed ? AppColors.primary : Colors.transparent,
+                    color: confirmed ? primary : Colors.transparent,
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: confirmed ? AppColors.primary : AppColors.mutedFg,
+                      color: confirmed ? primary : mutedFg,
                     ),
                   ),
                   child: confirmed
@@ -959,7 +974,11 @@ class _DateField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final initialDate = _clampDate(value ?? DateTime.now(), firstDate, lastDate);
+    final initialDate =
+        _clampDate(value ?? DateTime.now(), firstDate, lastDate);
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+    final border = AppColors.borderOf(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -979,23 +998,18 @@ class _DateField extends StatelessWidget {
           },
           borderRadius: BorderRadius.circular(12),
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               border: Border.all(
-                  color: value != null
-                      ? AppColors.primary.withValues(alpha: 0.5)
-                      : AppColors.border),
+                  color:
+                      value != null ? primary.withValues(alpha: 0.5) : border),
               borderRadius: BorderRadius.circular(12),
               color: Theme.of(context).colorScheme.surface,
             ),
             child: Row(
               children: [
                 Icon(Icons.calendar_today,
-                    size: 18,
-                    color: value != null
-                        ? AppColors.primary
-                        : AppColors.mutedFg),
+                    size: 18, color: value != null ? primary : mutedFg),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -1003,11 +1017,11 @@ class _DateField extends StatelessWidget {
                         ? formatArabicDate(dateToIso(value!))
                         : (hint ?? 'اختر تاريخاً'),
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: value != null ? null : AppColors.mutedFg,
+                      color: value != null ? null : mutedFg,
                     ),
                   ),
                 ),
-                const Icon(Icons.arrow_drop_down, color: AppColors.mutedFg),
+                Icon(Icons.arrow_drop_down, color: mutedFg),
               ],
             ),
           ),
@@ -1063,6 +1077,7 @@ class _NumberInputState extends State<_NumberInput> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final mutedFg = AppColors.mutedFgOf(context);
     return Column(
       children: [
         Text(widget.label, style: theme.textTheme.labelMedium),
@@ -1076,8 +1091,7 @@ class _NumberInputState extends State<_NumberInput> {
               ?.copyWith(fontWeight: FontWeight.bold),
           decoration: InputDecoration(
             hintText: widget.hint,
-            hintStyle: theme.textTheme.bodySmall
-                ?.copyWith(color: AppColors.mutedFg),
+            hintStyle: theme.textTheme.bodySmall?.copyWith(color: mutedFg),
           ),
           onChanged: (v) {
             final parsed = int.tryParse(v) ?? 0;
@@ -1106,20 +1120,22 @@ class _InfoBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = highlight ? AppColors.primary : AppColors.foreground;
+    final primary = AppColors.primaryOf(context);
+    final muted = AppColors.mutedOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+    final color = highlight ? primary : AppColors.foregroundOf(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: highlight
-            ? AppColors.primary.withValues(alpha: 0.07)
-            : AppColors.muted.withValues(alpha: 0.4),
+            ? primary.withValues(alpha: 0.07)
+            : muted.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           Text(label,
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: AppColors.mutedFg),
+              style: theme.textTheme.bodySmall?.copyWith(color: mutedFg),
               textAlign: TextAlign.center),
           const SizedBox(height: 6),
           Text(value,
