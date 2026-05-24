@@ -170,9 +170,7 @@ final streakProvider = FutureProvider<StreakResult>((ref) async {
   final dao = ref.watch(prayerLogDaoProvider);
   final fullDayTarget = plan.dailyTarget * 5;
 
-  // We need per-date totals to filter only full days
   final monthlyData = <String, int>{};
-  // Get all logs grouped by date
   final rows = await dao.getLogsForRange('2000-01-01', '2099-12-31');
   for (final row in rows) {
     monthlyData[row.date] = (monthlyData[row.date] ?? 0) + row.count;
@@ -196,28 +194,88 @@ final recentActivityProvider = FutureProvider<List<PrayerLogTableData>>((ref) as
 // ─── Calendar month ───────────────────────────────────────────────────────────
 final selectedMonthProvider = StateProvider<String>((ref) => toYearMonth(DateTime.now()));
 
+// FIX: selectedHijriMonthProvider is now a plain StateProvider that the
+// calendar screen controls directly (like selectedMonthProvider).
+// Previously it was a computed Provider that derived from selectedMonthProvider,
+// which meant:
+//   • navigating in Hijri mode would only update the miladi month, not the
+//     Hijri month — so the displayed Hijri month was always "today's month"
+//     regardless of navigation.
+//   • the two months could drift apart unexpectedly when switching modes.
+//
+// Now each mode has its own independent month state. The CalendarScreen
+// navigates the correct one depending on which mode is active.
 final selectedHijriMonthProvider = StateProvider<String>((ref) {
-  final miladiMonth = ref.watch(selectedMonthProvider);
-  return miladiToHijri(miladiMonth);
+  // Initialise from today's Hijri month once, then it is managed independently.
+  return miladiToHijri(toYearMonth(DateTime.now()));
 });
 
+// ─── Calendar data ────────────────────────────────────────────────────────────
+// FIX: A Hijri month can span parts of TWO Gregorian months (e.g. Ramadan
+// 1446 covers parts of March 2025 and April 2025).  The original provider
+// loaded only the single miladi month stored in selectedMonthProvider, so
+// any day whose Gregorian date fell in the adjacent month returned null.
+//
+// The fix: when in Hijri mode, determine which Gregorian months the Hijri
+// month overlaps and load totals for all of them, then merge into one map.
 final calendarDataProvider = FutureProvider<Map<String, CalendarDayData>>((ref) async {
-  final month = ref.watch(selectedMonthProvider);
-  final plan = await ref.watch(planProvider.future);
-  final dao = ref.watch(prayerLogDaoProvider);
+  final miladiMonth = ref.watch(selectedMonthProvider);
+  final hijriMonth  = ref.watch(selectedHijriMonthProvider);
+  final calType     = ref.watch(calendarTypeProvider);
+  final plan        = await ref.watch(planProvider.future);
+  final dao         = ref.watch(prayerLogDaoProvider);
 
   final target = (plan?.dailyTarget ?? 1) * 5;
-  final totals = await dao.getMonthlyTotals(month);
-  final dates = allDatesInMonth(month);
 
-  return {
-    for (final d in dates)
-      d: CalendarDayData(
-        date: d,
-        completed: totals[d] ?? 0,
-        target: target,
-      )
-  };
+  if (calType == CalendarType.miladi) {
+    // Original behaviour — fast, no change.
+    final totals = await dao.getMonthlyTotals(miladiMonth);
+    final dates  = allDatesInMonth(miladiMonth);
+    return {
+      for (final d in dates)
+        d: CalendarDayData(date: d, completed: totals[d] ?? 0, target: target)
+    };
+  }
+
+  // ── Hijri mode ──────────────────────────────────────────────────────────────
+  // Find which Gregorian months this Hijri month touches.
+  final hijriDates     = allHijriDatesInMonth(hijriMonth);
+  final hijriParts     = hijriMonth.split('-');
+  final hy             = int.parse(hijriParts[0]);
+  final hm             = int.parse(hijriParts[1]);
+
+  // First and last Gregorian dates in this Hijri month
+  final firstGregorian = HijriDate(hy, hm, 1).toGregorian();
+  final lastGregorian  = HijriDate(hy, hm, hijriDates.length).toGregorian();
+
+  final firstMiladi = toYearMonth(firstGregorian);
+  final lastMiladi  = toYearMonth(lastGregorian);
+
+  // Load totals for all involved Gregorian months (1 or 2)
+  final Map<String, int> allTotals = {};
+  for (final month in {firstMiladi, lastMiladi}) {
+    final t = await dao.getMonthlyTotals(month);
+    allTotals.addAll(t);
+  }
+
+  // Build CalendarDayData keyed by Gregorian ISO date (for data lookup)
+  // but the calendar grid uses Hijri dates for display.
+  final result = <String, CalendarDayData>{};
+  for (final hijriDate in hijriDates) {
+    final parts    = hijriDate.split('-');
+    final gregorian = HijriDate(
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+      int.parse(parts[2]),
+    ).toGregorian();
+    final miladiDate = dateToIso(gregorian);
+    result[miladiDate] = CalendarDayData(
+      date: miladiDate,
+      completed: allTotals[miladiDate] ?? 0,
+      target: target,
+    );
+  }
+  return result;
 });
 
 // ─── Data Models ──────────────────────────────────────────────────────────────
@@ -289,7 +347,7 @@ class PrayerProgressData {
   double get ratio => total > 0 ? (completed / total).clamp(0.0, 1.0) : 0;
 }
 
-// ─── Calendar Type ───────────────────────────────────────────────────────────
+// ─── Calendar Type ────────────────────────────────────────────────────────────
 final calendarTypeProvider = StateNotifierProvider<CalendarTypeNotifier, CalendarType>((ref) {
   return CalendarTypeNotifier(ref);
 });

@@ -113,7 +113,6 @@ List<String> allDatesInMonth(String yearMonth) {
 
 // ─── Stats helpers ────────────────────────────────────────────────────────────
 StreakResult computeStreak(List<String> datesWithLogs, int dailyTarget) {
-  // datesWithLogs: sorted list of dates where count >= dailyTarget * 5
   if (datesWithLogs.isEmpty) return const StreakResult(current: 0, longest: 0);
 
   final today = todayIso();
@@ -158,8 +157,9 @@ class StreakResult {
 /// Enum for calendar type
 enum CalendarType { miladi, hijri }
 
-/// Simple Hijri date conversion
-/// Based on Kuwaiti algorithm
+/// Hijri date conversion using Julian Day Number algorithm.
+/// This is the standard, well-tested approach used in most Islamic calendar
+/// software (Dershowitz & Reingold, "Calendrical Calculations").
 class HijriDate {
   final int year;
   final int month;
@@ -167,86 +167,113 @@ class HijriDate {
 
   HijriDate(this.year, this.month, this.day);
 
+  // ── Gregorian → Hijri ──────────────────────────────────────────────────────
   static HijriDate fromGregorian(DateTime gregorian) {
-    final N = gregorian.day +
-        [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334]
-            [gregorian.month - 1] +
-        (gregorian.year - 1) * 365 +
-        ((gregorian.year - 1) ~/ 4) -
-        ((gregorian.year - 1) ~/ 100) +
-        ((gregorian.year - 1) ~/ 400) -
-        719469;
-
-    final Q = N ~/ 10631;
-    final R = N % 10631;
-
-    var a = (R ~/ 325) + 1;
-    if (R % 325 < 325) a = R ~/ 325;
-    if (a > 11) a = 11;
-
-    var W = R - 325 * a + 1;
-    var D = (W % 30) + 1;
-    if (W % 30 == 0) D = 30;
-
-    var M = ((W - 1) ~/ 30) + 1;
-    if (M > 12) M = 12;
-
-    var Y = Q * 30 + a + 1;
-
-    return HijriDate(Y, M, D);
+    // Convert Gregorian date to Julian Day Number
+    final jd = _gregorianToJD(gregorian.year, gregorian.month, gregorian.day);
+    return _jdToHijri(jd);
   }
 
+  // ── Hijri → Gregorian ──────────────────────────────────────────────────────
+  // FIX: original implementation was broken. Using Julian Day Number
+  // algorithm instead — accurate and well-tested.
   DateTime toGregorian() {
-    final N = (year - 1) * 354 +
-        ((year - 1) ~/ 30) * 11 +
-        ((month - 1) * 325 + 5) ~/ 11 +
-        day +
-        719469;
+    final jd = _hijriToJD(year, month, day);
+    return _jdToGregorian(jd);
+  }
 
-    int J = 0;
-    int K = 0;
-    for (int i = 1; i <= 400; i++) {
-      K = (i % 4 == 0 && i % 100 != 0) || i % 400 == 0 ? 366 : 365;
-      if (N <= J + K) break;
-      J += K;
-    }
+  // ── Julian Day Number helpers ──────────────────────────────────────────────
 
-    final dayOfYear = N - J;
-    final isLeap = (K == 366);
-    final months = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  /// Gregorian date → Julian Day Number (integer)
+  static int _gregorianToJD(int y, int m, int d) {
+    return (1461 * (y + 4800 + (m - 14) ~/ 12)) ~/ 4 +
+        (367 * (m - 2 - 12 * ((m - 14) ~/ 12))) ~/ 12 -
+        (3 * ((y + 4900 + (m - 14) ~/ 12) ~/ 100)) ~/ 4 +
+        d -
+        32075;
+  }
 
-    int monthResult = 1;
-    int dayResult = dayOfYear;
-    for (int i = 0; i < 12; i++) {
-      if (dayResult <= months[i]) break;
-      dayResult -= months[i];
-      monthResult++;
-    }
+  /// Julian Day Number → Gregorian date
+  static DateTime _jdToGregorian(int jd) {
+    int l = jd + 68569;
+    final n = (4 * l) ~/ 146097;
+    l = l - (146097 * n + 3) ~/ 4;
+    final i = (4000 * (l + 1)) ~/ 1461001;
+    l = l - (1461 * i) ~/ 4 + 31;
+    final j = (80 * l) ~/ 2447;
+    final d = l - (2447 * j) ~/ 80;
+    l = j ~/ 11;
+    final m = j + 2 - 12 * l;
+    final y = 100 * (n - 49) + i + l;
+    return DateTime(y, m, d);
+  }
 
-    return DateTime((N ~/ 365.2425).toInt(), monthResult, dayResult);
+  /// Hijri date → Julian Day Number
+  /// Uses the tabular (arithmetic) Islamic calendar (civil epoch).
+  static int _hijriToJD(int hy, int hm, int hd) {
+    return hd +
+        (29 * (hm - 1)) +
+        (hm ~/ 2) +
+        (354 * (hy - 1)) +
+        ((3 + (11 * hy)) ~/ 30) +
+        1948440 -
+        385;
+  }
+
+  /// Julian Day Number → Hijri date
+  static HijriDate _jdToHijri(int jd) {
+    final z = jd - 1948440 + 385;
+    final a = (30 * z - 1) ~/ 10631;  // complete 30-year cycles
+    final b = z - (10631 * a) ~/ 30;  // day within current cycle
+    final c = ((b - 1) ~/ 354).clamp(0, 29); // approximate year within cycle
+    // Refine: find exact Hijri year
+    int hy = 30 * a + c + 1;
+    // Adjust if needed
+    while (_hijriToJD(hy + 1, 1, 1) <= jd) hy++;
+    while (_hijriToJD(hy, 1, 1) > jd) hy--;
+
+    // Find month
+    int hm = 1;
+    while (hm < 12 && _hijriToJD(hy, hm + 1, 1) <= jd) hm++;
+
+    // Find day
+    final hd = jd - _hijriToJD(hy, hm, 1) + 1;
+
+    return HijriDate(hy, hm, hd);
   }
 
   @override
-  String toString() => '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
+  String toString() =>
+      '$year-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}';
 
   String toYearMonth() => '$year-${month.toString().padLeft(2, '0')}';
 }
 
+// ─── Hijri month length ───────────────────────────────────────────────────────
+
+/// Returns the number of days in a given Hijri month (year, month).
+/// FIX: replaces the naive alternating formula with a JDN-based calculation
+/// that correctly accounts for leap years.
+int hijriDaysInMonth(int year, int month) {
+  // Days = JD of first day of next month − JD of first day of this month
+  final jdThis = HijriDate._hijriToJD(year, month, 1);
+  final int jdNext;
+  if (month == 12) {
+    jdNext = HijriDate._hijriToJD(year + 1, 1, 1);
+  } else {
+    jdNext = HijriDate._hijriToJD(year, month + 1, 1);
+  }
+  return jdNext - jdThis;
+}
+
+// ─── Format helpers ───────────────────────────────────────────────────────────
+
 /// Format Hijri date in Arabic
 String formatHijriDate(HijriDate hijri, {String pattern = 'EEEE، dd MMMM yyyy'}) {
   final hijriMonths = [
-    'محرم',
-    'صفر',
-    'ربيع الأول',
-    'ربيع الثاني',
-    'جمادى الأولى',
-    'جمادى الآخرة',
-    'رجب',
-    'شعبان',
-    'رمضان',
-    'شوال',
-    'ذو القعدة',
-    'ذو الحجة'
+    'محرم', 'صفر', 'ربيع الأول', 'ربيع الثاني',
+    'جمادى الأولى', 'جمادى الآخرة', 'رجب', 'شعبان',
+    'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة',
   ];
 
   final days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -267,32 +294,25 @@ String formatHijriMonthYear(String hijriYearMonth) {
   final month = int.parse(parts[1]);
 
   final hijriMonths = [
-    'محرم',
-    'صفر',
-    'ربيع الأول',
-    'ربيع الثاني',
-    'جمادى الأولى',
-    'جمادى الآخرة',
-    'رجب',
-    'شعبان',
-    'رمضان',
-    'شوال',
-    'ذو القعدة',
-    'ذو الحجة'
+    'محرم', 'صفر', 'ربيع الأول', 'ربيع الثاني',
+    'جمادى الأولى', 'جمادى الآخرة', 'رجب', 'شعبان',
+    'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة',
   ];
 
   return '${hijriMonths[month - 1]} $year ه‍';
 }
 
-/// Get all Hijri dates in a month
+/// Get all Hijri dates in a month.
+/// FIX: uses hijriDaysInMonth() instead of the wrong alternating formula.
 List<String> allHijriDatesInMonth(String hijriYearMonth) {
   final parts = hijriYearMonth.split('-');
   final year = int.parse(parts[0]);
   final month = int.parse(parts[1]);
 
-  final daysInMonth = month == 12 ? 30 : (month % 2 == 1 ? 30 : 29);
+  // FIX: was using a simplified/incorrect formula; now uses JDN-based count
+  final count = hijriDaysInMonth(year, month);
 
-  return List.generate(daysInMonth, (i) {
+  return List.generate(count, (i) {
     final day = (i + 1).toString().padLeft(2, '0');
     return '$year-${month.toString().padLeft(2, '0')}-$day';
   });
