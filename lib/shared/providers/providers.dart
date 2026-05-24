@@ -197,17 +197,13 @@ final selectedMonthProvider = StateProvider<String>((ref) => toYearMonth(DateTim
 // FIX: selectedHijriMonthProvider is now a plain StateProvider that the
 // calendar screen controls directly (like selectedMonthProvider).
 // Previously it was a computed Provider that derived from selectedMonthProvider,
-// which meant:
-//   • navigating in Hijri mode would only update the miladi month, not the
-//     Hijri month — so the displayed Hijri month was always "today's month"
-//     regardless of navigation.
-//   • the two months could drift apart unexpectedly when switching modes.
+// which meant navigating in Hijri mode only updated the miladi month.
 //
-// Now each mode has its own independent month state. The CalendarScreen
-// navigates the correct one depending on which mode is active.
+// ALSO FIXED: initialise from fromGregorian(today) — not fromGregorian(1st of
+// the miladi month). When today is e.g. 24 May 2026 (Dhul Hijja 1447) but the
+// 1st of May is still in Dhul Qada 1447, the old init was 1 month behind.
 final selectedHijriMonthProvider = StateProvider<String>((ref) {
-  // Initialise from today's Hijri month once, then it is managed independently.
-  return miladiToHijri(toYearMonth(DateTime.now()));
+  return HijriDate.fromGregorian(DateTime.now()).toYearMonth();
 });
 
 // ─── Calendar data ────────────────────────────────────────────────────────────

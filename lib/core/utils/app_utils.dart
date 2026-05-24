@@ -210,12 +210,15 @@ class HijriDate {
 
   /// Hijri date → Julian Day Number
   /// Uses the tabular (arithmetic) Islamic calendar (civil epoch).
+  /// Formula: Meeus "Astronomical Algorithms" ch.9 — civil Islamic epoch.
+  /// Previous formula `hd + (29*(hm-1)) + (hm~/2) + 354*(hy-1) + ...`
+  /// was wrong and produced a ~386-day offset in toGregorian().
   static int _hijriToJD(int hy, int hm, int hd) {
-    return hd +
-        (29 * (hm - 1)) +
-        (hm ~/ 2) +
-        (354 * (hy - 1)) +
-        ((3 + (11 * hy)) ~/ 30) +
+    return (11 * hy + 3) ~/ 30 +
+        354 * hy +
+        30 * hm -
+        (hm - 1) ~/ 2 +
+        hd +
         1948440 -
         385;
   }
