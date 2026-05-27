@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/app_utils.dart';
@@ -390,6 +391,38 @@ class _DigitMenuItem extends StatelessWidget {
   }
 }
 
+class _AppWordmark extends StatelessWidget {
+  const _AppWordmark();
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = AppColors.primaryOf(context);
+
+    return Transform.translate(
+      offset: const Offset(0, -6),
+      child: Text(
+        'قضاء',
+        textAlign: TextAlign.right,
+        style: GoogleFonts.getFont(
+          'Aref Ruqaa',
+          color: primary,
+          fontSize: 31,
+          fontWeight: FontWeight.w700,
+          height: 1,
+          letterSpacing: 0,
+          shadows: [
+            Shadow(
+              color: primary.withValues(alpha: 0.16),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _Dashboard extends ConsumerWidget {
   const _Dashboard();
 
@@ -410,15 +443,7 @@ class _Dashboard extends ConsumerWidget {
         titleSpacing: 20,
         title: Align(
           alignment: AlignmentDirectional.centerStart,
-          child: Text(
-            'قضاء',
-            textAlign: TextAlign.right,
-            style: theme.textTheme.headlineMedium?.copyWith(
-              color: primary,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0,
-            ),
-          ),
+          child: const _AppWordmark(),
         ),
         actions: [
           IconButton(
