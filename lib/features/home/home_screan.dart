@@ -126,6 +126,7 @@ class _TotalCountHero extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final summaryAsync = ref.watch(summaryProvider);
+    final useArabic = ref.watch(digitStyleProvider);
     final theme = Theme.of(context);
     final primary = AppColors.primaryOf(context);
 
@@ -198,7 +199,7 @@ class _TotalCountHero extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              '$pctDisplay%',
+                              '${formatNumber(pctDisplay, useArabic: useArabic)}٪',
                               style: theme.textTheme.titleLarge?.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w800,
@@ -224,7 +225,7 @@ class _TotalCountHero extends ConsumerWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              formatNumber(completed),
+                              formatNumber(completed, useArabic: useArabic),
                               style: theme.textTheme.displaySmall?.copyWith(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w800,
@@ -234,7 +235,7 @@ class _TotalCountHero extends ConsumerWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'من أصل ${formatNumber(total)} صلاة — متبقٍ ${formatNumber(remaining)}',
+                              'من أصل ${formatNumber(total, useArabic: useArabic)} صلاة — متبقٍ ${formatNumber(remaining, useArabic: useArabic)}',
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: Colors.white.withValues(alpha: 0.6),
                               ),
@@ -249,7 +250,7 @@ class _TotalCountHero extends ConsumerWidget {
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Text(
-                                  'الختم المتوقع: ${formatArabicDateShort(summary.estimatedFinishDate!)}',
+                                  'الختم المتوقع: ${formatArabicDateShort(summary.estimatedFinishDate!, useArabic: useArabic)}',
                                   style: theme.textTheme.labelSmall?.copyWith(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w700,
@@ -466,7 +467,7 @@ class _Dashboard extends ConsumerWidget {
                   Text('ورد اليوم', style: theme.textTheme.headlineMedium),
                   const SizedBox(height: 4),
                   Text(
-                    formatArabicDate(todayIso()),
+                    formatArabicDate(todayIso(), useArabic: useArabic),
                     style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg),
                   ),
                 ],

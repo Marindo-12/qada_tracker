@@ -32,6 +32,25 @@ String toArabicDigits(dynamic value) {
   }).join();
 }
 
+String toEnglishDigits(String value) {
+  const arabicMap = {
+    '٠': '0',
+    '١': '1',
+    '٢': '2',
+    '٣': '3',
+    '٤': '4',
+    '٥': '5',
+    '٦': '6',
+    '٧': '7',
+    '٨': '8',
+    '٩': '9',
+  };
+
+  return value.split('').map((c) {
+    return arabicMap[c] ?? c;
+  }).join();
+}
+
 String formatNumber(int n, {bool useArabic = true}) {
   if (useArabic) return toArabicDigits(n);
   return n.toString();
@@ -50,29 +69,32 @@ String dateToIso(DateTime date) => DateFormat('yyyy-MM-dd').format(date);
 
 DateTime isoToDate(String iso) => DateTime.parse(iso);
 
-String formatArabicDate(String isoDate, {String pattern = 'EEEE، dd MMMM yyyy'}) {
+String formatArabicDate(String isoDate, {String pattern = 'EEEE، dd MMMM yyyy', bool useArabic = true}) {
   try {
     final date = DateTime.parse(isoDate);
     final formatter = DateFormat(pattern, 'ar');
-    return formatter.format(date);
+    final result = formatter.format(date);
+    return useArabic ? result : toEnglishDigits(result);
   } catch (_) {
     return isoDate;
   }
 }
 
-String formatArabicDateShort(String isoDate) {
+String formatArabicDateShort(String isoDate, {bool useArabic = true}) {
   try {
     final date = DateTime.parse(isoDate);
-    return DateFormat('dd MMM', 'ar').format(date);
+    final result = DateFormat('dd MMM', 'ar').format(date);
+    return useArabic ? result : toEnglishDigits(result);
   } catch (_) {
     return isoDate;
   }
 }
 
-String formatMonthYear(String isoDate) {
+String formatMonthYear(String isoDate, {bool useArabic = true}) {
   try {
     final date = DateTime.parse('$isoDate-01');
-    return DateFormat('MMMM yyyy', 'ar').format(date);
+    final result = DateFormat('MMMM yyyy', 'ar').format(date);
+    return useArabic ? result : toEnglishDigits(result);
   } catch (_) {
     return isoDate;
   }
