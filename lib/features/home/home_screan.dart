@@ -1,4 +1,5 @@
 // lib/features/home/home_screen.dart
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -118,6 +119,228 @@ class SetupScreenWrapper extends StatelessWidget {
   Widget build(BuildContext context) => const SetupScreen();
 }
 
+// ─── Total Count Hero ─────────────────────────────────────────────────────────
+class _TotalCountHero extends ConsumerWidget {
+  const _TotalCountHero();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final summaryAsync = ref.watch(summaryProvider);
+    final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+
+    return summaryAsync.when(
+      loading: () => _TotalCountHeroSkeleton(primary: primary),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (summary) {
+        final completed = summary.completedPrayers;
+        final total = summary.completedPrayers + summary.remainingPrayers;
+        final remaining = summary.remainingPrayers;
+        final pct = total > 0 ? (completed / total) : 0.0;
+        final pctDisplay = (pct * 100).round();
+
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: primary,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Stack(
+              children: [
+                // Decorative circles (like the TSX absolute divs)
+                Positioned(
+                  top: -32,
+                  right: -32,
+                  child: Container(
+                    width: 160,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: -40,
+                  left: -40,
+                  child: Container(
+                    width: 208,
+                    height: 208,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
+                  ),
+                ),
+                // Content
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Donut progress ring
+                      SizedBox(
+                        width: 112,
+                        height: 112,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            CustomPaint(
+                              size: const Size(112, 112),
+                              painter: _DonutPainter(
+                                progress: pct.toDouble(),
+                                trackColor:
+                                    Colors.white.withValues(alpha: 0.15),
+                                progressColor:
+                                    Colors.white.withValues(alpha: 0.9),
+                                strokeWidth: 9,
+                              ),
+                            ),
+                            Text(
+                              '$pctDisplay%',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 22,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 20),
+                      // Stats
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'إجمالي الصلوات المقضية',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              formatNumber(completed),
+                              style: theme.textTheme.displaySmall?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 42,
+                                height: 1.1,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'من أصل ${formatNumber(total)} صلاة — متبقٍ ${formatNumber(remaining)}',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: Colors.white.withValues(alpha: 0.6),
+                              ),
+                            ),
+                            if (summary.estimatedFinishDate != null) ...[
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  'الختم المتوقع: ${formatArabicDateShort(summary.estimatedFinishDate!)}',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ).animate().fadeIn(duration: 700.ms).slideY(begin: -0.05);
+      },
+    );
+  }
+}
+
+class _TotalCountHeroSkeleton extends StatelessWidget {
+  final Color primary;
+  const _TotalCountHeroSkeleton({required this.primary});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 140,
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(16),
+      ),
+    );
+  }
+}
+
+/// Custom painter for the donut / arc progress ring.
+class _DonutPainter extends CustomPainter {
+  final double progress; // 0.0 – 1.0
+  final Color trackColor;
+  final Color progressColor;
+  final double strokeWidth;
+
+  const _DonutPainter({
+    required this.progress,
+    required this.trackColor,
+    required this.progressColor,
+    required this.strokeWidth,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - strokeWidth) / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    // Track
+    canvas.drawArc(
+      rect,
+      0,
+      2 * math.pi,
+      false,
+      Paint()
+        ..color = trackColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth,
+    );
+
+    // Progress arc — starts at top (−π/2)
+    canvas.drawArc(
+      rect,
+      -math.pi / 2,
+      2 * math.pi * progress,
+      false,
+      Paint()
+        ..color = progressColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_DonutPainter oldDelegate) =>
+      oldDelegate.progress != progress ||
+      oldDelegate.trackColor != trackColor ||
+      oldDelegate.progressColor != progressColor;
+}
+
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 class _DigitMenuItem extends StatelessWidget {
   final String label;
@@ -230,6 +453,10 @@ class _Dashboard extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           children: [
+            // ── NEW: Total count hero (matches TSX TotalCountHero) ──
+            const _TotalCountHero(),
+            const SizedBox(height: 16),
+
             // Date header
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
