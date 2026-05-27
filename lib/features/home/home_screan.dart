@@ -397,6 +397,10 @@ class _Dashboard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final useArabic = ref.watch(digitStyleProvider);
+    final themeMode = ref.watch(themeModeProvider);
+    final isDarkMode = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            Theme.of(context).brightness == Brightness.dark);
     final primary = AppColors.primaryOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
 
@@ -417,6 +421,18 @@ class _Dashboard extends ConsumerWidget {
           ),
         ),
         actions: [
+          IconButton(
+            tooltip: isDarkMode ? 'الوضع الفاتح' : 'الوضع الداكن',
+            icon: Icon(
+              isDarkMode
+                  ? Icons.light_mode_outlined
+                  : Icons.dark_mode_outlined,
+              color: primary,
+            ),
+            onPressed: () => ref
+                .read(themeModeProvider.notifier)
+                .set(isDarkMode ? ThemeMode.light : ThemeMode.dark),
+          ),
           PopupMenuButton<bool>(
             tooltip: 'شكل الأرقام',
             icon: Icon(Icons.format_list_numbered, color: primary),

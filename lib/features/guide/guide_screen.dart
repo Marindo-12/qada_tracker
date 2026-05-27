@@ -246,8 +246,7 @@ class _ToggleBtn extends StatelessWidget {
             const SizedBox(width: 6),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 13,
+              style: context.tt.bodySmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: active ? primary : context.onSurface.withValues(alpha: 0.45),
               ),
@@ -442,8 +441,7 @@ class ArticleView extends StatelessWidget {
             children: [
               Text(
                 'اتفق العلماء على مشروعية القضاء وتفاوتوا في التفاصيل — إليك مواقفهم بأصواتهم:',
-                style: TextStyle(
-                  fontSize: 13,
+                style: context.tt.bodySmall?.copyWith(
                   color: context.onSurface.withValues(alpha: 0.55),
                   height: 1.6,
                 ),
@@ -472,8 +470,7 @@ class ArticleView extends StatelessWidget {
             children: [
               Text(
                 'المسألة فيها خلاف بين العلماء يمكن تلخيصه في ثلاثة مواقف رئيسية:',
-                style: TextStyle(
-                  fontSize: 13,
+                style: context.tt.bodySmall?.copyWith(
                   color: context.onSurface.withValues(alpha: 0.55),
                   height: 1.6,
                 ),
@@ -499,18 +496,16 @@ class ArticleView extends StatelessWidget {
                     children: [
                       TextSpan(
                         text: 'خلاصة: ',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: context.primary,
-                          fontSize: 13,
-                        ),
+                      style: context.tt.bodySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: context.primary,
+                      ),
                       ),
                       TextSpan(
                         text:
                             'الأحوط والأخذ بقول الجمهور أسلم، وهو ما توفره هذه الأداة — قضاء الصلوات يوماً بيوم مع التوبة والاستغفار.',
-                        style: TextStyle(
+                        style: context.tt.bodySmall?.copyWith(
                           color: context.onSurface.withValues(alpha: 0.8),
-                          fontSize: 13,
                           height: 1.7,
                         ),
                       ),
@@ -640,9 +635,8 @@ class _AccordionItemState extends State<_AccordionItem>
                   Expanded(
                     child: Text(
                       widget.title,
-                      style: TextStyle(
+                      style: context.tt.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 15,
                         color: primary,
                         height: 1.4,
                       ),
@@ -724,8 +718,7 @@ class _BodyText extends StatelessWidget {
               padding: EdgeInsets.only(bottom: paragraphs.last == p ? 0 : 10),
               child: Text(
                 p,
-                style: TextStyle(
-                  fontSize: 13.5,
+                style: context.tt.bodySmall?.copyWith(
                   height: 1.9,
                   color: context.onSurface.withValues(alpha: 0.88),
                 ),
@@ -764,8 +757,7 @@ class _HadithBlock extends StatelessWidget {
               Expanded(
                 child: Text(
                   text,
-                  style: TextStyle(
-                    fontSize: 14,
+                  style: context.tt.bodyMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     height: 2,
                     color: context.onSurface,
@@ -779,8 +771,7 @@ class _HadithBlock extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Text(
               source,
-              style: TextStyle(
-                fontSize: 11,
+              style: context.tt.labelSmall?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: context.onSurface.withValues(alpha: 0.45),
               ),
@@ -812,8 +803,7 @@ class _AyahBlock extends StatelessWidget {
           Text(
             text,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
+            style: context.tt.bodyMedium?.copyWith(
               height: 2.2,
               color: context.onSurface.withValues(alpha: 0.88),
             ),
@@ -821,8 +811,7 @@ class _AyahBlock extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             source,
-            style: TextStyle(
-              fontSize: 12,
+            style: context.tt.bodySmall?.copyWith(
               fontWeight: FontWeight.bold,
               color: context.primary,
             ),
@@ -860,8 +849,7 @@ class _QuoteBox extends StatelessWidget {
               children: [
                 Text(
                   text,
-                  style: TextStyle(
-                    fontSize: 13.5,
+                  style: context.tt.bodySmall?.copyWith(
                     height: 1.9,
                     fontStyle: FontStyle.italic,
                     color: context.onSurface.withValues(alpha: 0.88),
@@ -870,8 +858,7 @@ class _QuoteBox extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   source,
-                  style: TextStyle(
-                    fontSize: 11,
+                  style: context.tt.labelSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: context.onSurface.withValues(alpha: 0.45),
                   ),
@@ -912,8 +899,7 @@ class _ScholarCard extends StatelessWidget {
                   backgroundColor: primary.withValues(alpha: 0.15),
                   child: Text(
                     scholar['initials']!,
-                    style: TextStyle(
-                      fontSize: 12,
+                    style: context.tt.bodySmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: primary,
                     ),
@@ -928,16 +914,14 @@ class _ScholarCard extends StatelessWidget {
                         scholar['full']!,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
+                        style: context.tt.bodySmall?.copyWith(
                           fontWeight: FontWeight.bold,
-                          fontSize: 13,
                           color: primary,
                         ),
                       ),
                       Text(
                         scholar['era']!,
-                        style: TextStyle(
-                          fontSize: 11,
+                        style: context.tt.labelSmall?.copyWith(
                           color: context.onSurface.withValues(alpha: 0.45),
                         ),
                       ),
@@ -956,8 +940,7 @@ class _ScholarCard extends StatelessWidget {
               padding: const EdgeInsets.only(right: 10),
               child: Text(
                 scholar['text']!,
-                style: TextStyle(
-                    fontSize: 13.5,
+                style: context.tt.bodySmall?.copyWith(
                     height: 1.9,
                     color: context.onSurface.withValues(alpha: 0.85)),
               ),
@@ -965,14 +948,13 @@ class _ScholarCard extends StatelessWidget {
           ] else ...[
             Text(
               scholar['full']!,
-              style: TextStyle(
-                  fontWeight: FontWeight.bold, fontSize: 13, color: primary),
+              style: context.tt.bodySmall
+                  ?.copyWith(fontWeight: FontWeight.bold, color: primary),
             ),
             const SizedBox(height: 6),
             Text(
               scholar['text']!,
-              style: TextStyle(
-                  fontSize: 13,
+              style: context.tt.bodySmall?.copyWith(
                   height: 1.9,
                   color: context.onSurface.withValues(alpha: 0.85)),
             ),
@@ -1042,9 +1024,8 @@ class _DifferenceCard extends StatelessWidget {
                   backgroundColor: context.surface.withValues(alpha: 0.7),
                   child: Text(
                     '$index',
-                    style: TextStyle(
+                    style: context.tt.bodySmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
                       color: context.onSurface,
                     ),
                   ),
@@ -1057,16 +1038,14 @@ class _DifferenceCard extends StatelessWidget {
                   children: [
                     Text(
                       data['position']!,
-                      style: TextStyle(
+                      style: context.tt.bodyMedium?.copyWith(
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
                         color: context.onSurface,
                       ),
                     ),
                     Text(
                       data['detail']!,
-                      style: TextStyle(
-                        fontSize: 11,
+                      style: context.tt.labelSmall?.copyWith(
                         color: context.onSurface.withValues(alpha: 0.5),
                       ),
                     ),
@@ -1083,8 +1062,7 @@ class _DifferenceCard extends StatelessWidget {
                 ),
                 child: Text(
                   data['ruling']!,
-                  style: TextStyle(
-                    fontSize: 11,
+                  style: context.tt.labelSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: badgeTextColor,
                   ),
@@ -1095,8 +1073,7 @@ class _DifferenceCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             data['view']!,
-            style: TextStyle(
-              fontSize: 13,
+            style: context.tt.bodySmall?.copyWith(
               height: 1.8,
               color: context.onSurface.withValues(alpha: 0.8),
             ),
@@ -1142,17 +1119,15 @@ class _AdviceStep extends StatelessWidget {
             children: [
               Text(
                 step['title']!,
-                style: TextStyle(
+                style: context.tt.bodySmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  fontSize: 13.5,
                   color: context.onSurface,
                 ),
               ),
               const SizedBox(height: 3),
               Text(
                 step['text']!,
-                style: TextStyle(
-                  fontSize: 13,
+                style: context.tt.bodySmall?.copyWith(
                   height: 1.8,
                   color: context.onSurface.withValues(alpha: 0.75),
                 ),
@@ -1207,8 +1182,7 @@ class _AdviceCardArticle extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 '$index',
-                style: TextStyle(
-                  fontSize: 11,
+                style: context.tt.labelSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: context.primary.withValues(alpha: 0.45),
                 ),
@@ -1224,17 +1198,15 @@ class _AdviceCardArticle extends StatelessWidget {
                 children: [
                   Text(
                     step['title']!,
-                    style: TextStyle(
+                    style: context.tt.bodySmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      fontSize: 13.5,
                       color: context.onSurface,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     step['text']!,
-                    style: TextStyle(
-                      fontSize: 13,
+                    style: context.tt.bodySmall?.copyWith(
                       height: 1.8,
                       color: context.onSurface.withValues(alpha: 0.75),
                     ),
@@ -1269,9 +1241,8 @@ class _ConceptCard extends StatelessWidget {
           children: [
             Text(
               label,
-              style: TextStyle(
+              style: context.tt.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
-                fontSize: 16,
                 color: context.primary,
               ),
             ),
@@ -1279,8 +1250,7 @@ class _ConceptCard extends StatelessWidget {
             Text(
               desc,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 11,
+              style: context.tt.labelSmall?.copyWith(
                 height: 1.5,
                 color: context.onSurface.withValues(alpha: 0.65),
               ),
@@ -1327,8 +1297,7 @@ class _FooterAyah extends StatelessWidget {
       child: Text(
         '"وَاللَّهُ يَعْلَمُ مَا فِي قُلُوبِكُمْ ۚ وَكَانَ اللَّهُ عَلِيمًا حَلِيمًا"',
         textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 12,
+        style: context.tt.bodySmall?.copyWith(
           fontStyle: FontStyle.italic,
           height: 1.7,
           color: context.onSurface.withValues(alpha: 0.38),
