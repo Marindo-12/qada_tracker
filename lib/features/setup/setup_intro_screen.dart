@@ -610,7 +610,7 @@ class _SetupIntroScreenState extends State<SetupIntroScreen>
               width: 3,
               decoration: BoxDecoration(
                 color: primary,
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   topRight: Radius.circular(14),
                   bottomRight: Radius.circular(14),
                 ),

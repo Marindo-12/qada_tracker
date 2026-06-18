@@ -28,6 +28,14 @@ final sharedPrefsProvider = FutureProvider<SharedPreferences>((ref) async {
   return SharedPreferences.getInstance();
 });
 
+const userNamePrefsKey = 'qada.userName';
+
+final userNameProvider = FutureProvider<String?>((ref) async {
+  final prefs = await ref.watch(sharedPrefsProvider.future);
+  final value = prefs.getString(userNamePrefsKey)?.trim();
+  return value == null || value.isEmpty ? null : value;
+});
+
 final digitStyleProvider = StateNotifierProvider<DigitStyleNotifier, bool>((ref) {
   return DigitStyleNotifier(ref);
 });

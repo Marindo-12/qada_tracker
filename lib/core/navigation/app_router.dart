@@ -7,6 +7,7 @@ import '../../features/calendar/calendar_screan.dart';
 import '../../features/guide/guide_screen.dart';
 import '../../features/settings/settings_screan.dart';
 import '../../features/setup/setup_intro_screen.dart';
+import '../../features/setup/username_setup_screen.dart';
 import '../../shared/providers/providers.dart';
 
 final currentTabProvider = StateProvider<int>((ref) => 0);
@@ -27,7 +28,18 @@ class AppShell extends ConsumerWidget {
       data: (plan) {
         // No plan yet → show setup
         if (plan == null && currentTab != 2 && currentTab != 3) {
-          return const SetupIntroScreen();
+          final userNameAsync = ref.watch(userNameProvider);
+
+          return userNameAsync.when(
+            loading: () => const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
+            error: (e, _) => Scaffold(body: Center(child: Text('Ø®Ø·Ø£: $e'))),
+            data: (userName) {
+              if (userName == null) return const UsernameSetupScreen();
+              return const SetupIntroScreen();
+            },
+          );
         }
 
         final screens = [
