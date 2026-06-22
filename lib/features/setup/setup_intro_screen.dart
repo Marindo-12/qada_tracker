@@ -91,7 +91,26 @@ class _SetupIntroScreenState extends ConsumerState<SetupIntroScreen>
                   ),
                 ),
 
-                // ── Scrollable content ────────────────────────────────
+                // ── Ornement sous le titre ───────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _ornLine(false),
+                      const SizedBox(width: 7),
+                      _ornDiamond(4, 0.5),
+                      const SizedBox(width: 5),
+                      _ornDiamond(7, 1.0),
+                      const SizedBox(width: 5),
+                      _ornDiamond(4, 0.5),
+                      const SizedBox(width: 7),
+                      _ornLine(true),
+                    ],
+                  ),
+                ),
+
+                // ── Scrollable content ─────────────────────────────────
                 Expanded(
                   child: ListView(
                     physics: const BouncingScrollPhysics(),
@@ -116,6 +135,34 @@ class _SetupIntroScreenState extends ConsumerState<SetupIntroScreen>
       ),
     );
   }
+
+  // ── Ornament helpers ───────────────────────────────────────────────────────
+  static Widget _ornLine(bool reversed) => Container(
+        width: 52,
+        height: 1,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: reversed
+                ? [AppColors.accent, Colors.transparent]
+                : [Colors.transparent, AppColors.accent],
+          ),
+        ),
+      );
+
+  static Widget _ornDiamond(double size, double opacity) => Opacity(
+        opacity: opacity,
+        child: Transform.rotate(
+          angle: 3.14159 / 4,
+          child: Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              color: AppColors.accent,
+              borderRadius: BorderRadius.circular(1),
+            ),
+          ),
+        ),
+      );
 
   // ── Reveal wrapper ─────────────────────────────────────────────────────────
   Widget _reveal(int index, Widget child) {
@@ -155,9 +202,8 @@ class _SetupIntroScreenState extends ConsumerState<SetupIntroScreen>
               height: 1.6,
             ),
             children: [
-              const TextSpan(text: 'أهلاً بك في قضاء'),
-              if (userName != null && userName.isNotEmpty) ...[
-                const TextSpan(text: '، '),
+              const TextSpan(text: 'أهلاً '),
+              if (userName != null && userName.isNotEmpty)
                 TextSpan(
                   text: userName,
                   style: TextStyle(
@@ -173,7 +219,7 @@ class _SetupIntroScreenState extends ConsumerState<SetupIntroScreen>
                     ],
                   ),
                 ),
-              ],
+              const TextSpan(text: ' في قضاء'),
             ],
           ),
         ),
