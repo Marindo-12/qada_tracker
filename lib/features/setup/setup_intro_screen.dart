@@ -202,7 +202,7 @@ class _SetupIntroScreenState extends ConsumerState<SetupIntroScreen>
               height: 1.6,
             ),
             children: [
-              const TextSpan(text: 'أهلاً '),
+              const TextSpan(text: 'مرحباً بك '),
               if (userName != null && userName.isNotEmpty)
                 TextSpan(
                   text: userName,
