@@ -33,18 +33,18 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final planAsync = ref.watch(planProvider);
+    final planAsync  = ref.watch(planProvider);
     final currentTab = ref.watch(currentTabProvider);
 
     return planAsync.when(
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
+      error:   (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
       data: (plan) {
         if (plan == null && currentTab != 2 && currentTab != 3) {
           final userNameAsync = ref.watch(userNameProvider);
           return userNameAsync.when(
             loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-            error: (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
+            error:   (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
             data: (userName) {
               if (userName == null) return const UsernameSetupScreen();
               return const SetupIntroScreen();
@@ -60,7 +60,6 @@ class AppShell extends ConsumerWidget {
         ];
 
         return Scaffold(
-          // extendBody so the page content goes under the nav bar
           extendBody: true,
           body: IndexedStack(
             index: currentTab.clamp(0, 3),
@@ -76,79 +75,51 @@ class AppShell extends ConsumerWidget {
   }
 }
 
-// ─── Nav bar : full-width, top corners rounded, icons lift on tap ─────────────
-//
-// Layout (heights):
-//   liftAmount = 18 px  → how far the active icon lifts above the bar top edge
-//   barHeight  = 64 px  → visible bar
-//   total SizedBox height = barHeight + liftAmount so the lifted icon isn't clipped
-//
+// ─── Nav bar ──────────────────────────────────────────────────────────────────
 class _NavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
   const _NavBar({required this.currentIndex, required this.onTap});
 
-  static const double _barHeight   = 64;
-  static const double _liftAmount  = 20; // px the active icon rises above the bar
+  static const double _barHeight    = 64;
   static const double _cornerRadius = 24;
 
   @override
   Widget build(BuildContext context) {
-    final barColor = AppColors.surfaceOf(context);
-    final isDark   = AppColors.isDark(context);
-    final shadow   = isDark
+    final isDark    = AppColors.isDark(context);
+    final barColor  = AppColors.surfaceOf(context);
+    final shadow    = isDark
         ? Colors.black.withValues(alpha: 0.35)
         : Colors.black.withValues(alpha: 0.12);
 
     return SafeArea(
       top: false,
-      child: SizedBox(
-        // Extra space above bar so lifted icons are visible and not clipped
-        height: _barHeight + _liftAmount,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // ── Bar sits at the bottom of the SizedBox ──────────────────
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                height: _barHeight,
-                decoration: BoxDecoration(
-                  color: barColor,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(_cornerRadius),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: shadow,
-                      blurRadius: 20,
-                      offset: const Offset(0, -4),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // ── Items row spans the full SizedBox height ─────────────────
-            // Each item knows its own bar bottom offset and lifts itself
-            Row(
-              children: List.generate(_tabItems.length, (i) {
-                return Expanded(
-                  child: _NavItem(
-                    item: _tabItems[i],
-                    active: currentIndex == i,
-                    barHeight: _barHeight,
-                    liftAmount: _liftAmount,
-                    totalHeight: _barHeight + _liftAmount,
-                    onTap: () => onTap(i),
-                  ),
-                );
-              }),
+      child: Container(
+        height: _barHeight,
+        decoration: BoxDecoration(
+          color: barColor,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(_cornerRadius),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: shadow,
+              blurRadius: 20,
+              offset: const Offset(0, -4),
             ),
           ],
+        ),
+        child: Row(
+          children: List.generate(_tabItems.length, (i) {
+            return Expanded(
+              child: _NavItem(
+                item:    _tabItems[i],
+                active:  currentIndex == i,
+                onTap:   () => onTap(i),
+              ),
+            );
+          }),
         ),
       ),
     );
@@ -156,25 +127,17 @@ class _NavBar extends StatelessWidget {
 }
 
 // ─── Single nav item ──────────────────────────────────────────────────────────
-//
-// When INACTIVE : icon sits vertically centered inside the bar area.
-// When ACTIVE   : icon + circle lift `liftAmount` px above the bar top edge.
-//
+// Active  → badge pill (app background color) + primary icon
+// Inactive→ no badge, muted icon, no movement
 class _NavItem extends StatefulWidget {
   final _TabItem item;
-  final bool active;
-  final double barHeight;
-  final double liftAmount;
-  final double totalHeight;
+  final bool     active;
   final VoidCallback onTap;
 
   const _NavItem({
     super.key,
     required this.item,
     required this.active,
-    required this.barHeight,
-    required this.liftAmount,
-    required this.totalHeight,
     required this.onTap,
   });
 
@@ -185,32 +148,24 @@ class _NavItem extends StatefulWidget {
 class _NavItemState extends State<_NavItem>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctl;
-
-  // 0 = resting inside bar  →  1 = lifted above bar
-  late final Animation<double> _lift;
-  late final Animation<double> _circleScale;
+  late final Animation<double>   _badge; // 0 → 1 : badge scale + opacity
 
   @override
   void initState() {
     super.initState();
     _ctl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 260),
     );
-    _lift = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _ctl, curve: Curves.easeOutCubic),
-    );
-    _circleScale = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _ctl, curve: Curves.easeOutBack),
-    );
+    _badge = CurvedAnimation(parent: _ctl, curve: Curves.easeOutBack);
     if (widget.active) _ctl.value = 1.0;
   }
 
   @override
   void didUpdateWidget(covariant _NavItem old) {
     super.didUpdateWidget(old);
-    if (widget.active && !old.active) _ctl.forward();
-    if (!widget.active && old.active) _ctl.reverse();
+    if (widget.active  && !old.active) _ctl.forward();
+    if (!widget.active &&  old.active) _ctl.reverse();
   }
 
   @override
@@ -223,69 +178,50 @@ class _NavItemState extends State<_NavItem>
   Widget build(BuildContext context) {
     final primary = AppColors.primaryOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
+    // Badge color = same as app page background → creates the "cut-out" effect
+    final badgeColor = AppColors.isDark(context)
+        ? AppColors.darkBackground
+        : AppColors.background;
 
     return GestureDetector(
       onTap: widget.onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        height: widget.totalHeight,
+        height: 64,
         child: AnimatedBuilder(
-          animation: _ctl,
+          animation: _badge,
           builder: (context, _) {
-            // Inactive icon center: middle of bar = liftAmount + barHeight/2
-            // Active icon center: liftAmount/2 above bar top = liftAmount/2
-            // So vertical center goes from (liftAmount + barHeight/2) → (liftAmount/2 + circleR)
-            const circleR = 23.0;
-            final inactiveCenter = widget.liftAmount + widget.barHeight / 2;
-            final activeCenter   = widget.liftAmount / 2 + circleR / 2;
-            final centerY = inactiveCenter + (activeCenter - inactiveCenter) * _lift.value;
+            final t        = _badge.value;
+            final isActive = t > 0.4;
 
-            final isActive = _lift.value > 0.5;
-
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // ── Circle behind icon (only when lifting) ──────────────
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: centerY - circleR,
-                  child: Center(
-                    child: Transform.scale(
-                      scale: _circleScale.value,
+            return Center(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // ── Badge pill (app bg color) scales in on active ──────
+                  Transform.scale(
+                    scale: t,
+                    child: Opacity(
+                      opacity: t.clamp(0.0, 1.0),
                       child: Container(
-                        width:  circleR * 2,
-                        height: circleR * 2,
+                        width:  48,
+                        height: 32,
                         decoration: BoxDecoration(
-                          color: primary,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: primary.withValues(alpha: 0.40),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                          color:        badgeColor,
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                     ),
                   ),
-                ),
 
-                // ── Icon (moves with centerY) ───────────────────────────
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  top: centerY - 11, // 11 ≈ icon half-size (22/2)
-                  child: Center(
-                    child: Icon(
-                      isActive ? widget.item.activeIcon : widget.item.icon,
-                      size: 22,
-                      color: isActive ? Colors.white : mutedFg,
-                    ),
+                  // ── Icon — green when active, muted when not ───────────
+                  Icon(
+                    isActive ? widget.item.activeIcon : widget.item.icon,
+                    size:  22,
+                    color: isActive ? primary : mutedFg,
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),
