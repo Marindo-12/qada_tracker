@@ -88,7 +88,7 @@ class _FloatingNavBar extends StatefulWidget {
   const _FloatingNavBar({required this.currentIndex, required this.onTap});
 
   @override
-  State<_FloatingNavBar> createState() => _FloatingNavBarState();
+  State<StatefulWidget> createState() => _FloatingNavBarState();
 }
 
 class _FloatingNavBarState extends State<_FloatingNavBar>
@@ -229,7 +229,7 @@ class _ActiveBubble extends StatefulWidget {
   });
 
   @override
-  State<_ActiveBubble> createState() => _ActiveBubbleState();
+  State<StatefulWidget> createState() => _ActiveBubbleState();
 }
 
 class _ActiveBubbleState extends State<_ActiveBubble>
