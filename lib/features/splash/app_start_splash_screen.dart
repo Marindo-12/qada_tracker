@@ -139,15 +139,10 @@ class _IconBadge extends StatelessWidget {
 
   static const double _size = 124.0;
   static const double _radius = 28.0;
-  static const double _padding = 18.0;
 
   @override
   Widget build(BuildContext context) {
     final isDark = AppColors.isDark(context);
-    final surface = AppColors.surfaceOf(context);
-
-    // Couleur de l'arc lumineux : blanc en light, or en dark
-    final shineColor = isDark ? AppColors.darkPrimary : Colors.white;
 
     return AnimatedBuilder(
       animation: shineAnimation,
@@ -156,8 +151,8 @@ class _IconBadge extends StatelessWidget {
           foregroundPainter: _ShineArcPainter(
             progress: shineAnimation.value,
             radius: _radius,
-            borderColor: primary.withValues(alpha: 0.22),
-            shineColor: shineColor,
+            borderColor: Colors.black.withValues(alpha: isDark ? 0.18 : 0.08),
+            shineColor: Colors.white,
           ),
           child: child,
         );
@@ -165,31 +160,29 @@ class _IconBadge extends StatelessWidget {
       child: Container(
         width: _size,
         height: _size,
-        padding: const EdgeInsets.all(_padding),
         decoration: BoxDecoration(
-          color: surface,
           borderRadius: BorderRadius.circular(_radius),
           boxShadow: [
-            // Ombre principale colorée
             BoxShadow(
-              color: primary.withValues(alpha: isDark ? 0.30 : 0.18),
+              color: primary.withValues(alpha: isDark ? 0.28 : 0.16),
               blurRadius: 32,
               spreadRadius: 0,
               offset: const Offset(0, 14),
             ),
-            // Ombre de profondeur neutre
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
-              blurRadius: 12,
+              color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.10),
+              blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(_radius - _padding * 0.6),
+          borderRadius: BorderRadius.circular(_radius),
           child: Image.asset(
             'assets/icon/icon.png',
-            fit: BoxFit.contain,
+            width: _size,
+            height: _size,
+            fit: BoxFit.cover,
           ),
         ),
       ),
