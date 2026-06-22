@@ -60,6 +60,7 @@ class AppShell extends ConsumerWidget {
         ];
 
         return Scaffold(
+          // extendBody so the page content goes under the nav bar
           extendBody: true,
           body: IndexedStack(
             index: currentTab.clamp(0, 3),
@@ -75,59 +76,105 @@ class AppShell extends ConsumerWidget {
   }
 }
 
-// ─── Nav bar ──────────────────────────────────────────────────────────────────
+// ─── Nav bar : full-width, top corners rounded, icons lift on tap ─────────────
+//
+// Layout (heights):
+//   liftAmount = 18 px  → how far the active icon lifts above the bar top edge
+//   barHeight  = 64 px  → visible bar
+//   total SizedBox height = barHeight + liftAmount so the lifted icon isn't clipped
+//
 class _NavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
   const _NavBar({required this.currentIndex, required this.onTap});
 
+  static const double _barHeight   = 64;
+  static const double _liftAmount  = 20; // px the active icon rises above the bar
+  static const double _cornerRadius = 24;
+
   @override
   Widget build(BuildContext context) {
-    final isDark = AppColors.isDark(context);
     final barColor = AppColors.surfaceOf(context);
-    final shadow = isDark
-        ? Colors.black.withValues(alpha: 0.30)
-        : Colors.black.withValues(alpha: 0.10);
+    final isDark   = AppColors.isDark(context);
+    final shadow   = isDark
+        ? Colors.black.withValues(alpha: 0.35)
+        : Colors.black.withValues(alpha: 0.12);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: barColor,
-        boxShadow: [
-          BoxShadow(color: shadow, blurRadius: 20, offset: const Offset(0, -4)),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            children: List.generate(_tabItems.length, (i) {
-              return Expanded(
-                child: _NavItem(
-                  item: _tabItems[i],
-                  active: currentIndex == i,
-                  onTap: () => onTap(i),
+    return SafeArea(
+      top: false,
+      child: SizedBox(
+        // Extra space above bar so lifted icons are visible and not clipped
+        height: _barHeight + _liftAmount,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // ── Bar sits at the bottom of the SizedBox ──────────────────
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                height: _barHeight,
+                decoration: BoxDecoration(
+                  color: barColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(_cornerRadius),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: shadow,
+                      blurRadius: 20,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
                 ),
-              );
-            }),
-          ),
+              ),
+            ),
+
+            // ── Items row spans the full SizedBox height ─────────────────
+            // Each item knows its own bar bottom offset and lifts itself
+            Row(
+              children: List.generate(_tabItems.length, (i) {
+                return Expanded(
+                  child: _NavItem(
+                    item: _tabItems[i],
+                    active: currentIndex == i,
+                    barHeight: _barHeight,
+                    liftAmount: _liftAmount,
+                    totalHeight: _barHeight + _liftAmount,
+                    onTap: () => onTap(i),
+                  ),
+                );
+              }),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// ─── Individual item ──────────────────────────────────────────────────────────
+// ─── Single nav item ──────────────────────────────────────────────────────────
+//
+// When INACTIVE : icon sits vertically centered inside the bar area.
+// When ACTIVE   : icon + circle lift `liftAmount` px above the bar top edge.
+//
 class _NavItem extends StatefulWidget {
   final _TabItem item;
   final bool active;
+  final double barHeight;
+  final double liftAmount;
+  final double totalHeight;
   final VoidCallback onTap;
 
   const _NavItem({
     super.key,
     required this.item,
     required this.active,
+    required this.barHeight,
+    required this.liftAmount,
+    required this.totalHeight,
     required this.onTap,
   });
 
@@ -138,23 +185,24 @@ class _NavItem extends StatefulWidget {
 class _NavItemState extends State<_NavItem>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctl;
+
+  // 0 = resting inside bar  →  1 = lifted above bar
+  late final Animation<double> _lift;
   late final Animation<double> _circleScale;
-  late final Animation<double> _iconSwap;
 
   @override
   void initState() {
     super.initState();
     _ctl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 280),
+      duration: const Duration(milliseconds: 300),
     );
-    // Cercle : scale 0 → 1
+    _lift = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _ctl, curve: Curves.easeOutCubic),
+    );
     _circleScale = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _ctl, curve: Curves.easeOutBack),
     );
-    // Swap icône : 0→1 (active) ou 1→0 (inactive)
-    _iconSwap = CurvedAnimation(parent: _ctl, curve: Curves.easeOut);
-
     if (widget.active) _ctl.value = 1.0;
   }
 
@@ -179,48 +227,68 @@ class _NavItemState extends State<_NavItem>
     return GestureDetector(
       onTap: widget.onTap,
       behavior: HitTestBehavior.opaque,
-      child: AnimatedBuilder(
-        animation: _ctl,
-        builder: (context, _) {
-          return SizedBox(
-            height: 64,
-            child: Center(
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // ── Cercle primaire animé derrière l'icône ─────────────
-                  Transform.scale(
-                    scale: _circleScale.value,
-                    child: Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: primary,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: primary.withValues(alpha: 0.35),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
+      child: SizedBox(
+        height: widget.totalHeight,
+        child: AnimatedBuilder(
+          animation: _ctl,
+          builder: (context, _) {
+            // Inactive icon center: middle of bar = liftAmount + barHeight/2
+            // Active icon center: liftAmount/2 above bar top = liftAmount/2
+            // So vertical center goes from (liftAmount + barHeight/2) → (liftAmount/2 + circleR)
+            const circleR = 23.0;
+            final inactiveCenter = widget.liftAmount + widget.barHeight / 2;
+            final activeCenter   = widget.liftAmount / 2 + circleR / 2;
+            final centerY = inactiveCenter + (activeCenter - inactiveCenter) * _lift.value;
+
+            final isActive = _lift.value > 0.5;
+
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // ── Circle behind icon (only when lifting) ──────────────
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: centerY - circleR,
+                  child: Center(
+                    child: Transform.scale(
+                      scale: _circleScale.value,
+                      child: Container(
+                        width:  circleR * 2,
+                        height: circleR * 2,
+                        decoration: BoxDecoration(
+                          color: primary,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: primary.withValues(alpha: 0.40),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
+                ),
 
-                  // ── Icône (swap entre inactive et active) ──────────────
-                  Icon(
-                    _iconSwap.value > 0.5
-                        ? widget.item.activeIcon
-                        : widget.item.icon,
-                    size: 22,
-                    color: _iconSwap.value > 0.5 ? Colors.white : mutedFg,
+                // ── Icon (moves with centerY) ───────────────────────────
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  top: centerY - 11, // 11 ≈ icon half-size (22/2)
+                  child: Center(
+                    child: Icon(
+                      isActive ? widget.item.activeIcon : widget.item.icon,
+                      size: 22,
+                      color: isActive ? Colors.white : mutedFg,
+                    ),
                   ),
-                ],
-              ),
-            ),
-          );
-        },
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
