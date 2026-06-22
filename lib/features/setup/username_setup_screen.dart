@@ -1,7 +1,9 @@
+// lib/features/setup/username_setup_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/theme/app_theme.dart';
 import '../../shared/providers/providers.dart';
 import 'setup_intro_screen.dart';
 
@@ -16,7 +18,7 @@ class UsernameSetupScreen extends ConsumerStatefulWidget {
 class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
   late final TextEditingController _controller;
   bool _canSubmit = false;
-  bool _saving = false;
+  bool _saving    = false;
 
   @override
   void initState() {
@@ -26,9 +28,7 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
 
   void _syncCanSubmit() {
     final next = _controller.text.trim().isNotEmpty;
-    if (next != _canSubmit) {
-      setState(() => _canSubmit = next);
-    }
+    if (next != _canSubmit) setState(() => _canSubmit = next);
   }
 
   @override
@@ -42,8 +42,8 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
   Future<void> _submit() async {
     final name = _controller.text.trim();
     if (name.isEmpty || _saving) return;
-
     setState(() => _saving = true);
+
     final prefs = await ref.read(sharedPrefsProvider.future);
     await prefs.setString(userNamePrefsKey, name);
     ref.invalidate(userNameProvider);
@@ -56,8 +56,9 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = AppColors.isDark(context);
-    final theme = Theme.of(context);
+    final isDark  = AppColors.isDark(context);
+    final primary = AppColors.primaryOf(context);
+    final theme   = Theme.of(context);
 
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -65,25 +66,70 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
     ));
 
     return Scaffold(
-      backgroundColor: AppColors.bgOf(context),
+      backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
       body: SafeArea(
         child: Center(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // ── App name top-right ───────────────────────────────
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      'قَضَاء',
+                      textDirection: TextDirection.rtl,
+                      style: TextStyle(
+                        fontFamily: 'ScheherazadeNew',
+                        fontSize: 26,
+                        fontWeight: FontWeight.w700,
+                        color: primary,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 48),
+
+                  // ── Icon ────────────────────────────────────────────
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: primary.withValues(alpha: 0.10),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.person_outline, color: primary, size: 34),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // ── Title ───────────────────────────────────────────
                   Text(
                     'ما اسمك؟',
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: AppColors.fgOf(context),
+                    textDirection: TextDirection.rtl,
+                    style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 18),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    'سيُعرض اسمك داخل التطبيق فقط.',
+                    textAlign: TextAlign.center,
+                    textDirection: TextDirection.rtl,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.mutedFgOf(context),
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+
+                  // ── Text field ──────────────────────────────────────
                   TextField(
                     controller: _controller,
                     autofocus: true,
@@ -91,44 +137,46 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
                     textInputAction: TextInputAction.done,
                     textCapitalization: TextCapitalization.words,
                     onSubmitted: (_) => _submit(),
+                    style: theme.textTheme.titleMedium,
                     decoration: const InputDecoration(
                       hintText: 'اسم المستخدم',
                     ),
                   ),
-                  const SizedBox(height: 12),
-                  // Information text: name is local, only for display
+
+                  const SizedBox(height: 10),
+
+                  // ── Privacy note ────────────────────────────────────
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.info_outline,
-                        size: 16,
-                        color: AppColors.fgOf(context).withOpacity(0.6),
+                        Icons.lock_outline,
+                        size: 14,
+                        color: AppColors.mutedFgOf(context),
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 5),
                       Flexible(
                         child: Text(
-                          'هذا الاسم محفوظ على جهازك فقط ولن نتمكن من الوصول إليه، يُستخدم لعرضه داخل التطبيق.',
+                          'محفوظ على جهازك فقط، لن نتمكن من الوصول إليه.',
                           textAlign: TextAlign.center,
+                          textDirection: TextDirection.rtl,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: AppColors.fgOf(context).withOpacity(0.6),
+                            color: AppColors.mutedFgOf(context),
                             height: 1.4,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 18),
+
+                  const SizedBox(height: 32),
+
+                  // ── Submit button ───────────────────────────────────
                   SizedBox(
                     width: double.infinity,
                     height: 52,
                     child: ElevatedButton(
                       onPressed: _canSubmit && !_saving ? _submit : null,
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.zero,
-                        minimumSize: const Size(double.infinity, 52),
-                        alignment: Alignment.center,
-                      ),
                       child: _saving
                           ? const SizedBox(
                               width: 20,
@@ -138,17 +186,11 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Center(
-                              child: Padding(
-                                padding: EdgeInsets.only(top: 2.0),
-                                child: Text(
-                                  'تأكيد',
-                                  style: TextStyle(height: 1),
-                                ),
-                              ),
-                            ),
+                          : const Text('تأكيد'),
                     ),
                   ),
+
+                  const SizedBox(height: 20),
                 ],
               ),
             ),
