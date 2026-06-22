@@ -65,39 +65,46 @@ class SettingsScreen extends ConsumerWidget {
 
             const SizedBox(height: 16),
 
+            // ─── Theme ────────────────────────────────────────────────────
             _SectionCard(
               icon: Icons.contrast,
               title: 'المظهر',
               subtitle: 'اختر وضع ألوان التطبيق',
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Column(
+                child: Row(
                   children: [
-                    _ThemeOption(
-                      icon: Icons.phone_android,
-                      label: 'حسب النظام',
-                      active: themeMode == ThemeMode.system,
-                      onTap: () => ref
-                          .read(themeModeProvider.notifier)
-                          .set(ThemeMode.system),
+                    Expanded(
+                      child: _ThemeOption(
+                        icon: Icons.phone_android,
+                        label: 'تلقائي',
+                        active: themeMode == ThemeMode.system,
+                        onTap: () => ref
+                            .read(themeModeProvider.notifier)
+                            .set(ThemeMode.system),
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    _ThemeOption(
-                      icon: Icons.light_mode_outlined,
-                      label: 'الوضع الفاتح',
-                      active: themeMode == ThemeMode.light,
-                      onTap: () => ref
-                          .read(themeModeProvider.notifier)
-                          .set(ThemeMode.light),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _ThemeOption(
+                        icon: Icons.light_mode_outlined,
+                        label: 'فاتح',
+                        active: themeMode == ThemeMode.light,
+                        onTap: () => ref
+                            .read(themeModeProvider.notifier)
+                            .set(ThemeMode.light),
+                      ),
                     ),
-                    const SizedBox(height: 10),
-                    _ThemeOption(
-                      icon: Icons.dark_mode_outlined,
-                      label: 'الوضع الداكن',
-                      active: themeMode == ThemeMode.dark,
-                      onTap: () => ref
-                          .read(themeModeProvider.notifier)
-                          .set(ThemeMode.dark),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _ThemeOption(
+                        icon: Icons.dark_mode_outlined,
+                        label: 'داكن',
+                        active: themeMode == ThemeMode.dark,
+                        onTap: () => ref
+                            .read(themeModeProvider.notifier)
+                            .set(ThemeMode.dark),
+                      ),
                     ),
                   ],
                 ),
@@ -364,7 +371,6 @@ class _DailyTargetEditorState extends ConsumerState<_DailyTargetEditor> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Current target with +/- controls
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -527,7 +533,6 @@ class _SectionCard extends StatelessWidget {
     return Card(
       child: Column(
         children: [
-          // Section header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -665,6 +670,7 @@ class _DigitOption extends StatelessWidget {
   }
 }
 
+// ─── Theme Option : version compacte pour affichage en Row ───────────────────
 class _ThemeOption extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -691,7 +697,7 @@ class _ThemeOption extends StatelessWidget {
       onTap: onTap,
       child: AnimatedContainer(
         duration: 200.ms,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
           color: active
               ? primary.withValues(alpha: 0.08)
@@ -702,29 +708,23 @@ class _ThemeOption extends StatelessWidget {
             width: active ? 2 : 1,
           ),
         ),
-        child: Row(
+        // Centré verticalement : icône au dessus, label en dessous
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
               color: active ? primary : mutedFg,
-              size: 20,
+              size: 22,
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  color: active ? primary : foreground,
-                  fontWeight: active ? FontWeight.w800 : FontWeight.w600,
-                ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: active ? primary : foreground,
+                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
               ),
-            ),
-            Icon(
-              active
-                  ? Icons.radio_button_checked
-                  : Icons.radio_button_unchecked,
-              color: active ? primary : mutedFg,
-              size: 18,
             ),
           ],
         ),
