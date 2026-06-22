@@ -198,27 +198,30 @@ class _NavItemState extends State<_NavItem>
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // ── Badge pill (app bg color) scales in on active ──────
+                  // ── Badge circulaire (app bg color) scales in on active ─
                   Transform.scale(
                     scale: t,
                     child: Opacity(
                       opacity: t.clamp(0.0, 1.0),
                       child: Container(
-                        width:  48,
-                        height: 32,
+                        width:  46,
+                        height: 46,
                         decoration: BoxDecoration(
-                          color:        badgeColor,
-                          borderRadius: BorderRadius.circular(16),
+                          color:  badgeColor,
+                          shape:  BoxShape.circle,
                         ),
                       ),
                     ),
                   ),
 
-                  // ── Icon — green when active, muted when not ───────────
-                  Icon(
-                    isActive ? widget.item.activeIcon : widget.item.icon,
-                    size:  22,
-                    color: isActive ? primary : mutedFg,
+                  // ── Icon — grossit quand actif ─────────────────────────
+                  Transform.scale(
+                    scale: 1.0 + t * 0.28, // 1.0 → 1.28
+                    child: Icon(
+                      isActive ? widget.item.activeIcon : widget.item.icon,
+                      size:  22,
+                      color: isActive ? primary : mutedFg,
+                    ),
                   ),
                 ],
               ),
