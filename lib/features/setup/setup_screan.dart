@@ -549,13 +549,13 @@ class _StepIntro extends StatelessWidget {
         const SizedBox(height: 16),
 
         // Reassurance — quieter, secondary
-        _TipTile(
+        /* _TipTile(
           icon: Icons.info_outline_rounded,
           text:
               'لا تقلق إن لم تتذكر التواريخ بالضبط — في كل خطوة ستجد خيار التقريب. المهم النيّة الصادقة.',
         ).animate().fadeIn(delay: 550.ms),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: 8), */
       ],
     );
   }
