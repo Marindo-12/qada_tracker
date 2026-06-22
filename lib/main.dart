@@ -7,6 +7,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/theme/app_theme.dart';
 import 'core/navigation/app_router.dart';
+import 'features/splash/app_start_splash_screen.dart';
 import 'shared/providers/providers.dart';
 
 void main() async {
@@ -74,7 +75,9 @@ class QadaApp extends ConsumerWidget {
         );
       },
 
-      home: const AppShell(),
+      home: const AppStartSplashScreen(
+        child: AppShell(),
+      ),
     );
   }
 }
