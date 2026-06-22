@@ -76,7 +76,7 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Quel est votre nom ?',
+                    'ما اسمك؟',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.titleLarge?.copyWith(
                       color: AppColors.fgOf(context),
@@ -92,8 +92,31 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
                     textCapitalization: TextCapitalization.words,
                     onSubmitted: (_) => _submit(),
                     decoration: const InputDecoration(
-                      hintText: "Nom d'utilisateur",
+                      hintText: 'اسم المستخدم',
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Information text: name is local, only for display
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: AppColors.fgOf(context).withOpacity(0.6),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          'هذا الاسم محفوظ على جهازك فقط ولن نتمكن من الوصول إليه، يُستخدم لعرضه داخل التطبيق.',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: AppColors.fgOf(context).withOpacity(0.6),
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 18),
                   SizedBox(
@@ -101,6 +124,11 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
                     height: 52,
                     child: ElevatedButton(
                       onPressed: _canSubmit && !_saving ? _submit : null,
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(double.infinity, 52),
+                        alignment: Alignment.center,
+                      ),
                       child: _saving
                           ? const SizedBox(
                               width: 20,
@@ -110,7 +138,15 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text('Valider'),
+                          : const Center(
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 2.0),
+                                child: Text(
+                                  'تأكيد',
+                                  style: TextStyle(height: 1),
+                                ),
+                              ),
+                            ),
                     ),
                   ),
                 ],
