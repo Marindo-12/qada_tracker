@@ -54,8 +54,6 @@ class AppShell extends ConsumerWidget {
 
         return Scaffold(
           body: MediaQuery(
-            // Inject bottom padding = bar height (80) + margin (10) + safe area
-            // so every screen's scroll content clears the floating nav bar
             data: MediaQuery.of(context).copyWith(
               padding: MediaQuery.of(context).padding.copyWith(
                 bottom: 80 + 10 + MediaQuery.of(context).padding.bottom,
@@ -82,72 +80,25 @@ class AppShell extends ConsumerWidget {
 }
 
 // ─── Nav Bar ─────────────────────────────────────────────────────────────────
-// Design : cercle primary qui glisse de tab en tab (comme l'image)
-// Barre : fond surface, coins arrondis en haut, ombre douce
-// Cercle : se déplace via TweenAnimation sur la position X
-// Icône  : scale up + couleur white sur le cercle, muted sinon
+// Design : thin pill indicator (h:1.3) at top of active tab
+//          icon scales up on active, label below always visible
 // ─────────────────────────────────────────────────────────────────────────────
-class _NavBar extends StatefulWidget {
+class _NavBar extends StatelessWidget {
   final int              currentIndex;
   final ValueChanged<int> onTap;
 
   const _NavBar({required this.currentIndex, required this.onTap});
 
-  @override
-  State<_NavBar> createState() => _NavBarState();
-}
-
-class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
-  late AnimationController _ctl;
-  late Animation<double>   _pos; // tab index interpolated (e.g. 0.0 → 2.0)
-
-  double _from = 0;
-  double _to   = 0;
-
-  static const double _barH    = 80;
-  static const double _circleD = 52; // diameter of sliding circle
-
-  @override
-  void initState() {
-    super.initState();
-    _from = widget.currentIndex.toDouble();
-    _to   = _from;
-    _ctl  = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 350),
-    );
-    _pos = AlwaysStoppedAnimation(_from);
-  }
-
-  @override
-  void didUpdateWidget(covariant _NavBar old) {
-    super.didUpdateWidget(old);
-    if (widget.currentIndex != old.currentIndex) {
-      _from = _to;
-      _to   = widget.currentIndex.toDouble();
-      _pos  = Tween<double>(begin: _from, end: _to).animate(
-        CurvedAnimation(parent: _ctl, curve: Curves.easeOutExpo),
-      );
-      _ctl
-        ..reset()
-        ..forward();
-    }
-  }
-
-  @override
-  void dispose() {
-    _ctl.dispose();
-    super.dispose();
-  }
+  static const double _barH = 72;
 
   @override
   Widget build(BuildContext context) {
     final isDark  = AppColors.isDark(context);
     final surface = AppColors.surfaceOf(context);
-    final primary = AppColors.primaryOf(context);
+    final border  = AppColors.borderOf(context);
     final shadow  = isDark
-        ? Colors.black.withValues(alpha: 0.45)
-        : Colors.black.withValues(alpha: 0.10);
+        ? Colors.black.withValues(alpha: 0.40)
+        : Colors.black.withValues(alpha: 0.08);
 
     return SafeArea(
       top: false,
@@ -156,80 +107,35 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
         margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
         decoration: BoxDecoration(
           color:        surface,
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: border.withValues(alpha: 0.5), width: 0.6),
           boxShadow: [
-            BoxShadow(
-              color:      shadow,
-              blurRadius: 24,
-              offset:     const Offset(0, 6),
-            ),
+            BoxShadow(color: shadow, blurRadius: 20, offset: const Offset(0, 4)),
           ],
         ),
-        child: LayoutBuilder(
-          builder: (context, bc) {
-            final totalW = bc.maxWidth;
-            final tabW   = totalW / _tabs.length;
-
-            return AnimatedBuilder(
-              animation: _pos,
-              builder: (context, _) {
-                // RTL fix: tab 0 is on the RIGHT in Arabic layout
-                // Mirror: index 0 → rightmost slot, index 3 → leftmost slot
-                final mirroredPos = (_tabs.length - 1) - _pos.value;
-                final cx = tabW * (mirroredPos + 0.5);
-
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    // ── Sliding green circle ──────────────────────────
-                    Positioned(
-                      left:   cx - _circleD / 2,
-                      top:    (_barH - _circleD) / 2,
-                      width:  _circleD,
-                      height: _circleD,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: primary,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color:      primary.withValues(alpha: 0.40),
-                              blurRadius: 16,
-                              offset:     const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // ── Icons row (RTL: tab 0 on the right) ──────────
-                    Directionality(
-                      textDirection: TextDirection.rtl,
-                      child: Row(
-                        children: List.generate(_tabs.length, (i) {
-                          return Expanded(
-                            child: _NavItem(
-                              tab:    _tabs[i],
-                              active: widget.currentIndex == i,
-                              onTap:  () => widget.onTap(i),
-                              barH:   _barH,
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
+        child: Directionality(
+          textDirection: TextDirection.rtl,
+          child: Row(
+            children: List.generate(_tabs.length, (i) {
+              return Expanded(
+                child: _NavItem(
+                  tab:    _tabs[i],
+                  active: currentIndex == i,
+                  onTap:  () => onTap(i),
+                  barH:   _barH,
+                ),
+              );
+            }),
+          ),
         ),
       ),
     );
   }
 }
 
-// ─── Single item ──────────────────────────────────────────────────────────────
+// ─── Single nav item ──────────────────────────────────────────────────────────
+// Active  :  thin pill indicator at top  +  icon scale up  +  label primary bold
+// Inactive:  no indicator                +  icon normal     +  label muted
 class _NavItem extends StatefulWidget {
   final _Tab         tab;
   final bool         active;
@@ -251,17 +157,22 @@ class _NavItem extends StatefulWidget {
 class _NavItemState extends State<_NavItem>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctl;
-  late Animation<double>   _scale;
+  late Animation<double>   _scale;       // icon scale 1.0 → 1.22
+  late Animation<double>   _indicator;   // top line width 0 → 1
 
   @override
   void initState() {
     super.initState();
     _ctl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 280),
     );
-    _scale = Tween<double>(begin: 0.85, end: 1.15).animate(
+    _scale = Tween<double>(begin: 1.0, end: 1.22).animate(
       CurvedAnimation(parent: _ctl, curve: Curves.easeOutBack),
+    );
+    _indicator = CurvedAnimation(
+      parent: _ctl,
+      curve: Curves.easeOutCubic,
     );
     if (widget.active) _ctl.value = 1.0;
   }
@@ -292,35 +203,65 @@ class _NavItemState extends State<_NavItem>
         child: AnimatedBuilder(
           animation: _ctl,
           builder: (context, _) {
-            final isActive = _ctl.value > 0.5;
-            final color    = isActive ? Colors.white : mutedFg;
+            final isActive = _ctl.value > 0.4;
+
             return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.max,
               children: [
-                Transform.scale(
-                  scale: _scale.value,
-                  child: Icon(
-                    isActive ? widget.tab.activeIcon : widget.tab.icon,
-                    size:  22,
-                    color: color,
+
+                // ── Thin pill indicator at top ─────────────────────────
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Center(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 280),
+                      curve: Curves.easeOutCubic,
+                      width:  isActive ? 24.0 : 0.0,
+                      height: 1.3,
+                      decoration: BoxDecoration(
+                        color:        isActive ? primary : Colors.transparent,
+                        borderRadius: BorderRadius.circular(0.65),
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 3),
-                AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 200),
-                  style: TextStyle(
-                    fontFamily:  'Cairo',
-                    fontSize:    10,
-                    fontWeight:  isActive ? FontWeight.w700 : FontWeight.w400,
-                    color:       isActive ? Colors.white : mutedFg,
-                    height:      1.0,
-                  ),
-                  child: Text(
-                    widget.tab.label,
-                    textDirection: TextDirection.rtl,
-                    textAlign:     TextAlign.center,
-                    maxLines:      1,
-                    overflow:      TextOverflow.ellipsis,
+
+                // ── Icon + label centered in remaining space ───────────
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Icon
+                      Transform.scale(
+                        scale: _scale.value,
+                        child: Icon(
+                          isActive ? widget.tab.activeIcon : widget.tab.icon,
+                          size:  22,
+                          color: isActive ? primary : mutedFg,
+                        ),
+                      ),
+
+                      const SizedBox(height: 3),
+
+                      // Label
+                      AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 200),
+                        style: TextStyle(
+                          fontFamily: 'Cairo',
+                          fontSize:   10,
+                          fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                          color:      isActive ? primary : mutedFg,
+                          height:     1.0,
+                        ),
+                        child: Text(
+                          widget.tab.label,
+                          textDirection: TextDirection.rtl,
+                          textAlign:     TextAlign.center,
+                          maxLines:      1,
+                          overflow:      TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
