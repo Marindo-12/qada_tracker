@@ -1,5 +1,4 @@
 // lib/core/navigation/app_router.dart
-import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,37 +13,19 @@ import '../../core/theme/app_theme.dart';
 
 final currentTabProvider = StateProvider<int>((ref) => 0);
 
-// ─── Layout : 2 tabs | FAB (home) | 2 tabs ───────────────────────────────────
-// index 0 = الرئيسية  → FAB (centre, toujours visible)
-// index 1 = التقويم   → slot gauche 0
-// index 2 = الدليل    → slot gauche 1
-// index 3 = الإعدادات → slot droite 0  (1 seul à droite)
-//
-// animated_bottom_navigation_bar attend 4 items répartis 2|2 autour du notch.
-// On mappe : left=[التقويم, الدليل]  right=[الإعدادات, placeholder]
-// Mais comme on a 3 tabs + 1 FAB, on utilise itemCount=4 avec GapLocation.center
-// Left slots  : index 0 = التقويم,  index 1 = الدليل
-// Right slots : index 2 = الإعدادات, index 3 = (hidden / same as home)
-// Le FAB représente الرئيسية
-// ─────────────────────────────────────────────────────────────────────────────
-
-// Mapping bar-index → screen-index
-//   bar 0 (left-0)  → screen 1 (التقويم)
-//   bar 1 (left-1)  → screen 2 (الدليل)
-//   bar 2 (right-0) → screen 3 (الإعدادات)
-//   bar 3 (right-1) → screen 3 (same, hidden tab)
-// FAB                → screen 0 (الرئيسية)
-
-const _barToScreen = [1, 2, 3, 3];
-
-const _barIcons = [
-  Icons.calendar_month_rounded,
-  Icons.menu_book_rounded,
-  Icons.tune_rounded,
-  Icons.tune_rounded, // hidden duplicate
+const _tabs = [
+  _Tab(icon: Icons.home_outlined,           activeIcon: Icons.home_rounded,           label: 'الرئيسية'),
+  _Tab(icon: Icons.calendar_month_outlined, activeIcon: Icons.calendar_month_rounded, label: 'التقويم'),
+  _Tab(icon: Icons.menu_book_outlined,      activeIcon: Icons.menu_book_rounded,      label: 'الدليل'),
+  _Tab(icon: Icons.tune_outlined,           activeIcon: Icons.tune_rounded,           label: 'الإعدادات'),
 ];
 
-const _barLabels = ['التقويم', 'الدليل', 'الإعدادات', ''];
+class _Tab {
+  final IconData icon;
+  final IconData activeIcon;
+  final String   label;
+  const _Tab({required this.icon, required this.activeIcon, required this.label});
+}
 
 // ─── Shell ────────────────────────────────────────────────────────────────────
 class AppShell extends ConsumerWidget {
@@ -56,17 +37,14 @@ class AppShell extends ConsumerWidget {
     final currentTab = ref.watch(currentTabProvider);
 
     return planAsync.when(
-      loading: () => const Scaffold(
-          body: Center(child: CircularProgressIndicator())),
-      error: (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
+      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error:   (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
       data: (plan) {
         if (plan == null && currentTab != 2 && currentTab != 3) {
           final userNameAsync = ref.watch(userNameProvider);
           return userNameAsync.when(
-            loading: () => const Scaffold(
-                body: Center(child: CircularProgressIndicator())),
-            error: (e, _) =>
-                Scaffold(body: Center(child: Text('خطأ: $e'))),
+            loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+            error:   (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
             data: (userName) {
               if (userName == null) return const UsernameSetupScreen();
               return const SetupIntroScreen();
@@ -74,176 +52,252 @@ class AppShell extends ConsumerWidget {
           );
         }
 
-        return const _MainShell();
+        return Scaffold(
+          extendBody: true,
+          body: IndexedStack(
+            index: currentTab.clamp(0, 3),
+            children: const [
+              HomeScreen(),
+              CalendarScreen(),
+              GuidePage(),
+              SettingsScreen(),
+            ],
+          ),
+          bottomNavigationBar: _NavBar(
+            currentIndex: currentTab.clamp(0, 3),
+            onTap: (i) => ref.read(currentTabProvider.notifier).state = i,
+          ),
+        );
       },
     );
   }
 }
 
-// ─── Main shell with animated nav bar ────────────────────────────────────────
-class _MainShell extends ConsumerStatefulWidget {
-  const _MainShell();
+// ─── Nav Bar ─────────────────────────────────────────────────────────────────
+// Design : cercle primary qui glisse de tab en tab (comme l'image)
+// Barre : fond surface, coins arrondis en haut, ombre douce
+// Cercle : se déplace via TweenAnimation sur la position X
+// Icône  : scale up + couleur white sur le cercle, muted sinon
+// ─────────────────────────────────────────────────────────────────────────────
+class _NavBar extends StatefulWidget {
+  final int              currentIndex;
+  final ValueChanged<int> onTap;
+
+  const _NavBar({required this.currentIndex, required this.onTap});
 
   @override
-  ConsumerState<_MainShell> createState() => _MainShellState();
+  State<_NavBar> createState() => _NavBarState();
 }
 
-class _MainShellState extends ConsumerState<_MainShell>
-    with SingleTickerProviderStateMixin {
-  // bar index (0-3) — NOT the screen index
-  int _barIndex = 0;
+class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
+  late AnimationController _ctl;
+  late Animation<double>   _pos; // tab index interpolated (e.g. 0.0 → 2.0)
 
-  late final AnimationController _fabCtl;
-  late final Animation<double>   _fabAnim;
+  double _from = 0;
+  double _to   = 0;
+
+  static const double _barH    = 70;
+  static const double _circleD = 52; // diameter of sliding circle
 
   @override
   void initState() {
     super.initState();
-    _fabCtl = AnimationController(
+    _from = widget.currentIndex.toDouble();
+    _to   = _from;
+    _ctl  = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 350),
     );
-    _fabAnim = CurvedAnimation(parent: _fabCtl, curve: Curves.easeOutBack);
-    // Animate FAB in after a short delay
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) _fabCtl.forward();
-    });
+    _pos = AlwaysStoppedAnimation(_from);
+  }
+
+  @override
+  void didUpdateWidget(covariant _NavBar old) {
+    super.didUpdateWidget(old);
+    if (widget.currentIndex != old.currentIndex) {
+      _from = _to;
+      _to   = widget.currentIndex.toDouble();
+      _pos  = Tween<double>(begin: _from, end: _to).animate(
+        CurvedAnimation(parent: _ctl, curve: Curves.easeOutExpo),
+      );
+      _ctl
+        ..reset()
+        ..forward();
+    }
   }
 
   @override
   void dispose() {
-    _fabCtl.dispose();
+    _ctl.dispose();
     super.dispose();
-  }
-
-  void _onBarTap(int barIdx) {
-    setState(() => _barIndex = barIdx);
-    ref.read(currentTabProvider.notifier).state = _barToScreen[barIdx];
-  }
-
-  void _onFabTap() {
-    setState(() => _barIndex = -1); // no bar item active
-    ref.read(currentTabProvider.notifier).state = 0; // الرئيسية
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentTab = ref.watch(currentTabProvider);
-    final isDark     = AppColors.isDark(context);
-    final primary    = AppColors.primaryOf(context);
-    final surface    = AppColors.surfaceOf(context);
-    final mutedFg    = AppColors.mutedFgOf(context);
+    final isDark  = AppColors.isDark(context);
+    final surface = AppColors.surfaceOf(context);
+    final primary = AppColors.primaryOf(context);
+    final shadow  = isDark
+        ? Colors.black.withValues(alpha: 0.45)
+        : Colors.black.withValues(alpha: 0.10);
 
-    // Sync bar index when screen changes externally
-    final barIdx = currentTab == 0
-        ? -1
-        : _barToScreen.indexOf(currentTab).clamp(0, 2);
-
-    return Scaffold(
-      extendBody: true,
-      body: IndexedStack(
-        index: currentTab.clamp(0, 3),
-        children: const [
-          HomeScreen(),
-          CalendarScreen(),
-          GuidePage(),
-          SettingsScreen(),
-        ],
-      ),
-
-      // ── FAB : represents الرئيسية ─────────────────────────────────────
-      floatingActionButton: ScaleTransition(
-        scale: _fabAnim,
-        child: FloatingActionButton(
-          onPressed: _onFabTap,
-          backgroundColor: primary,
-          elevation:        6,
-          shape: const CircleBorder(),
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
-            child: Icon(
-              currentTab == 0 ? Icons.home_rounded : Icons.home_outlined,
-              key: ValueKey(currentTab == 0),
-              color: Colors.white,
-              size: 26,
+    return SafeArea(
+      top: false,
+      child: Container(
+        height: _barH,
+        margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        decoration: BoxDecoration(
+          color:        surface,
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [
+            BoxShadow(
+              color:      shadow,
+              blurRadius: 24,
+              offset:     const Offset(0, 6),
             ),
-          ),
+          ],
         ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        child: LayoutBuilder(
+          builder: (context, bc) {
+            final totalW = bc.maxWidth;
+            final tabW   = totalW / _tabs.length;
 
-      // ── Bottom nav bar ────────────────────────────────────────────────
-      bottomNavigationBar: AnimatedBottomNavigationBar.builder(
-        itemCount:   4,
-        activeIndex: barIdx < 0 ? 0 : barIdx, // required, but FAB is active
-        gapLocation:       GapLocation.center,
-        notchSmoothness:   NotchSmoothness.verySmoothEdge,
-        leftCornerRadius:  28,
-        rightCornerRadius: 28,
-        backgroundColor: surface,
-        splashColor:     primary,
-        splashSpeedInMilliseconds: 250,
-        shadow: BoxShadow(
-          color:      isDark
-              ? Colors.black.withValues(alpha: 0.40)
-              : Colors.black.withValues(alpha: 0.10),
-          blurRadius:   20,
-          offset:       const Offset(0, -4),
-          spreadRadius: 0,
+            return AnimatedBuilder(
+              animation: _pos,
+              builder: (context, _) {
+                // RTL fix: tab 0 is on the RIGHT in Arabic layout
+                // Mirror: index 0 → rightmost slot, index 3 → leftmost slot
+                final mirroredPos = (_tabs.length - 1) - _pos.value;
+                final cx = tabW * (mirroredPos + 0.5);
+
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // ── Sliding green circle ──────────────────────────
+                    Positioned(
+                      left:   cx - _circleD / 2,
+                      top:    (_barH - _circleD) / 2,
+                      width:  _circleD,
+                      height: _circleD,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: primary,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color:      primary.withValues(alpha: 0.40),
+                              blurRadius: 16,
+                              offset:     const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // ── Icons row (RTL: tab 0 on the right) ──────────
+                    Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: Row(
+                        children: List.generate(_tabs.length, (i) {
+                          return Expanded(
+                            child: _NavItem(
+                              tab:    _tabs[i],
+                              active: widget.currentIndex == i,
+                              onTap:  () => widget.onTap(i),
+                              barH:   _barH,
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
         ),
-        onTap: _onBarTap,
-        tabBuilder: (int index, bool isActive) {
-          // Hide the 4th slot (right duplicate)
-          if (index == 3) return const SizedBox.shrink();
-
-          // When FAB (home) is active, nothing in bar is "active"
-          final realActive = currentTab != 0 && isActive;
-          final color      = realActive ? primary : mutedFg;
-
-          return Column(
-            mainAxisSize:      MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                child: Icon(
-                  realActive
-                      ? _activeIcon(_barIcons[index])
-                      : _barIcons[index],
-                  key:   ValueKey(realActive),
-                  size:  22,
-                  color: color,
-                ),
-              ),
-              const SizedBox(height: 3),
-              AnimatedDefaultTextStyle(
-                duration: const Duration(milliseconds: 200),
-                style: TextStyle(
-                  fontFamily: 'Cairo',
-                  fontSize:   10,
-                  fontWeight: realActive
-                      ? FontWeight.w700
-                      : FontWeight.w400,
-                  color: color,
-                ),
-                child: Text(
-                  _barLabels[index],
-                  textDirection: TextDirection.rtl,
-                  maxLines: 1,
-                ),
-              ),
-            ],
-          );
-        },
       ),
     );
   }
+}
 
-  // Returns a slightly "filled" version of the icon for active state
-  IconData _activeIcon(IconData icon) {
-    if (icon == Icons.calendar_month_rounded) return Icons.calendar_month;
-    if (icon == Icons.menu_book_rounded)      return Icons.menu_book;
-    if (icon == Icons.tune_rounded)           return Icons.tune;
-    return icon;
+// ─── Single item ──────────────────────────────────────────────────────────────
+class _NavItem extends StatefulWidget {
+  final _Tab         tab;
+  final bool         active;
+  final VoidCallback onTap;
+  final double       barH;
+
+  const _NavItem({
+    super.key,
+    required this.tab,
+    required this.active,
+    required this.onTap,
+    required this.barH,
+  });
+
+  @override
+  State<_NavItem> createState() => _NavItemState();
+}
+
+class _NavItemState extends State<_NavItem>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctl;
+  late Animation<double>   _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _scale = Tween<double>(begin: 0.85, end: 1.15).animate(
+      CurvedAnimation(parent: _ctl, curve: Curves.easeOutBack),
+    );
+    if (widget.active) _ctl.value = 1.0;
+  }
+
+  @override
+  void didUpdateWidget(covariant _NavItem old) {
+    super.didUpdateWidget(old);
+    if ( widget.active && !old.active) _ctl.forward();
+    if (!widget.active &&  old.active) _ctl.reverse();
+  }
+
+  @override
+  void dispose() {
+    _ctl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+
+    return GestureDetector(
+      onTap: widget.onTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        height: widget.barH,
+        child: AnimatedBuilder(
+          animation: _ctl,
+          builder: (context, _) {
+            final isActive = _ctl.value > 0.5;
+            return Center(
+              child: Transform.scale(
+                scale: _scale.value,
+                child: Icon(
+                  isActive ? widget.tab.activeIcon : widget.tab.icon,
+                  size:  24,
+                  color: isActive ? Colors.white : mutedFg,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
   }
 }
