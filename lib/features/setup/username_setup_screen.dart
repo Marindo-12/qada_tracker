@@ -67,6 +67,24 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
 
     return Scaffold(
       backgroundColor: isDark ? AppColors.darkBackground : AppColors.background,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Align(
+          alignment: Alignment.centerRight,
+          child: Text(
+            'قَضَاء',
+            textDirection: TextDirection.rtl,
+            style: TextStyle(
+              fontFamily: 'ScheherazadeNew',
+              fontSize: 26,
+              fontWeight: FontWeight.w700,
+              color: primary,
+            ),
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -76,23 +94,6 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ── App name top-right ───────────────────────────────
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      'قَضَاء',
-                      textDirection: TextDirection.rtl,
-                      style: TextStyle(
-                        fontFamily: 'ScheherazadeNew',
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                        color: primary,
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 48),
-
                   // ── Icon ────────────────────────────────────────────
                   Container(
                     width: 72,
@@ -177,6 +178,11 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
                     height: 52,
                     child: ElevatedButton(
                       onPressed: _canSubmit && !_saving ? _submit : null,
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(double.infinity, 52),
+                        alignment: Alignment.center,
+                      ),
                       child: _saving
                           ? const SizedBox(
                               width: 20,
@@ -186,7 +192,15 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text('تأكيد'),
+                          : const Center(
+                              child: Padding(
+                                padding: EdgeInsets.only(top: 2.0),
+                                child: Text(
+                                  'تأكيد',
+                                  style: TextStyle(height: 1),
+                                ),
+                              ),
+                            ),
                     ),
                   ),
 
