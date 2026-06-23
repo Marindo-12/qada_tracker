@@ -53,15 +53,23 @@ class AppShell extends ConsumerWidget {
         }
 
         return Scaffold(
-          extendBody: true,
-          body: IndexedStack(
-            index: currentTab.clamp(0, 3),
-            children: const [
-              HomeScreen(),
-              CalendarScreen(),
-              GuidePage(),
-              SettingsScreen(),
-            ],
+          body: MediaQuery(
+            // Inject bottom padding = bar height (80) + margin (10) + safe area
+            // so every screen's scroll content clears the floating nav bar
+            data: MediaQuery.of(context).copyWith(
+              padding: MediaQuery.of(context).padding.copyWith(
+                bottom: 80 + 10 + MediaQuery.of(context).padding.bottom,
+              ),
+            ),
+            child: IndexedStack(
+              index: currentTab.clamp(0, 3),
+              children: const [
+                HomeScreen(),
+                CalendarScreen(),
+                GuidePage(),
+                SettingsScreen(),
+              ],
+            ),
           ),
           bottomNavigationBar: _NavBar(
             currentIndex: currentTab.clamp(0, 3),
@@ -96,7 +104,7 @@ class _NavBarState extends State<_NavBar> with SingleTickerProviderStateMixin {
   double _from = 0;
   double _to   = 0;
 
-  static const double _barH    = 70;
+  static const double _barH    = 80;
   static const double _circleD = 52; // diameter of sliding circle
 
   @override
@@ -285,15 +293,37 @@ class _NavItemState extends State<_NavItem>
           animation: _ctl,
           builder: (context, _) {
             final isActive = _ctl.value > 0.5;
-            return Center(
-              child: Transform.scale(
-                scale: _scale.value,
-                child: Icon(
-                  isActive ? widget.tab.activeIcon : widget.tab.icon,
-                  size:  24,
-                  color: isActive ? Colors.white : mutedFg,
+            final color    = isActive ? Colors.white : mutedFg;
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Transform.scale(
+                  scale: _scale.value,
+                  child: Icon(
+                    isActive ? widget.tab.activeIcon : widget.tab.icon,
+                    size:  22,
+                    color: color,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 3),
+                AnimatedDefaultTextStyle(
+                  duration: const Duration(milliseconds: 200),
+                  style: TextStyle(
+                    fontFamily:  'Cairo',
+                    fontSize:    10,
+                    fontWeight:  isActive ? FontWeight.w700 : FontWeight.w400,
+                    color:       isActive ? Colors.white : mutedFg,
+                    height:      1.0,
+                  ),
+                  child: Text(
+                    widget.tab.label,
+                    textDirection: TextDirection.rtl,
+                    textAlign:     TextAlign.center,
+                    maxLines:      1,
+                    overflow:      TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             );
           },
         ),
