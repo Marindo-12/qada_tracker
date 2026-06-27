@@ -359,7 +359,7 @@ class _CalendarCellState extends ConsumerState<_CalendarCell>
 
     final data      = widget.data;
     final completed = data?.completed ?? 0;
-    final total     = data?.total     ?? 0;
+    final total     = data?.target   ?? 0;
     final ratio     = total > 0 ? completed / total : 0.0;
 
     _overlay = OverlayEntry(
