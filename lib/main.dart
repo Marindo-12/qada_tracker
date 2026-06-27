@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-
 import 'core/theme/app_theme.dart';
 import 'core/navigation/app_router.dart';
 import 'features/splash/app_start_splash_screen.dart';
@@ -12,29 +11,18 @@ import 'shared/providers/providers.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  // Initialize Arabic locale for date formatting
   await initializeDateFormatting('ar', null);
-
-  // Force portrait mode
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-
-  // Status bar style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-
-  runApp(
-    const ProviderScope(
-      child: QadaApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: QadaApp()));
 }
 
 class QadaApp extends ConsumerWidget {
@@ -42,15 +30,13 @@ class QadaApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Pre-load preferences
     ref.watch(digitStyleProvider);
-    final themeMode = ref.watch(themeModeProvider);
+    final themeMode  = ref.watch(themeModeProvider);
+    final colorTheme = ref.watch(colorThemeProvider); // ← nouveau
 
     return MaterialApp(
       title: 'قضاء الصلوات',
       debugShowCheckedModeBanner: false,
-
-      // RTL + Arabic locale
       locale: const Locale('ar', 'SA'),
       supportedLocales: const [
         Locale('ar', 'SA'),
@@ -61,23 +47,23 @@ class QadaApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-
-      // Theme
-      theme: AppTheme.light,
-      darkTheme: AppTheme.dark,
+      // ── Thèmes dynamiques selon colorTheme ──────────────────────────────
+      theme: AppTheme.buildTheme(
+        brightness: Brightness.light,
+        colorTheme: colorTheme,
+      ),
+      darkTheme: AppTheme.buildTheme(
+        brightness: Brightness.dark,
+        colorTheme: colorTheme,
+      ),
       themeMode: themeMode,
-
-      // Text direction RTL
       builder: (context, child) {
         return Directionality(
           textDirection: TextDirection.rtl,
           child: child!,
         );
       },
-
-      home: const AppStartSplashScreen(
-        child: AppShell(),
-      ),
+      home: const AppStartSplashScreen(child: AppShell()),
     );
   }
 }

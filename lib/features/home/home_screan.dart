@@ -42,7 +42,7 @@ class _WelcomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
+    final theme   = Theme.of(context);
     final primary = AppColors.primaryOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
 
@@ -60,11 +60,7 @@ class _WelcomeScreen extends ConsumerWidget {
                   color: primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.menu_book_rounded,
-                  size: 56,
-                  color: primary,
-                ),
+                child: Icon(Icons.menu_book_rounded, size: 56, color: primary),
               ).animate().scale(duration: 600.ms, curve: Curves.elasticOut),
               const SizedBox(height: 32),
               Text(
@@ -75,10 +71,8 @@ class _WelcomeScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               Text(
                 'رفيقك الهادئ في رحلة التوبة وقضاء ما فاتك من الصلوات.',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: mutedFg,
-                  height: 1.7,
-                ),
+                style: theme.textTheme.bodyLarge
+                    ?.copyWith(color: mutedFg, height: 1.7),
                 textAlign: TextAlign.center,
               ).animate().fadeIn(delay: 400.ms),
               const SizedBox(height: 48),
@@ -127,18 +121,18 @@ class _TotalCountHero extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final summaryAsync = ref.watch(summaryProvider);
-    final useArabic = ref.watch(digitStyleProvider);
-    final theme = Theme.of(context);
-    final primary = AppColors.primaryOf(context);
+    final useArabic    = ref.watch(digitStyleProvider);
+    final theme        = Theme.of(context);
+    final primary      = AppColors.primaryOf(context);
 
     return summaryAsync.when(
       loading: () => _TotalCountHeroSkeleton(primary: primary),
       error: (_, __) => const SizedBox.shrink(),
       data: (summary) {
-        final completed = summary.completedPrayers;
-        final total = summary.completedPrayers + summary.remainingPrayers;
-        final remaining = summary.remainingPrayers;
-        final pct = total > 0 ? (completed / total) : 0.0;
+        final completed  = summary.completedPrayers;
+        final total      = summary.completedPrayers + summary.remainingPrayers;
+        final remaining  = summary.remainingPrayers;
+        final pct        = total > 0 ? (completed / total) : 0.0;
         final pctDisplay = (pct * 100).round();
 
         return ClipRRect(
@@ -150,13 +144,10 @@ class _TotalCountHero extends ConsumerWidget {
             ),
             child: Stack(
               children: [
-                // Decorative circles (like the TSX absolute divs)
                 Positioned(
-                  top: -32,
-                  right: -32,
+                  top: -32, right: -32,
                   child: Container(
-                    width: 160,
-                    height: 160,
+                    width: 160, height: 160,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white.withValues(alpha: 0.1),
@@ -164,27 +155,22 @@ class _TotalCountHero extends ConsumerWidget {
                   ),
                 ),
                 Positioned(
-                  bottom: -40,
-                  left: -40,
+                  bottom: -40, left: -40,
                   child: Container(
-                    width: 208,
-                    height: 208,
+                    width: 208, height: 208,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white.withValues(alpha: 0.1),
                     ),
                   ),
                 ),
-                // Content
                 Padding(
                   padding: const EdgeInsets.all(20),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Donut progress ring
                       SizedBox(
-                        width: 112,
-                        height: 112,
+                        width: 112, height: 112,
                         child: Stack(
                           alignment: Alignment.center,
                           children: [
@@ -192,10 +178,8 @@ class _TotalCountHero extends ConsumerWidget {
                               size: const Size(112, 112),
                               painter: _DonutPainter(
                                 progress: pct.toDouble(),
-                                trackColor:
-                                    Colors.white.withValues(alpha: 0.15),
-                                progressColor:
-                                    Colors.white.withValues(alpha: 0.9),
+                                trackColor: Colors.white.withValues(alpha: 0.15),
+                                progressColor: Colors.white.withValues(alpha: 0.9),
                                 strokeWidth: 9,
                               ),
                             ),
@@ -211,7 +195,6 @@ class _TotalCountHero extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: 20),
-                      // Stats
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,11 +273,10 @@ class _TotalCountHeroSkeleton extends StatelessWidget {
   }
 }
 
-/// Custom painter for the donut / arc progress ring.
 class _DonutPainter extends CustomPainter {
-  final double progress; // 0.0 – 1.0
-  final Color trackColor;
-  final Color progressColor;
+  final double progress;
+  final Color  trackColor;
+  final Color  progressColor;
   final double strokeWidth;
 
   const _DonutPainter({
@@ -308,46 +290,34 @@ class _DonutPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
-    final rect = Rect.fromCircle(center: center, radius: radius);
+    final rect   = Rect.fromCircle(center: center, radius: radius);
 
-    // Track
-    canvas.drawArc(
-      rect,
-      0,
-      2 * math.pi,
-      false,
-      Paint()
-        ..color = trackColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth,
-    );
+    canvas.drawArc(rect, 0, 2 * math.pi, false,
+        Paint()
+          ..color       = trackColor
+          ..style       = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth);
 
-    // Progress arc — starts at top (−π/2)
-    canvas.drawArc(
-      rect,
-      -math.pi / 2,
-      2 * math.pi * progress,
-      false,
-      Paint()
-        ..color = progressColor
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth
-        ..strokeCap = StrokeCap.round,
-    );
+    canvas.drawArc(rect, -math.pi / 2, 2 * math.pi * progress, false,
+        Paint()
+          ..color       = progressColor
+          ..style       = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap   = StrokeCap.round);
   }
 
   @override
-  bool shouldRepaint(_DonutPainter oldDelegate) =>
-      oldDelegate.progress != progress ||
-      oldDelegate.trackColor != trackColor ||
-      oldDelegate.progressColor != progressColor;
+  bool shouldRepaint(_DonutPainter old) =>
+      old.progress != progress ||
+      old.trackColor != trackColor ||
+      old.progressColor != progressColor;
 }
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
+// ─── Digit menu item (popup) ──────────────────────────────────────────────────
 class _DigitMenuItem extends StatelessWidget {
   final String label;
   final String sample;
-  final bool selected;
+  final bool   selected;
 
   const _DigitMenuItem({
     required this.label,
@@ -357,10 +327,10 @@ class _DigitMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = AppColors.primaryOf(context);
+    final theme      = Theme.of(context);
+    final primary    = AppColors.primaryOf(context);
     final foreground = AppColors.foregroundOf(context);
-    final mutedFg = AppColors.mutedFgOf(context);
+    final mutedFg    = AppColors.mutedFgOf(context);
 
     return Row(
       children: [
@@ -381,16 +351,69 @@ class _DigitMenuItem extends StatelessWidget {
         ),
         Text(
           sample,
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: mutedFg,
-            fontWeight: FontWeight.w800,
-          ),
+          style: theme.textTheme.labelLarge
+              ?.copyWith(color: mutedFg, fontWeight: FontWeight.w800),
         ),
       ],
     );
   }
 }
 
+// ─── Color theme menu item (popup) ───────────────────────────────────────────
+class _ColorThemeMenuItem extends StatelessWidget {
+  final String           label;
+  final List<Color>      dots;
+  final bool             selected;
+
+  const _ColorThemeMenuItem({
+    required this.label,
+    required this.dots,
+    required this.selected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme   = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+    final border  = AppColors.borderOf(context);
+
+    return Row(
+      children: [
+        Icon(
+          selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+          size: 18,
+          color: selected ? primary : mutedFg,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: selected ? primary : AppColors.foregroundOf(context),
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ),
+        Row(
+          children: dots
+              .map((c) => Container(
+                    width: 14, height: 14,
+                    margin: const EdgeInsets.only(left: 3),
+                    decoration: BoxDecoration(
+                      color: c,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: border, width: 0.5),
+                    ),
+                  ))
+              .toList(),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── App Wordmark ─────────────────────────────────────────────────────────────
 class _AppWordmark extends StatelessWidget {
   const _AppWordmark();
 
@@ -423,15 +446,36 @@ class _AppWordmark extends StatelessWidget {
   }
 }
 
+// ─── Dashboard ────────────────────────────────────────────────────────────────
 class _Dashboard extends ConsumerWidget {
   const _Dashboard();
 
+  // Métadonnées des thèmes pour le popup
+  static const _colorThemes = [
+    (
+      value: AppColorTheme.green,
+      label: 'أخضر كلاسيكي',
+      dots: [Color(0xFF0D6B45), Color(0xFFB8932A), Color(0xFFF5F0E8)],
+    ),
+    (
+      value: AppColorTheme.blue,
+      label: 'أزرق حديث',
+      dots: [Color(0xFF378ADD), Color(0xFF185FA5), Color(0xFFF8F9FA)],
+    ),
+    (
+      value: AppColorTheme.gold,
+      label: 'ذهبي فاخر',
+      dots: [Color(0xFFB8932A), Color(0xFF8B6914), Color(0xFFF5F0E8)],
+    ),
+  ];
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final useArabic = ref.watch(digitStyleProvider);
-    final themeMode = ref.watch(themeModeProvider);
-    final isDarkMode = themeMode == ThemeMode.dark ||
+    final theme        = Theme.of(context);
+    final useArabic    = ref.watch(digitStyleProvider);
+    final themeMode    = ref.watch(themeModeProvider);
+    final colorTheme   = ref.watch(colorThemeProvider);  // ← nouveau
+    final isDarkMode   = themeMode == ThemeMode.dark ||
         (themeMode == ThemeMode.system &&
             Theme.of(context).brightness == Brightness.dark);
     final primary = AppColors.primaryOf(context);
@@ -441,11 +485,12 @@ class _Dashboard extends ConsumerWidget {
       appBar: AppBar(
         centerTitle: false,
         titleSpacing: 20,
-        title: Align(
+        title: const Align(
           alignment: AlignmentDirectional.centerStart,
-          child: const _AppWordmark(),
+          child: _AppWordmark(),
         ),
         actions: [
+          // ── Bouton dark/light ────────────────────────────────────────
           IconButton(
             tooltip: isDarkMode ? 'الوضع الفاتح' : 'الوضع الداكن',
             icon: Icon(
@@ -458,6 +503,28 @@ class _Dashboard extends ConsumerWidget {
                 .read(themeModeProvider.notifier)
                 .set(isDarkMode ? ThemeMode.light : ThemeMode.dark),
           ),
+
+          // ── Popup couleur du thème ───────────────────────────────────
+          PopupMenuButton<AppColorTheme>(
+            tooltip: 'لون التطبيق',
+            icon: Icon(Icons.palette_outlined, color: primary),
+            onSelected: (value) =>
+                ref.read(colorThemeProvider.notifier).set(value),
+            itemBuilder: (context) => _colorThemes
+                .map(
+                  (t) => PopupMenuItem<AppColorTheme>(
+                    value: t.value,
+                    child: _ColorThemeMenuItem(
+                      label:    t.label,
+                      dots:     t.dots,
+                      selected: colorTheme == t.value,
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+
+          // ── Popup chiffres ───────────────────────────────────────────
           PopupMenuButton<bool>(
             tooltip: 'شكل الأرقام',
             icon: Icon(Icons.format_list_numbered, color: primary),
@@ -467,16 +534,16 @@ class _Dashboard extends ConsumerWidget {
               PopupMenuItem(
                 value: true,
                 child: _DigitMenuItem(
-                  label: 'أرقام عربية',
-                  sample: '١٢٣',
+                  label:    'أرقام عربية',
+                  sample:   '١٢٣',
                   selected: useArabic,
                 ),
               ),
               PopupMenuItem(
                 value: false,
                 child: _DigitMenuItem(
-                  label: 'أرقام إنجليزية',
-                  sample: '123',
+                  label:    'أرقام إنجليزية',
+                  sample:   '123',
                   selected: !useArabic,
                 ),
               ),
@@ -495,11 +562,9 @@ class _Dashboard extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           children: [
-            // ── NEW: Total count hero (matches TSX TotalCountHero) ──
             const _TotalCountHero(),
             const SizedBox(height: 16),
 
-            // Date header
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Column(
@@ -509,37 +574,26 @@ class _Dashboard extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Text(
                     formatArabicDate(todayIso(), useArabic: useArabic),
-                    style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg),
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(color: mutedFg),
                   ),
                 ],
               ),
             ),
 
-            // Today checklist
             const TodayChecklist(),
             const SizedBox(height: 16),
-
-            // Previous day logger
             const PreviousDayLogger(),
             const SizedBox(height: 16),
-
-            // Progress
             const ProgressCard(),
             const SizedBox(height: 16),
-
-            // Per-prayer progress
             const PrayerProgressBreakdown(),
             const SizedBox(height: 16),
-
-            // Streak
             const StreakCard(),
             const SizedBox(height: 16),
-
-            // Recent activity
             const RecentActivityWidget(),
             const SizedBox(height: 32),
 
-            // Quranic quote
             Center(
               child: Text(
                 '"قليل دائم خير من كثير منقطع"',

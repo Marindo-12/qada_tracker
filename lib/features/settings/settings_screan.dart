@@ -15,10 +15,11 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final planAsync = ref.watch(planProvider);
-    final useArabic = ref.watch(digitStyleProvider);
-    final themeMode = ref.watch(themeModeProvider);
-    final theme = Theme.of(context);
+    final planAsync  = ref.watch(planProvider);
+    final useArabic  = ref.watch(digitStyleProvider);
+    final themeMode  = ref.watch(themeModeProvider);
+    final colorTheme = ref.watch(colorThemeProvider); // ← nouveau
+    final theme      = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -30,7 +31,8 @@ class SettingsScreen extends ConsumerWidget {
         data: (plan) => ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            // ─── Digit Style ──────────────────────────────────────────────
+
+            // ─── Digit Style ────────────────────────────────────────────
             _SectionCard(
               icon: Icons.translate,
               title: 'شكل الأرقام',
@@ -41,21 +43,19 @@ class SettingsScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: _DigitOption(
-                        label: 'عربية',
+                        label:  'عربية',
                         sample: '٠ ١ ٢ ٣',
                         active: useArabic,
-                        onTap: () =>
-                            ref.read(digitStyleProvider.notifier).set(true),
+                        onTap:  () => ref.read(digitStyleProvider.notifier).set(true),
                       ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: _DigitOption(
-                        label: 'إنجليزية',
+                        label:  'إنجليزية',
                         sample: '0 1 2 3',
                         active: !useArabic,
-                        onTap: () =>
-                            ref.read(digitStyleProvider.notifier).set(false),
+                        onTap:  () => ref.read(digitStyleProvider.notifier).set(false),
                       ),
                     ),
                   ],
@@ -65,7 +65,7 @@ class SettingsScreen extends ConsumerWidget {
 
             const SizedBox(height: 16),
 
-            // ─── Theme ────────────────────────────────────────────────────
+            // ─── Theme Mode ─────────────────────────────────────────────
             _SectionCard(
               icon: Icons.contrast,
               title: 'المظهر',
@@ -76,34 +76,28 @@ class SettingsScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: _ThemeOption(
-                        icon: Icons.phone_android,
-                        label: 'تلقائي',
+                        icon:   Icons.phone_android,
+                        label:  'تلقائي',
                         active: themeMode == ThemeMode.system,
-                        onTap: () => ref
-                            .read(themeModeProvider.notifier)
-                            .set(ThemeMode.system),
+                        onTap:  () => ref.read(themeModeProvider.notifier).set(ThemeMode.system),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: _ThemeOption(
-                        icon: Icons.light_mode_outlined,
-                        label: 'فاتح',
+                        icon:   Icons.light_mode_outlined,
+                        label:  'فاتح',
                         active: themeMode == ThemeMode.light,
-                        onTap: () => ref
-                            .read(themeModeProvider.notifier)
-                            .set(ThemeMode.light),
+                        onTap:  () => ref.read(themeModeProvider.notifier).set(ThemeMode.light),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: _ThemeOption(
-                        icon: Icons.dark_mode_outlined,
-                        label: 'داكن',
+                        icon:   Icons.dark_mode_outlined,
+                        label:  'داكن',
                         active: themeMode == ThemeMode.dark,
-                        onTap: () => ref
-                            .read(themeModeProvider.notifier)
-                            .set(ThemeMode.dark),
+                        onTap:  () => ref.read(themeModeProvider.notifier).set(ThemeMode.dark),
                       ),
                     ),
                   ],
@@ -113,35 +107,88 @@ class SettingsScreen extends ConsumerWidget {
 
             const SizedBox(height: 16),
 
+            // ─── Color Theme ────────────────────────────────────────────
+            _SectionCard(
+              icon: Icons.palette_outlined,
+              title: 'لون التطبيق',
+              subtitle: 'اختر نظام الألوان المفضل لديك',
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: Column(
+                  children: [
+                    _ColorThemeOption(
+                      active:   colorTheme == AppColorTheme.green,
+                      label:    'الأخضر الكلاسيكي',
+                      subtitle: 'أخضر زمردي + ذهبي — الافتراضي',
+                      dotColors: const [
+                        Color(0xFF0D6B45),
+                        Color(0xFFB8932A),
+                        Color(0xFFF5F0E8),
+                      ],
+                      onTap: () => ref.read(colorThemeProvider.notifier).set(AppColorTheme.green),
+                    ),
+                    const SizedBox(height: 8),
+                    _ColorThemeOption(
+                      active:   colorTheme == AppColorTheme.blue,
+                      label:    'الأزرق الحديث',
+                      subtitle: 'أزرق + رمادي محايد — iOS/Material',
+                      dotColors: const [
+                        Color(0xFF378ADD),
+                        Color(0xFF185FA5),
+                        Color(0xFFF8F9FA),
+                      ],
+                      onTap: () => ref.read(colorThemeProvider.notifier).set(AppColorTheme.blue),
+                    ),
+                    const SizedBox(height: 8),
+                    _ColorThemeOption(
+                      active:   colorTheme == AppColorTheme.gold,
+                      label:    'الذهبي الفاخر',
+                      subtitle: 'ذهبي + كريمي — أناقة كلاسيكية',
+                      dotColors: const [
+                        Color(0xFFB8932A),
+                        Color(0xFF8B6914),
+                        Color(0xFFF5F0E8),
+                      ],
+                      onTap: () => ref.read(colorThemeProvider.notifier).set(AppColorTheme.gold),
+                    ),
+                  ],
+                ),
+              ),
+            ).animate().fadeIn(delay: 200.ms),
+
+            const SizedBox(height: 16),
+
             if (plan == null) ...[
               Center(
                 child: Column(
                   children: [
-                    Icon(Icons.settings,
-                        size: 48, color: AppColors.mutedFgOf(context)),
+                    Icon(Icons.settings, size: 48, color: AppColors.mutedFgOf(context)),
                     const SizedBox(height: 12),
-                    Text('لا توجد خطة مفعلة حالياً.',
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(color: AppColors.mutedFgOf(context))),
+                    Text(
+                      'لا توجد خطة مفعلة حالياً.',
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: AppColors.mutedFgOf(context)),
+                    ),
                     const SizedBox(height: 16),
                     OutlinedButton.icon(
                       onPressed: () => Navigator.of(context).push(
                         MaterialPageRoute(builder: (_) => const SetupScreen()),
                       ),
-                      icon: const Icon(Icons.add),
+                      icon:  const Icon(Icons.add),
                       label: const Text('إنشاء خطة جديدة'),
                     ),
                   ],
                 ),
               ),
             ] else ...[
+
               // ─── Daily Target ──────────────────────────────────────────
               _SectionCard(
-                icon: Icons.track_changes,
-                title: 'الروتين اليومي',
+                icon:     Icons.track_changes,
+                title:    'الروتين اليومي',
                 subtitle: 'عدد أيام القضاء التي تنوي صلاتها كل يوم',
-                child: _DailyTargetEditor(plan: plan),
-              ).animate().fadeIn(delay: 200.ms),
+                child:    _DailyTargetEditor(plan: plan),
+              ).animate().fadeIn(delay: 300.ms),
 
               const SizedBox(height: 16),
 
@@ -155,66 +202,62 @@ class SettingsScreen extends ConsumerWidget {
                       builder: (_) => SetupScreen(initialPlan: plan),
                     ),
                   ),
-                  icon: const Icon(Icons.edit, size: 16),
+                  icon:  const Icon(Icons.edit, size: 16),
                   label: const Text('تعديل'),
                 ),
                 child: Column(
                   children: [
                     _DetailRow(
-                      icon: Icons.cake_outlined,
+                      icon:  Icons.cake_outlined,
                       label: 'تاريخ البلوغ',
-                      value: formatArabicDate(plan.bulughDate,
-                          pattern: 'MMM yyyy'),
+                      value: formatArabicDate(plan.bulughDate, pattern: 'MMM yyyy'),
                     ),
                     const Divider(height: 1, indent: 16),
                     _DetailRow(
-                      icon: Icons.schedule,
+                      icon:  Icons.schedule,
                       label: 'تاريخ الالتزام',
-                      value: formatArabicDate(plan.commitmentDate,
-                          pattern: 'MMM yyyy'),
+                      value: formatArabicDate(plan.commitmentDate, pattern: 'MMM yyyy'),
                     ),
                     const Divider(height: 1, indent: 16),
                     _DetailRow(
-                      icon: Icons.tag,
+                      icon:  Icons.tag,
                       label: 'الأيام الفائتة',
-                      value:
-                          '${formatNumber(plan.missedDays, useArabic: useArabic)} يوماً',
+                      value: '${formatNumber(plan.missedDays, useArabic: useArabic)} يوماً',
                     ),
                     const Divider(height: 1, indent: 16),
                     _DetailRow(
-                      icon: Icons.calendar_today,
+                      icon:  Icons.calendar_today,
                       label: 'تاريخ البدء',
-                      value: formatArabicDate(plan.startDate,
-                          pattern: 'dd MMMM yyyy'),
+                      value: formatArabicDate(plan.startDate, pattern: 'dd MMMM yyyy'),
                     ),
                     if (plan.notes != null && plan.notes!.isNotEmpty) ...[
                       const Divider(height: 1, indent: 16),
                       _DetailRow(
-                        icon: Icons.notes,
+                        icon:  Icons.notes,
                         label: 'ملاحظات',
                         value: plan.notes!,
                       ),
                     ],
                   ],
                 ),
-              ).animate().fadeIn(delay: 300.ms),
+              ).animate().fadeIn(delay: 350.ms),
 
               const SizedBox(height: 16),
 
-              // ─── About ────────────────────────────────────────────────
+              // ─── About ─────────────────────────────────────────────────
               const _SectionCard(
-                icon: Icons.help_outline,
+                icon:  Icons.help_outline,
                 title: 'عن التطبيق',
                 child: Column(
                   children: [
                     _DetailRow(
-                      icon: Icons.app_settings_alt,
+                      icon:  Icons.app_settings_alt,
                       label: 'الإصدار',
                       value: '1.0.0',
                     ),
                     Divider(height: 1, indent: 16),
                     _DetailRow(
-                      icon: Icons.favorite_outline,
+                      icon:  Icons.favorite_outline,
                       label: 'تطبيق مجاني بالكامل',
                       value: 'بدون إعلانات',
                     ),
@@ -224,14 +267,15 @@ class SettingsScreen extends ConsumerWidget {
 
               const SizedBox(height: 16),
 
-              // ─── Danger Zone ──────────────────────────────────────────
+              // ─── Danger Zone ───────────────────────────────────────────
               Card(
                 color: AppColors.destructive.withValues(alpha: 0.05),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                   side: BorderSide(
-                      color: AppColors.destructive.withValues(alpha: 0.2),
-                      width: 0.5),
+                    color: AppColors.destructive.withValues(alpha: 0.2),
+                    width: 0.5,
+                  ),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -242,29 +286,29 @@ class SettingsScreen extends ConsumerWidget {
                           style: theme.textTheme.titleSmall
                               ?.copyWith(color: AppColors.destructive)),
                       const SizedBox(height: 4),
-                      Text('إجراءات لا يمكن التراجع عنها',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                              color: AppColors.destructive
-                                  .withValues(alpha: 0.7))),
+                      Text(
+                        'إجراءات لا يمكن التراجع عنها',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.destructive.withValues(alpha: 0.7),
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
                           onPressed: () => _confirmReset(context, ref),
-                          icon: const Icon(Icons.delete_forever,
-                              color: AppColors.destructive),
+                          icon:  const Icon(Icons.delete_forever, color: AppColors.destructive),
                           label: const Text('إعادة تعيين الخطة بالكامل',
                               style: TextStyle(color: AppColors.destructive)),
                           style: OutlinedButton.styleFrom(
-                            side:
-                                const BorderSide(color: AppColors.destructive),
+                            side: const BorderSide(color: AppColors.destructive),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ).animate().fadeIn(delay: 500.ms),
+              ).animate().fadeIn(delay: 450.ms),
 
               const SizedBox(height: 32),
             ],
@@ -299,8 +343,8 @@ class SettingsScreen extends ConsumerWidget {
     );
 
     if (confirmed == true) {
-      final planDao = ref.read(planDaoProvider);
-      final logDao = ref.read(prayerLogDaoProvider);
+      final planDao  = ref.read(planDaoProvider);
+      final logDao   = ref.read(prayerLogDaoProvider);
       await logDao.deleteAll();
       await planDao.resetPlan();
       ref.invalidate(planProvider);
@@ -327,10 +371,10 @@ class _DailyTargetEditorState extends ConsumerState<_DailyTargetEditor> {
   bool _saving = false;
 
   static const _presets = [
-    {'value': 1, 'label': 'خفيف', 'hint': 'يوم قضاء يومياً (٥ صلوات)'},
-    {'value': 2, 'label': 'معتدل', 'hint': 'يومان يومياً (١٠ صلوات)'},
-    {'value': 3, 'label': 'نشط', 'hint': 'ثلاثة أيام يومياً (١٥ صلاة)'},
-    {'value': 5, 'label': 'مكثف', 'hint': 'خمسة أيام يومياً (٢٥ صلاة)'},
+    {'value': 1, 'label': 'خفيف',   'hint': 'يوم قضاء يومياً (٥ صلوات)'},
+    {'value': 2, 'label': 'معتدل',  'hint': 'يومان يومياً (١٠ صلوات)'},
+    {'value': 3, 'label': 'نشط',    'hint': 'ثلاثة أيام يومياً (١٥ صلاة)'},
+    {'value': 5, 'label': 'مكثف',   'hint': 'خمسة أيام يومياً (٢٥ صلاة)'},
   ];
 
   @override
@@ -340,19 +384,16 @@ class _DailyTargetEditorState extends ConsumerState<_DailyTargetEditor> {
   }
 
   Future<void> _save(int newTarget) async {
-    setState(() {
-      _target = newTarget;
-      _saving = true;
-    });
+    setState(() { _target = newTarget; _saving = true; });
     final dao = ref.read(planDaoProvider);
     await dao.upsertPlan(PlanTableCompanion(
-      birthDate: Value(widget.plan.birthDate),
-      bulughDate: Value(widget.plan.bulughDate),
+      birthDate:      Value(widget.plan.birthDate),
+      bulughDate:     Value(widget.plan.bulughDate),
       commitmentDate: Value(widget.plan.commitmentDate),
-      missedDays: Value(widget.plan.missedDays),
-      dailyTarget: Value(newTarget),
-      startDate: Value(widget.plan.startDate),
-      notes: Value(widget.plan.notes),
+      missedDays:     Value(widget.plan.missedDays),
+      dailyTarget:    Value(newTarget),
+      startDate:      Value(widget.plan.startDate),
+      notes:          Value(widget.plan.notes),
     ));
     ref.invalidate(planProvider);
     ref.invalidate(summaryProvider);
@@ -361,11 +402,11 @@ class _DailyTargetEditorState extends ConsumerState<_DailyTargetEditor> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final useArabic = ref.watch(digitStyleProvider);
-    final primary = AppColors.primaryOf(context);
-    final mutedFg = AppColors.mutedFgOf(context);
-    final border = AppColors.borderOf(context);
+    final theme      = Theme.of(context);
+    final useArabic  = ref.watch(digitStyleProvider);
+    final primary    = AppColors.primaryOf(context);
+    final mutedFg    = AppColors.mutedFgOf(context);
+    final border     = AppColors.borderOf(context);
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -378,8 +419,7 @@ class _DailyTargetEditorState extends ConsumerState<_DailyTargetEditor> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('الهدف الحالي',
-                      style:
-                          theme.textTheme.bodySmall?.copyWith(color: mutedFg)),
+                      style: theme.textTheme.bodySmall?.copyWith(color: mutedFg)),
                   const SizedBox(height: 2),
                   Text(
                     '${formatNumber(_target, useArabic: useArabic)} يوم قضاء (${formatNumber(_target * 5, useArabic: useArabic)} صلاة)',
@@ -390,16 +430,15 @@ class _DailyTargetEditorState extends ConsumerState<_DailyTargetEditor> {
               Row(
                 children: [
                   _CountBtn(
-                    icon: Icons.remove,
+                    icon:    Icons.remove,
                     enabled: _target > 1 && !_saving,
-                    onTap: () => _save(_target - 1),
+                    onTap:   () => _save(_target - 1),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                     child: _saving
                         ? const SizedBox(
-                            width: 20,
-                            height: 20,
+                            width: 20, height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2))
                         : Text(
                             formatNumber(_target, useArabic: useArabic),
@@ -408,10 +447,10 @@ class _DailyTargetEditorState extends ConsumerState<_DailyTargetEditor> {
                           ),
                   ),
                   _CountBtn(
-                    icon: Icons.add,
+                    icon:    Icons.add,
                     enabled: _target < 50 && !_saving,
-                    color: primary,
-                    onTap: () => _save(_target + 1),
+                    color:   primary,
+                    onTap:   () => _save(_target + 1),
                   ),
                 ],
               ),
@@ -427,15 +466,14 @@ class _DailyTargetEditorState extends ConsumerState<_DailyTargetEditor> {
           const SizedBox(height: 8),
 
           ..._presets.map((p) {
-            final val = p['value'] as int;
+            final val    = p['value'] as int;
             final active = _target == val;
             return GestureDetector(
               onTap: () => _save(val),
               child: AnimatedContainer(
                 duration: 200.ms,
                 margin: const EdgeInsets.only(bottom: 8),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: active
                       ? primary.withValues(alpha: 0.08)
@@ -475,9 +513,9 @@ class _DailyTargetEditorState extends ConsumerState<_DailyTargetEditor> {
 }
 
 class _CountBtn extends StatelessWidget {
-  final IconData icon;
-  final bool enabled;
-  final Color color;
+  final IconData     icon;
+  final bool         enabled;
+  final Color        color;
   final VoidCallback onTap;
 
   const _CountBtn({
@@ -493,29 +531,30 @@ class _CountBtn extends StatelessWidget {
       onTap: enabled ? onTap : null,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-        width: 36,
-        height: 36,
+        width: 36, height: 36,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-              color: enabled
-                  ? color.withValues(alpha: 0.5)
-                  : color.withValues(alpha: 0.2)),
+            color: enabled
+                ? color.withValues(alpha: 0.5)
+                : color.withValues(alpha: 0.2),
+          ),
         ),
         child: Icon(icon,
-            size: 16, color: enabled ? color : color.withValues(alpha: 0.3)),
+            size: 16,
+            color: enabled ? color : color.withValues(alpha: 0.3)),
       ),
     );
   }
 }
 
-// ─── Shared Widgets ───────────────────────────────────────────────────────────
+// ─── Section Card ─────────────────────────────────────────────────────────────
 class _SectionCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final Widget? trailing;
-  final Widget child;
+  final IconData  icon;
+  final String    title;
+  final String?   subtitle;
+  final Widget?   trailing;
+  final Widget    child;
 
   const _SectionCard({
     required this.icon,
@@ -527,9 +566,10 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme   = Theme.of(context);
     final primary = AppColors.primaryOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
+
     return Card(
       child: Column(
         children: [
@@ -543,8 +583,7 @@ class _SectionCard extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  width: 36, height: 36,
                   decoration: BoxDecoration(
                     color: primary.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
@@ -577,10 +616,11 @@ class _SectionCard extends StatelessWidget {
   }
 }
 
+// ─── Detail Row ───────────────────────────────────────────────────────────────
 class _DetailRow extends StatelessWidget {
   final IconData icon;
-  final String label;
-  final String value;
+  final String   label;
+  final String   value;
 
   const _DetailRow({
     required this.icon,
@@ -590,8 +630,9 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme   = Theme.of(context);
     final mutedFg = AppColors.mutedFgOf(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
@@ -610,10 +651,11 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
+// ─── Digit Option ─────────────────────────────────────────────────────────────
 class _DigitOption extends StatelessWidget {
-  final String label;
-  final String sample;
-  final bool active;
+  final String       label;
+  final String       sample;
+  final bool         active;
   final VoidCallback onTap;
 
   const _DigitOption({
@@ -625,11 +667,12 @@ class _DigitOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme   = Theme.of(context);
     final primary = AppColors.primaryOf(context);
-    final muted = AppColors.mutedOf(context);
+    final muted   = AppColors.mutedOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
-    final border = AppColors.borderOf(context);
+    final border  = AppColors.borderOf(context);
+
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
@@ -670,11 +713,11 @@ class _DigitOption extends StatelessWidget {
   }
 }
 
-// ─── Theme Option : version compacte pour affichage en Row ───────────────────
+// ─── Theme Option ─────────────────────────────────────────────────────────────
 class _ThemeOption extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool active;
+  final IconData     icon;
+  final String       label;
+  final bool         active;
   final VoidCallback onTap;
 
   const _ThemeOption({
@@ -686,12 +729,12 @@ class _ThemeOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = AppColors.primaryOf(context);
+    final theme      = Theme.of(context);
+    final primary    = AppColors.primaryOf(context);
     final foreground = AppColors.foregroundOf(context);
-    final muted = AppColors.mutedOf(context);
-    final mutedFg = AppColors.mutedFgOf(context);
-    final border = AppColors.borderOf(context);
+    final muted      = AppColors.mutedOf(context);
+    final mutedFg    = AppColors.mutedFgOf(context);
+    final border     = AppColors.borderOf(context);
 
     return GestureDetector(
       onTap: onTap,
@@ -708,24 +751,96 @@ class _ThemeOption extends StatelessWidget {
             width: active ? 2 : 1,
           ),
         ),
-        // Centré verticalement : icône au dessus, label en dessous
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: active ? primary : mutedFg,
-              size: 22,
-            ),
+            Icon(icon, color: active ? primary : mutedFg, size: 22),
             const SizedBox(height: 6),
             Text(
               label,
               textAlign: TextAlign.center,
               style: theme.textTheme.labelMedium?.copyWith(
-                color: active ? primary : foreground,
+                color:      active ? primary : foreground,
                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Color Theme Option ───────────────────────────────────────────────────────
+class _ColorThemeOption extends StatelessWidget {
+  final bool         active;
+  final String       label;
+  final String       subtitle;
+  final List<Color>  dotColors;
+  final VoidCallback onTap;
+
+  const _ColorThemeOption({
+    required this.active,
+    required this.label,
+    required this.subtitle,
+    required this.dotColors,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme   = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+    final border  = AppColors.borderOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: active ? primary.withValues(alpha: 0.08) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: active ? primary.withValues(alpha: 0.5) : border,
+            width: active ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            // Points de couleur
+            Row(
+              children: dotColors
+                  .map((c) => Container(
+                        width: 18, height: 18,
+                        margin: const EdgeInsets.only(left: 4),
+                        decoration: BoxDecoration(
+                          color:  c,
+                          shape:  BoxShape.circle,
+                          border: Border.all(color: border, width: 0.5),
+                        ),
+                      ))
+                  .toList(),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color:      active ? primary : null,
+                        fontWeight: FontWeight.w700,
+                      )),
+                  Text(subtitle,
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: mutedFg)),
+                ],
+              ),
+            ),
+            if (active)
+              Icon(Icons.check_circle_rounded, color: primary, size: 20),
           ],
         ),
       ),

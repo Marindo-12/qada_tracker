@@ -514,8 +514,9 @@ class _CalendarCellState extends ConsumerState<_CalendarCell>
   // ── Heatmap color ──────────────────────────────────────────────────────────
   Color _cellColor() {
     if (widget.isDark) {
-      if (widget.data == null || widget.data!.completed == 0)
+      if (widget.data == null || widget.data!.completed == 0) {
         return AppColors.darkMuted;
+      }
       final r = widget.data!.ratio;
       if (r >= 1.0) return AppColors.darkPrimary;
       if (r >= 0.75) return const Color(0xFF8F7626);
@@ -523,8 +524,9 @@ class _CalendarCellState extends ConsumerState<_CalendarCell>
       if (r >= 0.25) return const Color(0xFF1C4F3D);
       return AppColors.darkMuted;
     }
-    if (widget.data == null || widget.data!.completed == 0)
+    if (widget.data == null || widget.data!.completed == 0) {
       return AppColors.heatmap0;
+    }
     final r = widget.data!.ratio;
     if (r >= 1.0) return AppColors.heatmap4;
     if (r >= 0.75) return AppColors.heatmap3;
@@ -536,8 +538,9 @@ class _CalendarCellState extends ConsumerState<_CalendarCell>
   Color _textColor(Color bg) {
     if (widget.isDark) return AppColors.darkBackground;
     if (bg == AppColors.heatmap4 || bg == AppColors.heatmap3 ||
-        bg == AppColors.heatmap2)
+        bg == AppColors.heatmap2) {
       return Colors.white;
+    }
     return const Color(0xFF1A2332);
   }
 

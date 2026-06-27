@@ -6,7 +6,7 @@ import '../../features/home/home_screan.dart';
 import '../../features/calendar/calendar_screan.dart';
 import '../../features/guide/guide_screen.dart';
 import '../../features/settings/settings_screan.dart';
-import '../../features/setup/setup_intro_screen.dart' hide AppColors;
+import '../../features/setup/setup_intro_screen.dart';
 import '../../features/setup/username_setup_screen.dart';
 import '../../shared/providers/providers.dart';
 import '../../core/theme/app_theme.dart';
@@ -143,7 +143,6 @@ class _NavItem extends StatefulWidget {
   final double       barH;
 
   const _NavItem({
-    super.key,
     required this.tab,
     required this.active,
     required this.onTap,
@@ -158,7 +157,6 @@ class _NavItemState extends State<_NavItem>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctl;
   late Animation<double>   _scale;       // icon scale 1.0 → 1.22
-  late Animation<double>   _indicator;   // top line width 0 → 1
 
   @override
   void initState() {
@@ -169,10 +167,6 @@ class _NavItemState extends State<_NavItem>
     );
     _scale = Tween<double>(begin: 1.0, end: 1.22).animate(
       CurvedAnimation(parent: _ctl, curve: Curves.easeOutBack),
-    );
-    _indicator = CurvedAnimation(
-      parent: _ctl,
-      curve: Curves.easeOutCubic,
     );
     if (widget.active) _ctl.value = 1.0;
   }

@@ -254,12 +254,18 @@ class HijriDate {
     // Refine: find exact Hijri year
     int hy = 30 * a + c + 1;
     // Adjust if needed
-    while (_hijriToJD(hy + 1, 1, 1) <= jd) hy++;
-    while (_hijriToJD(hy, 1, 1) > jd) hy--;
+    while (_hijriToJD(hy + 1, 1, 1) <= jd) {
+      hy++;
+    }
+    while (_hijriToJD(hy, 1, 1) > jd) {
+      hy--;
+    }
 
     // Find month
     int hm = 1;
-    while (hm < 12 && _hijriToJD(hy, hm + 1, 1) <= jd) hm++;
+    while (hm < 12 && _hijriToJD(hy, hm + 1, 1) <= jd) {
+      hm++;
+    }
 
     // Find day
     final hd = jd - _hijriToJD(hy, hm, 1) + 1;

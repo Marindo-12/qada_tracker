@@ -86,7 +86,6 @@ final _commitmentApproxOptions = [
 class _DS {
   static const double radiusSm = 10;
   static const double radiusMd = 14;
-  static const double radiusLg = 20;
   static const double cardPad = 18;
   static const Duration fast = Duration(milliseconds: 180);
   static const Duration normal = Duration(milliseconds: 280);
@@ -541,7 +540,7 @@ class _StepIntro extends StatelessWidget {
         const SizedBox(height: 28),
 
         // Hadith card — prominent, centered
-        _HadithCard(
+        const _HadithCard(
           main: _IC.startMain,
           sub: _IC.startSub,
         ).animate().fadeIn(delay: 350.ms),
@@ -579,15 +578,13 @@ class _StepDates extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
 
         // Birth date
-        _FieldLabel('تاريخ الميلاد'),
+        const _FieldLabel('تاريخ الميلاد'),
         const SizedBox(height: 8),
         _DateField(
           value: birthDate,
@@ -602,7 +599,7 @@ class _StepDates extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _FieldLabel('تاريخ البلوغ (بداية التكليف)'),
+              child: const _FieldLabel('تاريخ البلوغ (بداية التكليف)'),
             ),
             _ApproxToggle(
               active: bulughApprox,
@@ -692,7 +689,7 @@ class _BulughApproxSection extends StatelessWidget {
     final primary = AppColors.primaryOf(context);
 
     if (birthDate == null) {
-      return _TipTile(
+      return const _TipTile(
         icon: Icons.info_outline_rounded,
         text: 'أدخل تاريخ الميلاد أولاً لنقترح عليك خيارات مناسبة.',
       );
@@ -708,7 +705,7 @@ class _BulughApproxSection extends StatelessWidget {
 
     return Column(
       children: [
-        _HadithCard(main: _IC.bulughHelp, sub: _IC.bulughSub),
+        const _HadithCard(main: _IC.bulughHelp, sub: _IC.bulughSub),
         const SizedBox(height: 14),
         ...options.map((opt) {
           final date = DateTime(
@@ -748,9 +745,7 @@ class _StepCommitment extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final primary = AppColors.primaryOf(context);
-    final mutedFg = AppColors.mutedFgOf(context);
 
     final diff = bulughDate != null && commitmentDate != null
         ? commitmentDate!.difference(bulughDate!).inDays
@@ -764,7 +759,7 @@ class _StepCommitment extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: _FieldLabel('تاريخ الالتزام بالصلاة'),
+              child: const _FieldLabel('تاريخ الالتزام بالصلاة'),
             ),
             _ApproxToggle(
               active: commitmentApprox,
@@ -774,7 +769,7 @@ class _StepCommitment extends StatelessWidget {
         ),
         const SizedBox(height: 12),
 
-        _HadithCard(main: _IC.commitmentHelp, sub: _IC.commitmentSub),
+        const _HadithCard(main: _IC.commitmentHelp, sub: _IC.commitmentSub),
         const SizedBox(height: 16),
 
         AnimatedSwitcher(
@@ -921,7 +916,6 @@ class _CommitmentApproxPickerState extends State<_CommitmentApproxPicker> {
     final primary = AppColors.primaryOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
     final muted = AppColors.mutedOf(context);
-    final border = AppColors.borderOf(context);
     final now = DateTime.now();
 
     return Column(
@@ -1117,7 +1111,7 @@ class _StepEstimate extends StatelessWidget {
       children: [
         const SizedBox(height: 16),
 
-        _HadithCard(main: _IC.estimateHelp, sub: _IC.estimateSub),
+        const _HadithCard(main: _IC.estimateHelp, sub: _IC.estimateSub),
         const SizedBox(height: 8),
         Text(
           'قدّر بصدق الفترة التي فاتتك فيها الصلاة فعلياً.',
@@ -1233,7 +1227,7 @@ class _StepEstimate extends StatelessWidget {
         ),
 
         const SizedBox(height: 16),
-        _TipTile(
+        const _TipTile(
           icon: Icons.auto_awesome_rounded,
           text: _IC.approxOk,
         ),
@@ -1414,7 +1408,7 @@ class _StepTarget extends StatelessWidget {
     return Column(
       children: [
         const SizedBox(height: 16),
-        _HadithCard(main: _IC.generalMain, sub: _IC.generalSub),
+        const _HadithCard(main: _IC.generalMain, sub: _IC.generalSub),
         const SizedBox(height: 20),
 
         ..._presets.map((p) {
@@ -1488,7 +1482,7 @@ class _StepTarget extends StatelessWidget {
         ],
 
         const SizedBox(height: 20),
-        _FieldLabel('تاريخ البدء'),
+        const _FieldLabel('تاريخ البدء'),
         const SizedBox(height: 8),
         _DateField(
           value: startDate,
@@ -1602,7 +1596,7 @@ class _StepReview extends StatelessWidget {
 
         if (bulughApprox || commitmentApprox) ...[
           const SizedBox(height: 12),
-          _TipTile(
+          const _TipTile(
             icon: Icons.info_outline_rounded,
             text:
                 'البيانات المحددة بعلامة "تقريبي" هي تقديرات مقبولة شرعاً عند عدم المعرفة بالضبط.',
