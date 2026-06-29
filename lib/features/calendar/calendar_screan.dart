@@ -236,22 +236,24 @@ class CalendarScreen extends ConsumerWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('مكتمل',
+                Text('فارغ',
                     style: theme.textTheme.labelSmall
                         ?.copyWith(color: mutedFg)),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
                 ...AppColors.heatmapColors(colorTheme, isDark: isDark)
+                    .reversed
+                    .toList()
                     .map((c) => Container(
                           width:  16,
                           height: 16,
-                          margin: const EdgeInsets.only(right: 4),
+                          margin: const EdgeInsets.only(left: 4),
                           decoration: BoxDecoration(
                             color: c,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         )),
-                const SizedBox(width: 4),
-                Text('فارغ',
+                const SizedBox(width: 8),
+                Text('مكتمل',
                     style: theme.textTheme.labelSmall
                         ?.copyWith(color: mutedFg)),
               ],
