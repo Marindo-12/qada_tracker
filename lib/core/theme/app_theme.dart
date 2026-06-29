@@ -45,39 +45,39 @@ class AppColors {
   // THÈME 2 — Bleu + Neutres (iOS/Material style)
   // ════════════════════════════════════════════════════════════════════════════
   // Light
-  static const blueBackground   = Color(0xFFF8F9FA);
+  static const blueBackground   = Color(0xFFF5F9FF);
   static const blueSurface      = Color(0xFFFFFFFF);
-  static const blueSurfaceAlt   = Color(0xFFF1EFF8);
-  static const bluePrimary      = Color(0xFF378ADD);
-  static const bluePrimaryHover = Color(0xFF185FA5);
-  static const bluePrimaryLight = Color(0xFFE6F1FB);
-  static const bluePrimaryMid   = Color(0xFFB5D4F4);
-  static const bluePrimaryDark  = Color(0xFF0C447C);
-  static const blueDeep         = Color(0xFF042C53);
-  static const blueBorder       = Color(0xFFD3D1C7);
-  static const blueBorderStrong = Color(0xFFB4B2A9);
-  static const blueTextPrimary  = Color(0xFF2C2C2A);
-  static const blueTextSecond   = Color(0xFF5F5E5A);
-  static const blueTextMuted    = Color(0xFF888780);
-  static const blueMuted        = Color(0xFFE8E6F0);
+  static const blueSurfaceAlt   = Color(0xFFEFF6FF);
+  static const bluePrimary      = Color(0xFF2563EB);
+  static const bluePrimaryHover = Color(0xFF1D4ED8);
+  static const bluePrimaryLight = Color(0xFFE8F0FF);
+  static const bluePrimaryMid   = Color(0xFFBFDBFE);
+  static const bluePrimaryDark  = Color(0xFF1E3A8A);
+  static const blueDeep         = Color(0xFF172554);
+  static const blueBorder       = Color(0xFFC7D2FE);
+  static const blueBorderStrong = Color(0xFF93C5FD);
+  static const blueTextPrimary  = Color(0xFF0F172A);
+  static const blueTextSecond   = Color(0xFF334155);
+  static const blueTextMuted    = Color(0xFF64748B);
+  static const blueMuted        = Color(0xFFEEF2FF);
 
   // Dark — Bleu
-  static const blueDarkBg      = Color(0xFF0F1117);
-  static const blueDarkSurface = Color(0xFF1A1D27);
-  static const blueDarkAlt     = Color(0xFF22252F);
-  static const blueDarkBorder  = Color(0xFF2E3140);
-  static const blueDarkBorder2 = Color(0xFF3D4155);
-  static const blueDarkText    = Color(0xFFF0F0EE);
-  static const blueDarkTextSec = Color(0xFFA8A7A3);
-  static const blueDarkMuted   = Color(0xFF1C2235);
-  static const blueDarkPrimary = Color(0xFF5BA3EE); // bleu plus lumineux en dark
+  static const blueDarkBg      = Color(0xFF0B1220);
+  static const blueDarkSurface = Color(0xFF111827);
+  static const blueDarkAlt     = Color(0xFF172033);
+  static const blueDarkBorder  = Color(0xFF2C3A58);
+  static const blueDarkBorder2 = Color(0xFF3B4A6B);
+  static const blueDarkText    = Color(0xFFF8FAFC);
+  static const blueDarkTextSec = Color(0xFFCBD5E1);
+  static const blueDarkMuted   = Color(0xFF1E2A42);
+  static const blueDarkPrimary = Color(0xFF60A5FA); // bleu plus lumineux en dark
 
   // Heatmap bleu
-  static const blueHeatmap0 = Color(0xFFE6F1FB);
-  static const blueHeatmap1 = Color(0xFFB5D4F4);
-  static const blueHeatmap2 = Color(0xFF85B7EB);
-  static const blueHeatmap3 = Color(0xFF378ADD);
-  static const blueHeatmap4 = Color(0xFF185FA5);
+  static const blueHeatmap0 = Color(0xFFEFF6FF);
+  static const blueHeatmap1 = Color(0xFFBFDBFE);
+  static const blueHeatmap2 = Color(0xFF60A5FA);
+  static const blueHeatmap3 = Color(0xFF2563EB);
+  static const blueHeatmap4 = Color(0xFF1D4ED8);
 
   // ════════════════════════════════════════════════════════════════════════════
   // COULEURS SÉMANTIQUES (partagées entre tous les thèmes)
@@ -185,10 +185,30 @@ class AppColors {
   }
 
   /// Heatmap selon thème
-  static List<Color> heatmapColors(AppColorTheme colorTheme) {
+  static List<Color> heatmapColors(AppColorTheme colorTheme, {bool isDark = false}) {
     if (colorTheme == AppColorTheme.blue) {
+      if (isDark) {
+        return [
+          blueDarkMuted,
+          blueDarkPrimary.withValues(alpha: 0.45),
+          blueDarkPrimary.withValues(alpha: 0.65),
+          blueDarkPrimary.withValues(alpha: 0.82),
+          blueDarkPrimary,
+        ];
+      }
       return [blueHeatmap0, blueHeatmap1, blueHeatmap2, blueHeatmap3, blueHeatmap4];
     }
+
+    if (isDark) {
+      return [
+        darkMuted,
+        darkPrimary.withValues(alpha: 0.35),
+        darkPrimary.withValues(alpha: 0.6),
+        darkPrimary.withValues(alpha: 0.8),
+        darkPrimary,
+      ];
+    }
+
     return [heatmap0, heatmap1, heatmap2, heatmap3, heatmap4];
   }
 }

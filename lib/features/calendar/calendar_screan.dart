@@ -21,6 +21,7 @@ class CalendarScreen extends ConsumerWidget {
     final mutedFg            = AppColors.mutedFgOf(context);
     final border             = AppColors.borderOf(context);
     final isDark             = AppColors.isDark(context);
+    final colorTheme         = ref.watch(colorThemeProvider);
 
     final now = DateTime.now();
 
@@ -239,21 +240,7 @@ class CalendarScreen extends ConsumerWidget {
                     style: theme.textTheme.labelSmall
                         ?.copyWith(color: mutedFg)),
                 const SizedBox(width: 8),
-                ...(isDark
-                    ? const [
-                        AppColors.darkPrimary,
-                        Color(0xFF8F7626),
-                        AppColors.darkGreen,
-                        Color(0xFF1C4F3D),
-                        AppColors.darkMuted,
-                      ]
-                    : const [
-                        AppColors.heatmap4,
-                        AppColors.heatmap3,
-                        AppColors.heatmap2,
-                        AppColors.heatmap1,
-                        AppColors.heatmap0,
-                      ])
+                ...AppColors.heatmapColors(colorTheme, isDark: isDark)
                     .map((c) => Container(
                           width:  16,
                           height: 16,
@@ -513,35 +500,27 @@ class _CalendarCellState extends ConsumerState<_CalendarCell>
 
   // ── Heatmap color ──────────────────────────────────────────────────────────
   Color _cellColor() {
-    if (widget.isDark) {
-      if (widget.data == null || widget.data!.completed == 0) {
-        return AppColors.darkMuted;
-      }
-      final r = widget.data!.ratio;
-      if (r >= 1.0) return AppColors.darkPrimary;
-      if (r >= 0.75) return const Color(0xFF8F7626);
-      if (r >= 0.5) return AppColors.darkGreen;
-      if (r >= 0.25) return const Color(0xFF1C4F3D);
-      return AppColors.darkMuted;
-    }
+    final palette = AppColors.heatmapColors(
+      ref.read(colorThemeProvider),
+      isDark: widget.isDark,
+    );
+
     if (widget.data == null || widget.data!.completed == 0) {
-      return AppColors.heatmap0;
+      return palette[0];
     }
+
     final r = widget.data!.ratio;
-    if (r >= 1.0) return AppColors.heatmap4;
-    if (r >= 0.75) return AppColors.heatmap3;
-    if (r >= 0.5) return AppColors.heatmap2;
-    if (r >= 0.25) return AppColors.heatmap1;
-    return AppColors.heatmap0;
+    if (r >= 1.0) return palette[4];
+    if (r >= 0.75) return palette[3];
+    if (r >= 0.5) return palette[2];
+    if (r >= 0.25) return palette[1];
+    return palette[0];
   }
 
   Color _textColor(Color bg) {
-    if (widget.isDark) return AppColors.darkBackground;
-    if (bg == AppColors.heatmap4 || bg == AppColors.heatmap3 ||
-        bg == AppColors.heatmap2) {
-      return Colors.white;
-    }
-    return const Color(0xFF1A2332);
+    final isDarkBg = bg.computeLuminance() < 0.45;
+    if (isDarkBg) return Colors.white;
+    return widget.isDark ? AppColors.blueDarkText : AppColors.blueTextPrimary;
   }
 
   @override
