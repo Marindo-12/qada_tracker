@@ -139,7 +139,9 @@ class _TotalCountHero extends ConsumerWidget {
           borderRadius: BorderRadius.circular(16),
           child: Container(
             decoration: BoxDecoration(
-              color: primary,
+              color: AppColors.isDark(context) && primary == AppColors.blueDarkPrimary
+                  ? AppColors.bluePrimaryDark  // Bleu foncé pour dark mode
+                  : primary,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Stack(

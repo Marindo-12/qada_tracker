@@ -83,7 +83,7 @@ String formatArabicDate(String isoDate, {String pattern = 'EEEE، dd MMMM yyyy',
 String formatArabicDateShort(String isoDate, {bool useArabic = true}) {
   try {
     final date = DateTime.parse(isoDate);
-    final result = DateFormat('dd MMM', 'ar').format(date);
+    final result = DateFormat('dd MMM yyyy', 'ar').format(date);
     return useArabic ? result : toEnglishDigits(result);
   } catch (_) {
     return isoDate;
