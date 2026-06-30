@@ -183,26 +183,41 @@ class AppColors {
           blueDarkPrimary,
         ];
       }
+      // Blue light
       return [blueHeatmap0, blueHeatmap1, blueHeatmap2, blueHeatmap3, blueHeatmap4];
     }
-    if (isDark) {
-      if (colorTheme == AppColorTheme.green) {
+
+    if (colorTheme == AppColorTheme.gold) {
+      if (isDark) {
         return [
           darkMuted,
-          const Color(0xFF22C55E).withValues(alpha: 0.25),
-          const Color(0xFF22C55E).withValues(alpha: 0.50),
-          const Color(0xFF22C55E).withValues(alpha: 0.75),
-          const Color(0xFF22C55E),
+          const Color(0xFFD4A853).withValues(alpha: 0.25),
+          const Color(0xFFD4A853).withValues(alpha: 0.50),
+          const Color(0xFFD4A853).withValues(alpha: 0.75),
+          const Color(0xFFD4A853),
         ];
       }
+      // Gold light — dégradé sable → or foncé
       return [
-        darkMuted,
-        const Color(0xFFD4A853).withValues(alpha: 0.25),
-        const Color(0xFFD4A853).withValues(alpha: 0.50),
-        const Color(0xFFD4A853).withValues(alpha: 0.75),
-        const Color(0xFFD4A853),
+        const Color(0xFFF5EDD6), // sable très clair
+        const Color(0xFFE8C97A), // or pâle
+        const Color(0xFFD4A853), // or moyen
+        const Color(0xFFB8892A), // or soutenu
+        const Color(0xFF9B6E1A), // or foncé (accent)
       ];
     }
+
+    // Green
+    if (isDark) {
+      return [
+        darkMuted,
+        const Color(0xFF22C55E).withValues(alpha: 0.25),
+        const Color(0xFF22C55E).withValues(alpha: 0.50),
+        const Color(0xFF22C55E).withValues(alpha: 0.75),
+        const Color(0xFF22C55E),
+      ];
+    }
+    // Green light
     return [heatmap0, heatmap1, heatmap2, heatmap3, heatmap4];
   }
 }
