@@ -163,18 +163,16 @@ class AppColors {
   static Color heroBackgroundOf(BuildContext context) {
     if (!isDark(context)) return Theme.of(context).colorScheme.primary;
     final primary = Theme.of(context).colorScheme.primary;
-    // Bleu dark : déjà géré avec bluePrimaryDark
-    if (primary == blueDarkPrimary) return bluePrimaryDark;
-    // Vert dark (#22C55E) → fond foncé vert
-    if (primary == const Color(0xFF22C55E)) return const Color(0xFF052E16);
-    // Or dark (#D4A853) → fond foncé or
-    if (primary == const Color(0xFFD4A853)) return const Color(0xFF2D1F06);
-    // Fallback : assombrir le primary
+    if (primary == blueDarkPrimary)           return bluePrimaryDark;
+    if (primary == const Color(0xFF22C55E))   return const Color(0xFF052E16);
+    if (primary == const Color(0xFFD4A853))   return const Color(0xFF2D1F06);
     return HSLColor.fromColor(primary)
         .withLightness(0.18)
         .withSaturation(0.55)
         .toColor();
   }
+
+  static List<Color> heatmapColors(AppColorTheme colorTheme, {bool isDark = false}) {
     if (colorTheme == AppColorTheme.blue) {
       if (isDark) {
         return [
@@ -197,7 +195,6 @@ class AppColors {
           const Color(0xFF22C55E),
         ];
       }
-      // gold dark
       return [
         darkMuted,
         const Color(0xFFD4A853).withValues(alpha: 0.25),
