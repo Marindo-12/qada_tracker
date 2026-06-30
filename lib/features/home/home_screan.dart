@@ -421,7 +421,8 @@ class _AppWordmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = AppColors.primaryOf(context);
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.onSurface;
 
     return Transform.translate(
       offset: const Offset(0, -6),
@@ -430,14 +431,14 @@ class _AppWordmark extends StatelessWidget {
         textAlign: TextAlign.right,
         style: GoogleFonts.getFont(
           'Aref Ruqaa',
-          color: primary,
+          color: color,
           fontSize: 31,
           fontWeight: FontWeight.w700,
           height: 1,
           letterSpacing: 0,
           shadows: [
             Shadow(
-              color: primary.withValues(alpha: 0.16),
+              color: color.withValues(alpha: 0.16),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -480,7 +481,6 @@ class _Dashboard extends ConsumerWidget {
     final isDarkMode   = themeMode == ThemeMode.dark ||
         (themeMode == ThemeMode.system &&
             Theme.of(context).brightness == Brightness.dark);
-    final primary = AppColors.primaryOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
 
     return Scaffold(
@@ -499,7 +499,7 @@ class _Dashboard extends ConsumerWidget {
               isDarkMode
                   ? Icons.light_mode_outlined
                   : Icons.dark_mode_outlined,
-              color: primary,
+              color: theme.colorScheme.onSurface,
             ),
             onPressed: () => ref
                 .read(themeModeProvider.notifier)
@@ -509,7 +509,7 @@ class _Dashboard extends ConsumerWidget {
           // ── Popup couleur du thème ───────────────────────────────────
           PopupMenuButton<AppColorTheme>(
             tooltip: 'لون التطبيق',
-            icon: Icon(Icons.palette_outlined, color: primary),
+            icon: Icon(Icons.palette_outlined, color: theme.colorScheme.onSurface),
             onSelected: (value) =>
                 ref.read(colorThemeProvider.notifier).set(value),
             itemBuilder: (context) => _colorThemes
@@ -529,7 +529,7 @@ class _Dashboard extends ConsumerWidget {
           // ── Popup chiffres ───────────────────────────────────────────
           PopupMenuButton<bool>(
             tooltip: 'شكل الأرقام',
-            icon: Icon(Icons.format_list_numbered, color: primary),
+            icon: Icon(Icons.format_list_numbered, color: theme.colorScheme.onSurface),
             onSelected: (value) =>
                 ref.read(digitStyleProvider.notifier).set(value),
             itemBuilder: (context) => [
