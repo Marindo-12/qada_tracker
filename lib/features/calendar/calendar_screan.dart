@@ -21,6 +21,7 @@ class CalendarScreen extends ConsumerWidget {
     final mutedFg            = AppColors.mutedFgOf(context);
     final border             = AppColors.borderOf(context);
     final isDark             = AppColors.isDark(context);
+    final colorTheme         = ref.watch(colorThemeProvider);
 
     final now = DateTime.now();
 
