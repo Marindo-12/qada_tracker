@@ -267,7 +267,11 @@ class AppTheme {
     }
 
     final textColor = isDark
-        ? AppColors.blueDarkText
+        ? (colorTheme == AppColorTheme.blue
+            ? AppColors.blueDarkText
+            : (colorTheme == AppColorTheme.green
+                ? const Color(0xFFE9F7EE)
+                : const Color(0xFFF8EEDC)))
         : (colorTheme == AppColorTheme.blue ? AppColors.blueTextPrimary : AppColors.foreground);
 
     return ThemeData(

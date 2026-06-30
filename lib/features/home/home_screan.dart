@@ -421,8 +421,7 @@ class _AppWordmark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = theme.colorScheme.onSurface;
+    final color = AppColors.primaryOf(context);
 
     return Transform.translate(
       offset: const Offset(0, -6),
