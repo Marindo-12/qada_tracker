@@ -21,7 +21,6 @@ class CalendarScreen extends ConsumerWidget {
     final mutedFg            = AppColors.mutedFgOf(context);
     final border             = AppColors.borderOf(context);
     final isDark             = AppColors.isDark(context);
-    final colorTheme         = ref.watch(colorThemeProvider);
 
     final now = DateTime.now();
 
@@ -230,32 +229,52 @@ class CalendarScreen extends ConsumerWidget {
             ),
           ),
 
-          // ── Legend ───────────────────────────────────────────────────
+          // ── Hint tap ─────────────────────────────────────────────────
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
+              textDirection: TextDirection.rtl,
+              children: [
+                Icon(Icons.touch_app_outlined, size: 13, color: mutedFg),
+                const SizedBox(width: 4),
+                Text(
+                  'اضغط على يوم لعرض تفاصيله أو تعديل صلواته',
+                  textDirection: TextDirection.rtl,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: mutedFg,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Legend : فارغ ←□□□□□→ مكتمل ─────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              textDirection: TextDirection.rtl,
               children: [
                 Text('فارغ',
                     style: theme.textTheme.labelSmall
-                        ?.copyWith(color: mutedFg)),
-                const SizedBox(width: 4),
+                        ?.copyWith(color: mutedFg, fontSize: 10)),
+                const SizedBox(width: 6),
                 ...AppColors.heatmapColors(colorTheme, isDark: isDark)
-                    .reversed
-                    .toList()
                     .map((c) => Container(
-                          width:  16,
-                          height: 16,
-                          margin: const EdgeInsets.only(left: 4),
+                          width:  14,
+                          height: 14,
+                          margin: const EdgeInsets.symmetric(horizontal: 2),
                           decoration: BoxDecoration(
                             color: c,
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(3),
                           ),
                         )),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Text('مكتمل',
                     style: theme.textTheme.labelSmall
-                        ?.copyWith(color: mutedFg)),
+                        ?.copyWith(color: mutedFg, fontSize: 10)),
               ],
             ),
           ),
@@ -502,27 +521,32 @@ class _CalendarCellState extends ConsumerState<_CalendarCell>
 
   // ── Heatmap color ──────────────────────────────────────────────────────────
   Color _cellColor() {
-    final palette = AppColors.heatmapColors(
-      ref.read(colorThemeProvider),
-      isDark: widget.isDark,
-    );
-
-    if (widget.data == null || widget.data!.completed == 0) {
-      return palette[0];
+    if (widget.isDark) {
+      if (widget.data == null || widget.data!.completed == 0)
+        return AppColors.darkMuted;
+      final r = widget.data!.ratio;
+      if (r >= 1.0) return AppColors.darkPrimary;
+      if (r >= 0.75) return const Color(0xFF8F7626);
+      if (r >= 0.5) return AppColors.darkGreen;
+      if (r >= 0.25) return const Color(0xFF1C4F3D);
+      return AppColors.darkMuted;
     }
-
+    if (widget.data == null || widget.data!.completed == 0)
+      return AppColors.heatmap0;
     final r = widget.data!.ratio;
-    if (r >= 1.0) return palette[4];
-    if (r >= 0.75) return palette[3];
-    if (r >= 0.5) return palette[2];
-    if (r >= 0.25) return palette[1];
-    return palette[0];
+    if (r >= 1.0) return AppColors.heatmap4;
+    if (r >= 0.75) return AppColors.heatmap3;
+    if (r >= 0.5) return AppColors.heatmap2;
+    if (r >= 0.25) return AppColors.heatmap1;
+    return AppColors.heatmap0;
   }
 
   Color _textColor(Color bg) {
-    final isDarkBg = bg.computeLuminance() < 0.45;
-    if (isDarkBg) return Colors.white;
-    return widget.isDark ? AppColors.blueDarkText : AppColors.blueTextPrimary;
+    if (widget.isDark) return AppColors.darkBackground;
+    if (bg == AppColors.heatmap4 || bg == AppColors.heatmap3 ||
+        bg == AppColors.heatmap2)
+      return Colors.white;
+    return const Color(0xFF1A2332);
   }
 
   @override
