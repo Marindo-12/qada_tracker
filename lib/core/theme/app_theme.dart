@@ -19,7 +19,7 @@ class AppColors {
   static const secondaryFg   = Color(0xFF1A2332);
   static const muted         = Color(0xFFE8DFC8);
   static const mutedFg       = Color(0xFF5A6A7A);
-  static const accent        = Color(0xFFB8932A); // Muted Gold
+  static const accent        = Color(0xFF9B6E1A); // Gold plus foncé
   static const accentFg      = Color(0xFFFFFFFF);
   static const destructive   = Color(0xFFCC3333);
   static const destructiveFg = Color(0xFFFFFFFF);
@@ -35,11 +35,12 @@ class AppColors {
   static const darkBackground = Color(0xFF0F1621);
   static const darkCard       = Color(0xFF1A2535);
   static const darkBorder     = Color(0xFF2A3545);
-  static const darkPrimary    = Color(0xFFB8932A); // Gold in dark mode
-  static const darkPrimaryFg  = Color(0xFF0F1621);
-  static const darkMutedFg    = Color(0xFFC7BFAE);
-  static const darkMuted      = Color(0xFF263447);
-  static const darkGreen      = Color(0xFF0D6B45);
+  static const darkPrimary    = Color(0xFF785A1E); // Gold foncé en dark mode
+  static const darkPrimaryFg  = Color(0xFFF4E4A1);
+  static const darkMutedFg    = Color(0xFFD2C0A0);
+  static const darkMuted      = Color(0xFF2F363F);
+  static const darkGreen      = Color(0xFF166534);
+  static const darkGreenAlt   = Color(0xFF1F7A4C);
 
   // ════════════════════════════════════════════════════════════════════════════
   // THÈME 2 — Bleu + Neutres (iOS/Material style)
@@ -108,7 +109,7 @@ class AppColors {
       case AppColorTheme.gold:
         return dark ? darkPrimary : accent;
       case AppColorTheme.green:
-        return dark ? darkPrimary : primary;
+        return dark ? darkGreen : primary;
     }
   }
 
@@ -200,6 +201,15 @@ class AppColors {
     }
 
     if (isDark) {
+      if (colorTheme == AppColorTheme.green) {
+        return [
+          darkMuted,
+          darkGreen.withValues(alpha: 0.35),
+          darkGreen.withValues(alpha: 0.6),
+          darkGreen.withValues(alpha: 0.8),
+          darkGreen,
+        ];
+      }
       return [
         darkMuted,
         darkPrimary.withValues(alpha: 0.35),
@@ -241,16 +251,16 @@ class AppTheme {
 
       case AppColorTheme.gold:
         scaffoldBg    = isDark ? AppColors.darkBackground  : AppColors.background;
-        primaryColor  = AppColors.accent;
-        primaryFg     = AppColors.accentFg;
+        primaryColor  = isDark ? AppColors.darkPrimary     : AppColors.accent;
+        primaryFg     = isDark ? AppColors.darkPrimaryFg   : AppColors.accentFg;
         surfaceColor  = isDark ? AppColors.darkCard        : AppColors.card;
         borderColor   = isDark ? AppColors.darkBorder      : AppColors.border;
         progressTrack = isDark ? AppColors.darkMuted       : const Color(0xFFFAEEDA);
 
       case AppColorTheme.green:
         scaffoldBg    = isDark ? AppColors.darkBackground  : AppColors.background;
-        primaryColor  = isDark ? AppColors.darkPrimary     : AppColors.primary;
-        primaryFg     = isDark ? AppColors.darkPrimaryFg   : AppColors.primaryFg;
+        primaryColor  = isDark ? AppColors.darkGreen       : AppColors.primary;
+        primaryFg     = isDark ? AppColors.blueDarkText    : AppColors.primaryFg;
         surfaceColor  = isDark ? AppColors.darkCard        : AppColors.card;
         borderColor   = isDark ? AppColors.darkBorder      : AppColors.border;
         progressTrack = isDark ? AppColors.darkMuted       : const Color(0xFFCDE8DA);
