@@ -216,13 +216,14 @@ class CalendarScreen extends ConsumerWidget {
                     final isToday  = miladiDate == todayIso();
 
                     return _CalendarCell(
-                      day:       dayToDisplay,
-                      date:      miladiDate,
-                      data:      data,
-                      isToday:   isToday,
-                      isFuture:  isFuture,
-                      useArabic: useArabic,
-                      isDark:    isDark,
+                      day:        dayToDisplay,
+                      date:       miladiDate,
+                      data:       data,
+                      isToday:    isToday,
+                      isFuture:   isFuture,
+                      useArabic:  useArabic,
+                      isDark:     isDark,
+                      colorTheme: colorTheme,
                     );
                   },
                 ).animate().fadeIn(duration: 400.ms);
@@ -251,7 +252,7 @@ class CalendarScreen extends ConsumerWidget {
             ),
           ),
 
-          // ── Legend : فارغ ←□□□□□→ مكتمل ─────────────────────────────
+          // ── Legend ───────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
             child: Row(
@@ -296,6 +297,7 @@ class _CalendarCell extends ConsumerStatefulWidget {
   final bool             isFuture;
   final bool             useArabic;
   final bool             isDark;
+  final AppColorTheme    colorTheme;
 
   const _CalendarCell({
     required this.day,
@@ -305,6 +307,7 @@ class _CalendarCell extends ConsumerStatefulWidget {
     required this.isFuture,
     required this.useArabic,
     required this.isDark,
+    required this.colorTheme,
   });
 
   @override
@@ -520,34 +523,30 @@ class _CalendarCellState extends ConsumerState<_CalendarCell>
     }
   }
 
-  // ── Heatmap color ──────────────────────────────────────────────────────────
+  // ── Heatmap color — respecte le thème choisi ──────────────────────────────
   Color _cellColor() {
-    if (widget.isDark) {
-      if (widget.data == null || widget.data!.completed == 0)
-        return AppColors.darkMuted;
-      final r = widget.data!.ratio;
-      if (r >= 1.0) return AppColors.darkPrimary;
-      if (r >= 0.75) return const Color(0xFF8F7626);
-      if (r >= 0.5) return AppColors.darkGreen;
-      if (r >= 0.25) return const Color(0xFF1C4F3D);
-      return AppColors.darkMuted;
-    }
-    if (widget.data == null || widget.data!.completed == 0)
-      return AppColors.heatmap0;
+    final palette = AppColors.heatmapColors(
+      widget.colorTheme,
+      isDark: widget.isDark,
+    );
+    if (widget.data == null || widget.data!.completed == 0) return palette[0];
     final r = widget.data!.ratio;
-    if (r >= 1.0) return AppColors.heatmap4;
-    if (r >= 0.75) return AppColors.heatmap3;
-    if (r >= 0.5) return AppColors.heatmap2;
-    if (r >= 0.25) return AppColors.heatmap1;
-    return AppColors.heatmap0;
+    if (r >= 1.0)  return palette[4];
+    if (r >= 0.75) return palette[3];
+    if (r >= 0.5)  return palette[2];
+    if (r >= 0.25) return palette[1];
+    return palette[0];
   }
 
+  // ── Text color — lisible sur toutes les couleurs de cellule ───────────────
   Color _textColor(Color bg) {
-    if (widget.isDark) return AppColors.darkBackground;
-    if (bg == AppColors.heatmap4 || bg == AppColors.heatmap3 ||
-        bg == AppColors.heatmap2)
-      return Colors.white;
-    return const Color(0xFF1A2332);
+    // Utiliser la luminance pour décider blanc ou foncé
+    final luminance = bg.computeLuminance();
+    if (luminance < 0.35) return Colors.white;
+    // Light mode : texte foncé sur cellules claires
+    return widget.isDark
+        ? const Color(0xFFF1F5F9)   // blanc neutre pour dark
+        : const Color(0xFF1A2332);  // foreground pour light
   }
 
   @override
