@@ -164,8 +164,10 @@ class AppColors {
     if (!isDark(context)) return Theme.of(context).colorScheme.primary;
     final primary = Theme.of(context).colorScheme.primary;
     if (primary == blueDarkPrimary)           return bluePrimaryDark;
-    if (primary == const Color(0xFF22C55E))   return const Color(0xFF052E16);
-    if (primary == const Color(0xFFD4A853))   return const Color(0xFF2D1F06);
+    // FIXED: Much richer dark green — no longer near-black
+    if (primary == const Color(0xFF22C55E))   return const Color(0xFF14522D);
+    // FIXED: Deep dark gold that still reads as gold, not muddy brown
+    if (primary == const Color(0xFFD4A853))   return const Color(0xFF6B4E1C);
     return HSLColor.fromColor(primary)
         .withLightness(0.18)
         .withSaturation(0.55)

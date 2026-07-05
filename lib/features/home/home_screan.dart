@@ -10,7 +10,6 @@ import '../../core/utils/app_utils.dart';
 import '../../shared/providers/providers.dart';
 import '../../core/navigation/app_router.dart';
 import 'widgets/today_checklist.dart';
-import 'widgets/progress_card.dart';
 import 'widgets/prayer_progress_breakdown.dart';
 import 'widgets/streak_card.dart';
 import 'widgets/recent_activity.dart';
@@ -496,7 +495,8 @@ class _Dashboard extends ConsumerWidget {
               isDarkMode
                   ? Icons.light_mode_outlined
                   : Icons.dark_mode_outlined,
-              color: theme.colorScheme.onSurface,
+              // FIXED: Softer gray instead of harsh black/white
+              color: mutedFg,
             ),
             onPressed: () => ref
                 .read(themeModeProvider.notifier)
@@ -506,7 +506,7 @@ class _Dashboard extends ConsumerWidget {
           // ── Popup couleur du thème ───────────────────────────────────
           PopupMenuButton<AppColorTheme>(
             tooltip: 'لون التطبيق',
-            icon: Icon(Icons.palette_outlined, color: theme.colorScheme.onSurface),
+            icon: Icon(Icons.palette_outlined, color: mutedFg),
             onSelected: (value) =>
                 ref.read(colorThemeProvider.notifier).set(value),
             itemBuilder: (context) => _colorThemes
@@ -526,7 +526,7 @@ class _Dashboard extends ConsumerWidget {
           // ── Popup chiffres ───────────────────────────────────────────
           PopupMenuButton<bool>(
             tooltip: 'شكل الأرقام',
-            icon: Icon(Icons.format_list_numbered, color: theme.colorScheme.onSurface),
+            icon: Icon(Icons.format_list_numbered, color: mutedFg),
             onSelected: (value) =>
                 ref.read(digitStyleProvider.notifier).set(value),
             itemBuilder: (context) => [
@@ -584,8 +584,8 @@ class _Dashboard extends ConsumerWidget {
             const SizedBox(height: 16),
             const PreviousDayLogger(),
             const SizedBox(height: 16),
-            const ProgressCard(),
-            const SizedBox(height: 16),
+            // REMOVED: const ProgressCard(),
+            // REMOVED: const SizedBox(height: 16),
             const PrayerProgressBreakdown(),
             const SizedBox(height: 16),
             const StreakCard(),
