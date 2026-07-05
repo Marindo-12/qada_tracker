@@ -365,10 +365,9 @@ class ArticleView extends StatelessWidget {
         const _ArticleSectionHeader(
             icon: Icons.help_outline_rounded,
             title: 'لماذا نقضي الصلوات الفائتة؟'),
-        const SizedBox(height: 12),
-        _withRightBorder(
-          context,
-          const Column(
+        const SizedBox(height: 10),
+        _ArticleCard(
+          child: const Column(
             children: [
               Row(
                 children: [
@@ -400,15 +399,14 @@ class ArticleView extends StatelessWidget {
           ),
         ),
 
-        _Divider(),
+        const _ArticleSectionDivider(),
 
         // Section 2 — Ruling
         const _ArticleSectionHeader(
             icon: Icons.balance_rounded, title: 'الحكم الشرعي للقضاء'),
-        const SizedBox(height: 12),
-        _withRightBorder(
-          context,
-          const Column(
+        const SizedBox(height: 10),
+        _ArticleCard(
+          child: const Column(
             children: [
               _BodyText(
                 text:
@@ -429,15 +427,14 @@ class ArticleView extends StatelessWidget {
           ),
         ),
 
-        _Divider(),
+        const _ArticleSectionDivider(),
 
         // Section 3 — Scholars
         const _ArticleSectionHeader(
             icon: Icons.people_alt_rounded, title: 'أقوال كبار العلماء'),
-        const SizedBox(height: 12),
-        _withRightBorder(
-          context,
-          Column(
+        const SizedBox(height: 10),
+        _ArticleCard(
+          child: Column(
             children: [
               Text(
                 'اتفق العلماء على مشروعية القضاء وتفاوتوا في التفاصيل — إليك مواقفهم بأصواتهم:',
@@ -457,16 +454,15 @@ class ArticleView extends StatelessWidget {
           ),
         ),
 
-        _Divider(),
+        const _ArticleSectionDivider(),
 
         // Section 4 — Differences
         const _ArticleSectionHeader(
             icon: Icons.account_tree_rounded,
             title: 'الاختلاف العلمي — ثلاثة مواقف'),
-        const SizedBox(height: 12),
-        _withRightBorder(
-          context,
-          Column(
+        const SizedBox(height: 10),
+        _ArticleCard(
+          child: Column(
             children: [
               Text(
                 'المسألة فيها خلاف بين العلماء يمكن تلخيصه في ثلاثة مواقف رئيسية:',
@@ -517,15 +513,14 @@ class ArticleView extends StatelessWidget {
           ),
         ),
 
-        _Divider(),
+        const _ArticleSectionDivider(),
 
         // Section 5 — Advice
         const _ArticleSectionHeader(
             icon: Icons.favorite_rounded, title: 'نصيحة لمن بدأ رحلة القضاء'),
-        const SizedBox(height: 12),
-        _withRightBorder(
-          context,
-          Column(
+        const SizedBox(height: 10),
+        _ArticleCard(
+          child: Column(
             children: [
               const _BodyText(
                 text:
@@ -553,6 +548,44 @@ class ArticleView extends StatelessWidget {
       ],
     );
   }
+}
+
+// ─── NEW: Article Card — white/surface background for each section ─────────────
+
+class _ArticleCard extends StatelessWidget {
+  final Widget child;
+
+  const _ArticleCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = context.primary;
+    final onSurface = context.onSurface;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: context.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: onSurface.withValues(alpha: 0.06),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: _withRightBorder(
+        context,
+        child,
+      ),
+    );
+  }
 
   Widget _withRightBorder(BuildContext context, Widget child) {
     return Padding(
@@ -560,12 +593,51 @@ class ArticleView extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           border: Border(
-            right:
-                BorderSide(color: context.primary.withValues(alpha: 0.2), width: 2),
+            right: BorderSide(
+              color: context.primary.withValues(alpha: 0.2),
+              width: 2,
+            ),
           ),
         ),
         padding: const EdgeInsets.only(right: 12),
         child: child,
+      ),
+    );
+  }
+}
+
+class _ArticleSectionDivider extends StatelessWidget {
+  const _ArticleSectionDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 24),
+      child: Row(
+        children: [
+          Expanded(
+            child: Divider(
+              color: context.onSurface.withValues(alpha: 0.08),
+              thickness: 1,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: context.primary.withValues(alpha: 0.25),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Divider(
+              color: context.onSurface.withValues(alpha: 0.08),
+              thickness: 1,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -628,7 +700,6 @@ class _AccordionItemState extends State<_AccordionItem> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Primary accent bar — brand identity without hurting eyes
                     Container(
                       width: 3,
                       height: 18,
@@ -756,7 +827,6 @@ class _BodyText extends StatelessWidget {
               padding: EdgeInsets.only(bottom: paragraphs.last == p ? 0 : 10),
               child: Text(
                 p,
-                // FIXED: 14 px bodyMedium instead of 12 px bodySmall for readability
                 style: context.tt.bodyMedium?.copyWith(
                   height: 1.8,
                   color: context.onSurface.withValues(alpha: 0.88),
@@ -888,7 +958,6 @@ class _QuoteBox extends StatelessWidget {
               children: [
                 Text(
                   text,
-                  // FIXED: bumped up for readability
                   style: context.tt.bodyMedium?.copyWith(
                     height: 1.8,
                     fontStyle: FontStyle.italic,
@@ -980,7 +1049,6 @@ class _ScholarCard extends StatelessWidget {
               padding: const EdgeInsets.only(right: 10),
               child: Text(
                 scholar['text']!,
-                // FIXED: 14 px instead of 12 px
                 style: context.tt.bodyMedium?.copyWith(
                     height: 1.9,
                     color: context.onSurface.withValues(alpha: 0.85)),
@@ -995,7 +1063,6 @@ class _ScholarCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               scholar['text']!,
-              // FIXED: 14 px instead of 12 px
               style: context.tt.bodyMedium?.copyWith(
                   height: 1.9,
                   color: context.onSurface.withValues(alpha: 0.85)),
@@ -1115,7 +1182,6 @@ class _DifferenceCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             data['view']!,
-            // FIXED: 14 px instead of 12 px
             style: context.tt.bodyMedium?.copyWith(
               height: 1.8,
               color: context.onSurface.withValues(alpha: 0.8),
@@ -1170,7 +1236,6 @@ class _AdviceStep extends StatelessWidget {
               const SizedBox(height: 3),
               Text(
                 step['text']!,
-                // FIXED: 14 px instead of 12 px
                 style: context.tt.bodyMedium?.copyWith(
                   height: 1.8,
                   color: context.onSurface.withValues(alpha: 0.75),
@@ -1242,7 +1307,6 @@ class _AdviceCardArticle extends StatelessWidget {
                 children: [
                   Text(
                     step['title']!,
-                    // FIXED: 14 px instead of 12 px
                     style: context.tt.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: context.onSurface,
@@ -1251,7 +1315,6 @@ class _AdviceCardArticle extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     step['text']!,
-                    // FIXED: 14 px instead of 12 px
                     style: context.tt.bodyMedium?.copyWith(
                       height: 1.8,
                       color: context.onSurface.withValues(alpha: 0.75),
@@ -1296,7 +1359,6 @@ class _ConceptCard extends StatelessWidget {
             Text(
               desc,
               textAlign: TextAlign.center,
-              // FIXED: was labelSmall (10 px) — too tiny
               style: context.tt.bodySmall?.copyWith(
                 height: 1.5,
                 color: context.onSurface.withValues(alpha: 0.65),
@@ -1304,31 +1366,6 @@ class _ConceptCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _Divider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      child: Row(
-        children: [
-          Expanded(child: Divider(color: context.onSurface.withValues(alpha: 0.1))),
-          const SizedBox(width: 8),
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: context.primary.withValues(alpha: 0.3),
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(child: Divider(color: context.onSurface.withValues(alpha: 0.1))),
-        ],
       ),
     );
   }
