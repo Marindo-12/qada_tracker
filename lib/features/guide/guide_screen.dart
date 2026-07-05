@@ -274,7 +274,7 @@ class QAView extends StatelessWidget {
                 'الصلاة فريضة واجبة على كل مسلم بالغ عاقل، وهي عماد الدين وثاني أركان الإسلام. من تركها متعمداً فقد ارتكب كبيرة عظيمة، ومن تركها بعذر وجب عليه قضاؤها متى زال العذر.\n\nأما من تركها تهاوناً أو جهلاً في سنوات مضت ثم تاب إلى الله وعاد إلى الصواب، فإن العلماء يتفقون على أن التوبة النصوحة واجبة، وأن ما فات يُدارَك بالقضاء والنية الصادقة والإكثار من النوافل والاستغفار.\n\nقضاء الصلاة ليس عقوبة، بل هو بابٌ من الرحمة يفتحه الله لعباده ليُصلِحوا ما مضى ويُكملوا ما نقص.',
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         const _AccordionItem(
           title: 'ما الحكم الشرعي للقضاء؟',
           child: Column(
@@ -297,7 +297,7 @@ class QAView extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         _AccordionItem(
           title: 'ماذا قال العلماء في هذه المسألة؟',
           child: Column(
@@ -311,7 +311,7 @@ class QAView extends StatelessWidget {
                 .toList(),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         _AccordionItem(
           title: 'هل يختلف العلماء في هذه المسألة؟',
           child: Column(
@@ -325,7 +325,7 @@ class QAView extends StatelessWidget {
                 .toList(),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         _AccordionItem(
           title: 'ما النصيحة لمن بدأ رحلة القضاء؟',
           child: Column(
@@ -496,10 +496,10 @@ class ArticleView extends StatelessWidget {
                     children: [
                       TextSpan(
                         text: 'خلاصة: ',
-                      style: context.tt.bodySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: context.primary,
-                      ),
+                        style: context.tt.bodySmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: context.primary,
+                        ),
                       ),
                       TextSpan(
                         text:
@@ -583,86 +583,124 @@ class _AccordionItem extends StatefulWidget {
   State<_AccordionItem> createState() => _AccordionItemState();
 }
 
-class _AccordionItemState extends State<_AccordionItem>
-    with SingleTickerProviderStateMixin {
+class _AccordionItemState extends State<_AccordionItem> {
   bool _open = false;
-  late final AnimationController _controller;
-  late final Animation<double> _fadeIn;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 220));
-    _fadeIn = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _toggle() {
-    setState(() => _open = !_open);
-    _open ? _controller.forward() : _controller.reverse();
-  }
+  void _toggle() => setState(() => _open = !_open);
 
   @override
   Widget build(BuildContext context) {
     final primary = context.primary;
+    final onSurface = context.onSurface;
+
     return Container(
       decoration: BoxDecoration(
         color: context.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: context.onSurface.withValues(alpha: 0.08)),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _open
+              ? primary.withValues(alpha: 0.18)
+              : onSurface.withValues(alpha: 0.06),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 4,
-              offset: const Offset(0, 1)),
+            color: Colors.black.withValues(alpha: _open ? 0.06 : 0.03),
+            blurRadius: _open ? 10 : 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
-      child: Column(
-        children: [
-          InkWell(
-            onTap: _toggle,
-            borderRadius: BorderRadius.circular(14),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      widget.title,
-                      style: context.tt.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            InkWell(
+              onTap: _toggle,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+                decoration: BoxDecoration(
+                  color: _open ? primary.withValues(alpha: 0.04) : null,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Primary accent bar — brand identity without hurting eyes
+                    Container(
+                      width: 3,
+                      height: 18,
+                      decoration: BoxDecoration(
                         color: primary,
-                        height: 1.4,
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        widget.title,
+                        style: context.tt.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: onSurface.withValues(alpha: 0.95),
+                          height: 1.4,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    AnimatedRotation(
+                      turns: _open ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 250),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: _open
+                              ? primary.withValues(alpha: 0.1)
+                              : onSurface.withValues(alpha: 0.05),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          size: 18,
+                          color: _open
+                              ? primary
+                              : onSurface.withValues(alpha: 0.4),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            AnimatedCrossFade(
+              firstChild: const SizedBox.shrink(),
+              secondChild: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Divider(
+                    height: 1,
+                    indent: 18,
+                    endIndent: 18,
+                    color: onSurface.withValues(alpha: 0.06),
                   ),
-                  AnimatedRotation(
-                    turns: _open ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 250),
-                    child: Icon(Icons.keyboard_arrow_down_rounded,
-                        color: context.onSurface.withValues(alpha: 0.4)),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                    child: widget.child,
                   ),
                 ],
               ),
-            ),
-          ),
-          if (_open) ...[
-            Divider(height: 1, color: context.onSurface.withValues(alpha: 0.08)),
-            FadeTransition(
-              opacity: _fadeIn,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                child: widget.child,
-              ),
+              crossFadeState: _open
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              duration: const Duration(milliseconds: 280),
+              firstCurve: Curves.easeInCubic,
+              secondCurve: Curves.easeOutCubic,
+              sizeCurve: Curves.easeOutCubic,
             ),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -718,8 +756,9 @@ class _BodyText extends StatelessWidget {
               padding: EdgeInsets.only(bottom: paragraphs.last == p ? 0 : 10),
               child: Text(
                 p,
-                style: context.tt.bodySmall?.copyWith(
-                  height: 1.9,
+                // FIXED: 14 px bodyMedium instead of 12 px bodySmall for readability
+                style: context.tt.bodyMedium?.copyWith(
+                  height: 1.8,
                   color: context.onSurface.withValues(alpha: 0.88),
                 ),
               ),
@@ -849,8 +888,9 @@ class _QuoteBox extends StatelessWidget {
               children: [
                 Text(
                   text,
-                  style: context.tt.bodySmall?.copyWith(
-                    height: 1.9,
+                  // FIXED: bumped up for readability
+                  style: context.tt.bodyMedium?.copyWith(
+                    height: 1.8,
                     fontStyle: FontStyle.italic,
                     color: context.onSurface.withValues(alpha: 0.88),
                   ),
@@ -940,7 +980,8 @@ class _ScholarCard extends StatelessWidget {
               padding: const EdgeInsets.only(right: 10),
               child: Text(
                 scholar['text']!,
-                style: context.tt.bodySmall?.copyWith(
+                // FIXED: 14 px instead of 12 px
+                style: context.tt.bodyMedium?.copyWith(
                     height: 1.9,
                     color: context.onSurface.withValues(alpha: 0.85)),
               ),
@@ -954,7 +995,8 @@ class _ScholarCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               scholar['text']!,
-              style: context.tt.bodySmall?.copyWith(
+              // FIXED: 14 px instead of 12 px
+              style: context.tt.bodyMedium?.copyWith(
                   height: 1.9,
                   color: context.onSurface.withValues(alpha: 0.85)),
             ),
@@ -1073,7 +1115,8 @@ class _DifferenceCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             data['view']!,
-            style: context.tt.bodySmall?.copyWith(
+            // FIXED: 14 px instead of 12 px
+            style: context.tt.bodyMedium?.copyWith(
               height: 1.8,
               color: context.onSurface.withValues(alpha: 0.8),
             ),
@@ -1119,7 +1162,7 @@ class _AdviceStep extends StatelessWidget {
             children: [
               Text(
                 step['title']!,
-                style: context.tt.bodySmall?.copyWith(
+                style: context.tt.bodyMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: context.onSurface,
                 ),
@@ -1127,7 +1170,8 @@ class _AdviceStep extends StatelessWidget {
               const SizedBox(height: 3),
               Text(
                 step['text']!,
-                style: context.tt.bodySmall?.copyWith(
+                // FIXED: 14 px instead of 12 px
+                style: context.tt.bodyMedium?.copyWith(
                   height: 1.8,
                   color: context.onSurface.withValues(alpha: 0.75),
                 ),
@@ -1198,7 +1242,8 @@ class _AdviceCardArticle extends StatelessWidget {
                 children: [
                   Text(
                     step['title']!,
-                    style: context.tt.bodySmall?.copyWith(
+                    // FIXED: 14 px instead of 12 px
+                    style: context.tt.bodyMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: context.onSurface,
                     ),
@@ -1206,7 +1251,8 @@ class _AdviceCardArticle extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     step['text']!,
-                    style: context.tt.bodySmall?.copyWith(
+                    // FIXED: 14 px instead of 12 px
+                    style: context.tt.bodyMedium?.copyWith(
                       height: 1.8,
                       color: context.onSurface.withValues(alpha: 0.75),
                     ),
@@ -1250,7 +1296,8 @@ class _ConceptCard extends StatelessWidget {
             Text(
               desc,
               textAlign: TextAlign.center,
-              style: context.tt.labelSmall?.copyWith(
+              // FIXED: was labelSmall (10 px) — too tiny
+              style: context.tt.bodySmall?.copyWith(
                 height: 1.5,
                 color: context.onSurface.withValues(alpha: 0.65),
               ),
