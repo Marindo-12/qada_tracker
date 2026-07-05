@@ -6,8 +6,8 @@ import '../../core/theme/app_theme.dart';
 
 /// Splash screen — timeline 2.3 s :
 ///   0 → 35 %  : fade-in + scale du badge (0.88 → 1.0)
-///  20 → 70 %  : arc lumineux qui tourne autour du cadre de l'icône seulement
-///  80 → 100 % : fade-out vers l'app
+///  20 → 70 %  : soft orbiting glow around the icon (NO border)
+///  80 → 100 % : fade-out with smooth cross-fade to the app
 class AppStartSplashScreen extends StatefulWidget {
   final Widget child;
 
@@ -28,7 +28,7 @@ class _AppStartSplashScreenState extends State<AppStartSplashScreen>
   late final Animation<double> _fadeIn;
   late final Animation<double> _scale;
 
-  // ── lumière sur le cadre ────────────────────────────────────────────────────
+  // ── lumière orbitante ───────────────────────────────────────────────────────
   late final Animation<double> _shine;
 
   // ── disparition ─────────────────────────────────────────────────────────────
@@ -39,6 +39,13 @@ class _AppStartSplashScreenState extends State<AppStartSplashScreen>
   @override
   void initState() {
     super.initState();
+
+    // FIXED: Set this ONCE in initState, not on every build frame.
+    // Force light-mode status bar so icons stay dark on the light splash.
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+    ));
 
     _ctl = AnimationController(
       vsync: this,
@@ -57,7 +64,7 @@ class _AppStartSplashScreenState extends State<AppStartSplashScreen>
       ),
     );
 
-    // arc lumineux : démarre à 20 %, finit à 70 %
+    // Glow animation: starts at 20%, ends at 70%
     _shine = CurvedAnimation(
       parent: _ctl,
       curve: const Interval(0.20, 0.70, curve: Curves.easeInOut),
@@ -85,45 +92,52 @@ class _AppStartSplashScreenState extends State<AppStartSplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (_showChild) return widget.child;
-
-    final isDark = AppColors.isDark(context);
-    final bg = isDark ? AppColors.darkBackground : AppColors.background;
+    // FIXED: Always use light background — ignore the app's dark mode toggle.
+    // If your AppColors.background is theme-dependent, replace with a fixed
+    // light color, e.g. const Color(0xFFFFFFFF).
+    final bg = AppColors.background;
     final primary = AppColors.primaryOf(context);
 
-    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-    ));
-
-    return Scaffold(
-      backgroundColor: bg,
-      body: Center(
-        child: AnimatedBuilder(
-          animation: _ctl,
-          builder: (context, child) {
-            final opacity =
-                (_fadeIn.value * (1.0 - _fadeOut.value)).clamp(0.0, 1.0);
-            return Opacity(
-              opacity: opacity,
-              child: Transform.scale(
-                scale: _scale.value,
-                child: child,
-              ),
-            );
-          },
-          child: _IconBadge(
-            shineAnimation: _shine,
-            primary: primary,
-          ),
-        ),
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 600),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: child,
       ),
+      child: _showChild
+          ? widget.child
+          : Scaffold(
+              key: const ValueKey('splash'),
+              backgroundColor: bg,
+              body: Center(
+                child: AnimatedBuilder(
+                  animation: _ctl,
+                  builder: (context, child) {
+                    final opacity = (_fadeIn.value * (1.0 - _fadeOut.value))
+                        .clamp(0.0, 1.0);
+                    return Opacity(
+                      opacity: opacity,
+                      child: Transform.scale(
+                        scale: _scale.value,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: _IconBadge(
+                    shineAnimation: _shine,
+                    primary: primary,
+                  ),
+                ),
+              ),
+            ),
     );
   }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Badge : icône centrée dans un cadre avec shadow + arc lumineux sur le contour
+// Badge : icône centrée avec ombres + lueur orbitante SANS bordure visible
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _IconBadge extends StatelessWidget {
@@ -140,8 +154,7 @@ class _IconBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = AppColors.isDark(context);
-
+    // FIXED: No more isDark checks — splash always behaves like light mode.
     return AnimatedBuilder(
       animation: shineAnimation,
       builder: (context, child) {
@@ -149,7 +162,6 @@ class _IconBadge extends StatelessWidget {
           foregroundPainter: _ShineArcPainter(
             progress: shineAnimation.value,
             radius: _radius,
-            borderColor: Colors.black.withValues(alpha: isDark ? 0.18 : 0.08),
             shineColor: Colors.white,
           ),
           child: child,
@@ -160,15 +172,16 @@ class _IconBadge extends StatelessWidget {
         height: _size,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(_radius),
+          // NO border here — only soft shadows for depth
           boxShadow: [
             BoxShadow(
-              color: primary.withValues(alpha: isDark ? 0.28 : 0.16),
+              color: primary.withValues(alpha: 0.16),
               blurRadius: 32,
               spreadRadius: 0,
               offset: const Offset(0, 14),
             ),
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.30 : 0.10),
+              color: Colors.black.withValues(alpha: 0.10),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -181,6 +194,18 @@ class _IconBadge extends StatelessWidget {
             width: _size,
             height: _size,
             fit: BoxFit.cover,
+            // FIXED: Added fallback so the app doesn't break if asset is missing
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: primary,
+                alignment: Alignment.center,
+                child: const Icon(
+                  Icons.apps,
+                  size: 56,
+                  color: Colors.white,
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -189,50 +214,38 @@ class _IconBadge extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Painter : trait de base fin + arc lumineux qui tourne sur le contour du cadre
+// Painter : lueur orbitante douce — AUCUNE bordure visible
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _ShineArcPainter extends CustomPainter {
-  final double progress;   // 0.0 → 1.0
+  final double progress; // 0.0 → 1.0
   final double radius;
-  final Color borderColor;
   final Color shineColor;
 
   const _ShineArcPainter({
     required this.progress,
     required this.radius,
-    required this.borderColor,
     required this.shineColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
+    if (progress <= 0.0) return;
+
     final rrect = RRect.fromRectAndRadius(
       Rect.fromLTWH(1.5, 1.5, size.width - 3, size.height - 3),
       Radius.circular(radius),
     );
     final path = Path()..addRRect(rrect);
 
-    // ── trait de base : contour discret toujours visible ─────────────────────
-    canvas.drawPath(
-      path,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2
-        ..color = borderColor,
-    );
-
-    if (progress <= 0.0) return;
-
-    // ── arc lumineux ─────────────────────────────────────────────────────────
     final metric = path.computeMetrics().first;
     final total = metric.length;
 
-    // L'arc fait 22 % du périmètre
-    const arcFraction = 0.22;
+    // Arc length: ~25% of the perimeter for a soft glow
+    const arcFraction = 0.25;
     final arcLen = total * arcFraction;
 
-    // La tête de l'arc parcourt tout le périmètre
+    // Head travels the full perimeter
     final head = (progress * total).clamp(0.0, total);
     final tail = (head - arcLen).clamp(0.0, total);
 
@@ -240,36 +253,41 @@ class _ShineArcPainter extends CustomPainter {
 
     final arcPath = metric.extractPath(tail, head);
 
-    // Lueur douce derrière l'arc
+    // OUTER HALO — very wide, very soft, no hard line
     canvas.drawPath(
       arcPath,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 6.0
+        ..strokeWidth = 18.0
         ..strokeCap = StrokeCap.round
-        ..color = shineColor.withValues(alpha: 0.18)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4),
+        ..color = shineColor.withValues(alpha: 0.10)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14),
     );
 
-    // Arc principal net
+    // MIDDLE GLOW
     canvas.drawPath(
       arcPath,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.4
+        ..strokeWidth = 8.0
         ..strokeCap = StrokeCap.round
-        ..shader = LinearGradient(
-          colors: [
-            shineColor.withValues(alpha: 0.0),
-            shineColor.withValues(alpha: 0.95),
-          ],
-        ).createShader(Rect.fromLTWH(0, 0, size.width, size.height)),
+        ..color = shineColor.withValues(alpha: 0.22)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+    );
+
+    // INNER CORE — still soft, absolutely no sharp border
+    canvas.drawPath(
+      arcPath,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.0
+        ..strokeCap = StrokeCap.round
+        ..color = shineColor.withValues(alpha: 0.50)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
     );
   }
 
   @override
   bool shouldRepaint(covariant _ShineArcPainter old) =>
-      old.progress != progress ||
-      old.borderColor != borderColor ||
-      old.shineColor != shineColor;
+      old.progress != progress || old.shineColor != shineColor;
 }
