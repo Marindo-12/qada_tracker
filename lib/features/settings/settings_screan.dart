@@ -261,6 +261,18 @@ class SettingsScreen extends ConsumerWidget {
                       label: 'تطبيق مجاني بالكامل',
                       value: 'بدون إعلانات',
                     ),
+                    Divider(height: 1, indent: 16),
+                    _DetailRow(
+                      icon:  Icons.code,
+                      label: 'مفتوح المصدر',
+                      value: 'github.com/Marindo-12',
+                    ),
+                    Divider(height: 1, indent: 16),
+                    _DetailRow(
+                      icon:  Icons.developer_mode_outlined,
+                      label: 'المساهمة',
+                      value: 'مرحب بالمطورين لتصحيح الأخطاء',
+                    ),
                   ],
                 ),
               ).animate().fadeIn(delay: 400.ms),
@@ -321,24 +333,92 @@ class SettingsScreen extends ConsumerWidget {
   Future<void> _confirmReset(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('إعادة التعيين؟',
-            style: TextStyle(color: AppColors.destructive)),
-        content: const Text(
-          'هذا الإجراء سيحذف خطتك الحالية وجميع السجلات والإنجازات السابقة. لا يمكن التراجع عنه.',
+      barrierDismissible: false,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          width: 340,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Icône d'avertissement
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: AppColors.destructive.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.warning_rounded,
+                  color: AppColors.destructive,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Titre
+              Text(
+                'إعادة التعيين؟',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.destructive,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+
+              // Description
+              Text(
+                'هذا الإجراء سيحذف خطتك الحالية وجميع السجلات والإنجازات السابقة. لا يمكن التراجع عنه.',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.mutedFgOf(context),
+                      height: 1.5,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+
+              // Actions
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text('تراجع'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.destructive,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'نعم، احذف',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('تراجع'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.destructive),
-            child: const Text('نعم، احذف كل شيء'),
-          ),
-        ],
       ),
     );
 
@@ -636,15 +716,37 @@ class _DetailRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 18, color: mutedFg),
           const SizedBox(width: 12),
-          Text(label,
-              style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg)),
-          const Spacer(),
-          Text(value,
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.bold)),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    label,
+                    style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    value,
+                    textAlign: TextAlign.end,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
