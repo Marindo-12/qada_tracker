@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:drift/drift.dart' hide Column;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/theme/app_theme.dart';
@@ -13,12 +14,19 @@ import '../setup/setup_screan.dart';
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
+  static Future<void> _launchGitHub() async {
+    final uri = Uri.parse('https://github.com/Marindo-12');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final planAsync  = ref.watch(planProvider);
     final useArabic  = ref.watch(digitStyleProvider);
     final themeMode  = ref.watch(themeModeProvider);
-    final colorTheme = ref.watch(colorThemeProvider); // ← nouveau
+    final colorTheme = ref.watch(colorThemeProvider);
     final theme      = Theme.of(context);
 
     return Scaffold(
@@ -245,33 +253,29 @@ class SettingsScreen extends ConsumerWidget {
               const SizedBox(height: 16),
 
               // ─── About ─────────────────────────────────────────────────
-              const _SectionCard(
+              _SectionCard(
                 icon:  Icons.help_outline,
                 title: 'عن التطبيق',
                 child: Column(
                   children: [
-                    _DetailRow(
+                    const _DetailRow(
                       icon:  Icons.app_settings_alt,
                       label: 'الإصدار',
                       value: '1.0.0',
                     ),
-                    Divider(height: 1, indent: 16),
-                    _DetailRow(
-                      icon:  Icons.favorite_outline,
-                      label: 'تطبيق مجاني بالكامل',
-                      value: 'بدون إعلانات',
-                    ),
-                    Divider(height: 1, indent: 16),
+                    const Divider(height: 1, indent: 16),
                     _DetailRow(
                       icon:  Icons.code,
-                      label: 'مفتوح المصدر',
-                      value: 'github.com/Marindo-12',
+                      label: 'المصدر',
+                      value: 'مفتوح المصدر',
+                      isLink: true,
+                      onValueTap: _launchGitHub,
                     ),
-                    Divider(height: 1, indent: 16),
-                    _DetailRow(
+                    const Divider(height: 1, indent: 16),
+                    const _DetailRow(
                       icon:  Icons.developer_mode_outlined,
                       label: 'المساهمة',
-                      value: 'مرحب بالمطورين لتصحيح الأخطاء',
+                      value: 'مرحب بالمطورين',
                     ),
                   ],
                 ),
@@ -342,7 +346,6 @@ class SettingsScreen extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Icône d'avertissement
               Container(
                 width: 64,
                 height: 64,
@@ -357,30 +360,24 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Titre
               Text(
                 'إعادة التعيين؟',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                       color: AppColors.destructive,
                     ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-
-              // Description
               Text(
                 'هذا الإجراء سيحذف خطتك الحالية وجميع السجلات والإنجازات السابقة. لا يمكن التراجع عنه.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
                       color: AppColors.mutedFgOf(context),
                       height: 1.5,
                     ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-
-              // Actions
               Row(
                 children: [
                   Expanded(
@@ -701,52 +698,66 @@ class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String   label;
   final String   value;
+  final VoidCallback? onValueTap;
+  final bool     isLink;
 
   const _DetailRow({
     required this.icon,
     required this.label,
     required this.value,
+    this.onValueTap,
+    this.isLink = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme   = Theme.of(context);
     final mutedFg = AppColors.mutedFgOf(context);
+    final primary = AppColors.primaryOf(context);
+
+    Widget valueWidget = Text(
+      value,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.end,
+      maxLines: 1,
+      style: theme.textTheme.titleSmall?.copyWith(
+        fontWeight: FontWeight.bold,
+        color: isLink || onValueTap != null ? primary : null,
+      ),
+    );
+
+    if (onValueTap != null) {
+      valueWidget = InkWell(
+        onTap: onValueTap,
+        borderRadius: BorderRadius.circular(6),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              valueWidget,
+              const SizedBox(width: 4),
+              Icon(
+                Icons.open_in_new,
+                size: 14,
+                color: primary,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, size: 18, color: mutedFg),
           const SizedBox(width: 12),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    label,
-                    style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    value,
-                    textAlign: TextAlign.end,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 2,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          Text(label,
+              style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg)),
+          const Spacer(),
+          Flexible(child: valueWidget),
         ],
       ),
     );
@@ -911,7 +922,6 @@ class _ColorThemeOption extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Points de couleur
             Row(
               children: dotColors
                   .map((c) => Container(
