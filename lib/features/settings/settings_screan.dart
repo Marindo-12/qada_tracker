@@ -14,11 +14,143 @@ import '../setup/setup_screan.dart';
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
-  static Future<void> _launchGitHub() async {
-    final uri = Uri.parse('https://github.com/Marindo-12');
+  static const _githubRepoUrl = 'https://github.com/Marindo-12/qada_tracker';
+  // TODO: remplace par ta vraie adresse email de contact
+  static const _contactEmail = 'marindodkh@gmail.com';
+
+  static Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
+  }
+
+  static Future<void> _launchEmail() async {
+    final uri = Uri(
+      scheme: 'mailto',
+      path: _contactEmail,
+      query: 'subject=${Uri.encodeComponent('فكرة أو مشكلة في تطبيق قضاء')}',
+    );
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  // ─── "Source" popup: for devs + open-to-anyone email note ─────────────────
+  static Future<void> _showSourceDialog(BuildContext context) async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          width: 340,
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.06),
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(16),
+                child: const _GitHubMark(color: Colors.black, size: 32),
+              ).animate().scale(
+                    duration: 250.ms,
+                    curve: Curves.easeOutBack,
+                    begin: const Offset(0.6, 0.6),
+                    end: const Offset(1, 1),
+                  ),
+              const SizedBox(height: 20),
+              Text(
+                'مفتوح المصدر',
+                style: Theme.of(ctx).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'هذا التطبيق مفتوح المصدر، وهو موجّه للمطورين المتخصصين في تطوير تطبيقات الهاتف الراغبين في المساهمة أو تحسين أفكاره.',
+                style: Theme.of(ctx).textTheme.bodyMedium?.copyWith(
+                      color: AppColors.mutedFgOf(context),
+                      height: 1.5,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              _HoverIcon(
+                onTap: () => _launchUrl(_githubRepoUrl),
+                scale: 1.03,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.mutedOf(context).withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.borderOf(context)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const _GitHubMark(color: Colors.black, size: 18),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'github.com/Marindo-12/qada_tracker',
+                          style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.open_in_new, size: 14, color: Colors.black54),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Divider(),
+              const SizedBox(height: 12),
+              Text(
+                'حتى لو لم تكن مطوراً، يمكنك إرسال بريد إلكتروني إذا كانت لديك أفكار أو واجهت مشاكل تقنية أو مشاكل في التصميم.',
+                style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                      color: AppColors.mutedFgOf(context),
+                      height: 1.5,
+                    ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _launchEmail,
+                  icon: const Icon(Icons.email_outlined, size: 18),
+                  label: const Text('إرسال بريد إلكتروني'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    minimumSize: const Size.fromHeight(46),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('إغلاق'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -116,48 +248,56 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 16),
 
             // ─── Color Theme ────────────────────────────────────────────
+            // NOTE: options now laid out as a Row (flex), not a Column (flex-col)
             _SectionCard(
               icon: Icons.palette_outlined,
               title: 'لون التطبيق',
               subtitle: 'اختر نظام الألوان المفضل لديك',
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: Column(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _ColorThemeOption(
-                      active:   colorTheme == AppColorTheme.green,
-                      label:    'الأخضر الكلاسيكي',
-                      subtitle: 'أخضر زمردي + ذهبي — الافتراضي',
-                      dotColors: const [
-                        Color(0xFF0D6B45),
-                        Color(0xFFB8932A),
-                        Color(0xFFF5F0E8),
-                      ],
-                      onTap: () => ref.read(colorThemeProvider.notifier).set(AppColorTheme.green),
+                    Expanded(
+                      child: _ColorThemeOption(
+                        active:   colorTheme == AppColorTheme.green,
+                        label:    'الأخضر الكلاسيكي',
+                        subtitle: 'الافتراضي',
+                        dotColors: const [
+                          Color(0xFF0D6B45),
+                          Color(0xFFB8932A),
+                          Color(0xFFF5F0E8),
+                        ],
+                        onTap: () => ref.read(colorThemeProvider.notifier).set(AppColorTheme.green),
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    _ColorThemeOption(
-                      active:   colorTheme == AppColorTheme.blue,
-                      label:    'الأزرق الحديث',
-                      subtitle: 'أزرق + رمادي محايد — iOS/Material',
-                      dotColors: const [
-                        Color(0xFF378ADD),
-                        Color(0xFF185FA5),
-                        Color(0xFFF8F9FA),
-                      ],
-                      onTap: () => ref.read(colorThemeProvider.notifier).set(AppColorTheme.blue),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _ColorThemeOption(
+                        active:   colorTheme == AppColorTheme.blue,
+                        label:    'الأزرق الحديث',
+                        subtitle: 'iOS/Material',
+                        dotColors: const [
+                          Color(0xFF378ADD),
+                          Color(0xFF185FA5),
+                          Color(0xFFF8F9FA),
+                        ],
+                        onTap: () => ref.read(colorThemeProvider.notifier).set(AppColorTheme.blue),
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    _ColorThemeOption(
-                      active:   colorTheme == AppColorTheme.gold,
-                      label:    'الذهبي الفاخر',
-                      subtitle: 'ذهبي + كريمي — أناقة كلاسيكية',
-                      dotColors: const [
-                        Color(0xFFB8932A),
-                        Color(0xFF8B6914),
-                        Color(0xFFF5F0E8),
-                      ],
-                      onTap: () => ref.read(colorThemeProvider.notifier).set(AppColorTheme.gold),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _ColorThemeOption(
+                        active:   colorTheme == AppColorTheme.gold,
+                        label:    'الذهبي الفاخر',
+                        subtitle: 'أناقة كلاسيكية',
+                        dotColors: const [
+                          Color(0xFFB8932A),
+                          Color(0xFF8B6914),
+                          Color(0xFFF5F0E8),
+                        ],
+                        onTap: () => ref.read(colorThemeProvider.notifier).set(AppColorTheme.gold),
+                      ),
                     ),
                   ],
                 ),
@@ -269,7 +409,7 @@ class SettingsScreen extends ConsumerWidget {
                       label: 'المصدر',
                       value: 'مفتوح المصدر',
                       isLink: true,
-                      onValueTap: _launchGitHub,
+                      onValueTap: () => _showSourceDialog(context),
                     ),
                     const Divider(height: 1, indent: 16),
                     const _DetailRow(
@@ -358,7 +498,12 @@ class SettingsScreen extends ConsumerWidget {
                   color: AppColors.destructive,
                   size: 32,
                 ),
-              ),
+              ).animate().scale(
+                    duration: 250.ms,
+                    curve: Curves.easeOutBack,
+                    begin: const Offset(0.6, 0.6),
+                    end: const Offset(1, 1),
+                  ),
               const SizedBox(height: 20),
               Text(
                 'إعادة التعيين؟',
@@ -378,13 +523,17 @@ class SettingsScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
+              // Both buttons now share identical padding / minimum height / text
+              // weight so "نعم، احذف" no longer looks taller than "تراجع".
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(ctx, false),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        minimumSize: const Size.fromHeight(48),
+                        textStyle: const TextStyle(fontWeight: FontWeight.bold),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -399,16 +548,15 @@ class SettingsScreen extends ConsumerWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.destructive,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        minimumSize: const Size.fromHeight(48),
+                        textStyle: const TextStyle(fontWeight: FontWeight.bold),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'نعم، احذف',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
+                      child: const Text('نعم، احذف'),
                     ),
                   ),
                 ],
@@ -432,6 +580,116 @@ class SettingsScreen extends ConsumerWidget {
       ref.invalidate(calendarDataProvider);
     }
   }
+}
+
+// ─── Hover wrapper ─────────────────────────────────────────────────────────
+// Adds a subtle scale + fade "hover" reaction to icons / tappable chips.
+// On mobile this is a harmless no-op (no mouse), on web/desktop it reacts
+// to MouseRegion enter/exit.
+class _HoverIcon extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+  final double scale;
+
+  const _HoverIcon({
+    required this.child,
+    this.onTap,
+    this.scale = 1.15,
+  });
+
+  @override
+  State<_HoverIcon> createState() => _HoverIconState();
+}
+
+class _HoverIconState extends State<_HoverIcon> {
+  bool _hovering = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final content = AnimatedScale(
+      scale: _hovering ? widget.scale : 1.0,
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeOut,
+      child: AnimatedOpacity(
+        opacity: _hovering ? 0.85 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        child: widget.child,
+      ),
+    );
+
+    return MouseRegion(
+      cursor: widget.onTap != null ? SystemMouseCursors.click : MouseCursor.defer,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit:  (_) => setState(() => _hovering = false),
+      child: widget.onTap != null
+          ? GestureDetector(onTap: widget.onTap, child: content)
+          : content,
+    );
+  }
+}
+
+// ─── Simple black GitHub mark (no external asset / package needed) ────────
+class _GitHubMark extends StatelessWidget {
+  final Color  color;
+  final double size;
+  const _GitHubMark({required this.color, this.size = 24});
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(painter: _GitHubMarkPainter(color)),
+    );
+  }
+}
+
+class _GitHubMarkPainter extends CustomPainter {
+  final Color color;
+  _GitHubMarkPainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    final w = size.width;
+    final h = size.height;
+
+    // head
+    canvas.drawCircle(Offset(w * 0.5, h * 0.42), w * 0.30, paint);
+
+    // ears
+    final earL = Path()
+      ..moveTo(w * 0.24, h * 0.32)
+      ..lineTo(w * 0.32, h * 0.10)
+      ..lineTo(w * 0.42, h * 0.26)
+      ..close();
+    final earR = Path()
+      ..moveTo(w * 0.76, h * 0.32)
+      ..lineTo(w * 0.68, h * 0.10)
+      ..lineTo(w * 0.58, h * 0.26)
+      ..close();
+    canvas.drawPath(earL, paint);
+    canvas.drawPath(earR, paint);
+
+    // body + legs
+    final body = Path()
+      ..moveTo(w * 0.30, h * 0.52)
+      ..quadraticBezierTo(w * 0.5, h * 0.66, w * 0.70, h * 0.52)
+      ..lineTo(w * 0.78, h * 0.90)
+      ..quadraticBezierTo(w * 0.70, h * 1.0, w * 0.62, h * 0.88)
+      ..lineTo(w * 0.55, h * 0.70)
+      ..lineTo(w * 0.45, h * 0.70)
+      ..lineTo(w * 0.38, h * 0.88)
+      ..quadraticBezierTo(w * 0.30, h * 1.0, w * 0.22, h * 0.90)
+      ..close();
+    canvas.drawPath(body, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _GitHubMarkPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 // ─── Daily Target Editor ──────────────────────────────────────────────────────
@@ -545,8 +803,9 @@ class _DailyTargetEditorState extends ConsumerState<_DailyTargetEditor> {
           ..._presets.map((p) {
             final val    = p['value'] as int;
             final active = _target == val;
-            return GestureDetector(
+            return _HoverIcon(
               onTap: () => _save(val),
+              scale: 1.01,
               child: AnimatedContainer(
                 duration: 200.ms,
                 margin: const EdgeInsets.only(bottom: 8),
@@ -589,7 +848,7 @@ class _DailyTargetEditorState extends ConsumerState<_DailyTargetEditor> {
   }
 }
 
-class _CountBtn extends StatelessWidget {
+class _CountBtn extends StatefulWidget {
   final IconData     icon;
   final bool         enabled;
   final Color        color;
@@ -603,23 +862,41 @@ class _CountBtn extends StatelessWidget {
   });
 
   @override
+  State<_CountBtn> createState() => _CountBtnState();
+}
+
+class _CountBtnState extends State<_CountBtn> {
+  bool _hovering = false;
+
+  @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: enabled ? onTap : null,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        width: 36, height: 36,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: enabled
-                ? color.withValues(alpha: 0.5)
-                : color.withValues(alpha: 0.2),
+    return MouseRegion(
+      cursor: widget.enabled ? SystemMouseCursors.click : MouseCursor.defer,
+      onEnter: (_) => setState(() => _hovering = true),
+      onExit:  (_) => setState(() => _hovering = false),
+      child: InkWell(
+        onTap: widget.enabled ? widget.onTap : null,
+        borderRadius: BorderRadius.circular(20),
+        hoverColor: widget.color.withValues(alpha: 0.08),
+        child: AnimatedScale(
+          scale: (_hovering && widget.enabled) ? 1.1 : 1.0,
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
+          child: Container(
+            width: 36, height: 36,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: widget.enabled
+                    ? widget.color.withValues(alpha: 0.5)
+                    : widget.color.withValues(alpha: 0.2),
+              ),
+            ),
+            child: Icon(widget.icon,
+                size: 16,
+                color: widget.enabled ? widget.color : widget.color.withValues(alpha: 0.3)),
           ),
         ),
-        child: Icon(icon,
-            size: 16,
-            color: enabled ? color : color.withValues(alpha: 0.3)),
       ),
     );
   }
@@ -659,13 +936,16 @@ class _SectionCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Container(
-                  width: 36, height: 36,
-                  decoration: BoxDecoration(
-                    color: primary.withValues(alpha: 0.12),
-                    shape: BoxShape.circle,
+                _HoverIcon(
+                  scale: 1.12,
+                  child: Container(
+                    width: 36, height: 36,
+                    decoration: BoxDecoration(
+                      color: primary.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(icon, color: primary, size: 18),
                   ),
-                  child: Icon(icon, color: primary, size: 18),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -694,6 +974,10 @@ class _SectionCard extends StatelessWidget {
 }
 
 // ─── Detail Row ───────────────────────────────────────────────────────────────
+// Fixed: label / value now sit in a balanced Row (label takes remaining
+// space, value is end-aligned via AlignmentDirectional so it respects RTL),
+// instead of the previous Spacer+Flexible combo that could push the value
+// text and its "open" icon out of place.
 class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String   label;
@@ -711,39 +995,39 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme   = Theme.of(context);
-    final mutedFg = AppColors.mutedFgOf(context);
-    final primary = AppColors.primaryOf(context);
+    final theme       = Theme.of(context);
+    final mutedFg      = AppColors.mutedFgOf(context);
+    final primary       = AppColors.primaryOf(context);
+    final isLinkStyle = isLink || onValueTap != null;
 
-    Widget valueWidget = Text(
+    final valueText = Text(
       value,
       overflow: TextOverflow.ellipsis,
-      textAlign: TextAlign.end,
       maxLines: 1,
       style: theme.textTheme.titleSmall?.copyWith(
         fontWeight: FontWeight.bold,
-        color: isLink || onValueTap != null ? primary : null,
+        color: isLinkStyle ? primary : null,
       ),
     );
 
-    if (onValueTap != null) {
-      valueWidget = InkWell(
-        onTap: onValueTap,
-        borderRadius: BorderRadius.circular(6),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-          child: Row(
+    Widget valueContent = isLinkStyle
+        ? Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              valueWidget,
+              Flexible(child: valueText),
               const SizedBox(width: 4),
-              Icon(
-                Icons.open_in_new,
-                size: 14,
-                color: primary,
-              ),
+              Icon(Icons.open_in_new, size: 14, color: primary),
             ],
-          ),
+          )
+        : valueText;
+
+    if (onValueTap != null) {
+      valueContent = _HoverIcon(
+        onTap: onValueTap,
+        scale: 1.04,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+          child: valueContent,
         ),
       );
     }
@@ -752,12 +1036,21 @@ class _DetailRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
-          Icon(icon, size: 18, color: mutedFg),
+          _HoverIcon(child: Icon(icon, size: 18, color: mutedFg)),
           const SizedBox(width: 12),
-          Text(label,
-              style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg)),
-          const Spacer(),
-          Flexible(child: valueWidget),
+          Expanded(
+            child: Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Flexible(
+            child: Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: valueContent,
+            ),
+          ),
         ],
       ),
     );
@@ -786,8 +1079,9 @@ class _DigitOption extends StatelessWidget {
     final mutedFg = AppColors.mutedFgOf(context);
     final border  = AppColors.borderOf(context);
 
-    return GestureDetector(
+    return _HoverIcon(
       onTap: onTap,
+      scale: 1.02,
       child: AnimatedContainer(
         duration: 200.ms,
         padding: const EdgeInsets.all(14),
@@ -849,8 +1143,9 @@ class _ThemeOption extends StatelessWidget {
     final mutedFg    = AppColors.mutedFgOf(context);
     final border     = AppColors.borderOf(context);
 
-    return GestureDetector(
+    return _HoverIcon(
       onTap: onTap,
+      scale: 1.02,
       child: AnimatedContainer(
         duration: 200.ms,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
@@ -885,6 +1180,8 @@ class _ThemeOption extends StatelessWidget {
 }
 
 // ─── Color Theme Option ───────────────────────────────────────────────────────
+// Redesigned for a Row/flex layout: dots on top, label + short subtitle
+// below, active check badge pinned to the corner instead of pushing content.
 class _ColorThemeOption extends StatelessWidget {
   final bool         active;
   final String       label;
@@ -907,11 +1204,12 @@ class _ColorThemeOption extends StatelessWidget {
     final border  = AppColors.borderOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
 
-    return GestureDetector(
+    return _HoverIcon(
       onTap: onTap,
+      scale: 1.03,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        duration: 200.ms,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
         decoration: BoxDecoration(
           color: active ? primary.withValues(alpha: 0.08) : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
@@ -920,39 +1218,61 @@ class _ColorThemeOption extends StatelessWidget {
             width: active ? 2 : 1,
           ),
         ),
-        child: Row(
+        child: Stack(
+          clipBehavior: Clip.none,
           children: [
-            Row(
-              children: dotColors
-                  .map((c) => Container(
-                        width: 18, height: 18,
-                        margin: const EdgeInsets.only(left: 4),
-                        decoration: BoxDecoration(
-                          color:  c,
-                          shape:  BoxShape.circle,
-                          border: Border.all(color: border, width: 0.5),
-                        ),
-                      ))
-                  .toList(),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label,
-                      style: theme.textTheme.labelLarge?.copyWith(
-                        color:      active ? primary : null,
-                        fontWeight: FontWeight.w700,
-                      )),
-                  Text(subtitle,
-                      style: theme.textTheme.bodySmall
-                          ?.copyWith(color: mutedFg)),
-                ],
-              ),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: dotColors
+                      .map((c) => Container(
+                            width: 16, height: 16,
+                            margin: const EdgeInsets.symmetric(horizontal: 2),
+                            decoration: BoxDecoration(
+                              color:  c,
+                              shape:  BoxShape.circle,
+                              border: Border.all(color: border, width: 0.5),
+                            ),
+                          ))
+                      .toList(),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color:      active ? primary : null,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: mutedFg, fontSize: 10.5),
+                ),
+              ],
             ),
             if (active)
-              Icon(Icons.check_circle_rounded, color: primary, size: 20),
+              Positioned(
+                top: -8,
+                right: -8,
+                child: Icon(Icons.check_circle_rounded, color: primary, size: 18)
+                    .animate()
+                    .scale(
+                      duration: 180.ms,
+                      curve: Curves.easeOutBack,
+                      begin: const Offset(0.5, 0.5),
+                      end: const Offset(1, 1),
+                    ),
+              ),
           ],
         ),
       ),
