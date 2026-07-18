@@ -82,6 +82,7 @@ class AppShell extends ConsumerWidget {
 // ─── Nav Bar ─────────────────────────────────────────────────────────────────
 // Design : thin pill indicator (h:1.3) at top of active tab
 //          icon scales up on active, label below always visible
+//          bar is flush with bottom/left/right edges, only top corners rounded
 // ─────────────────────────────────────────────────────────────────────────────
 class _NavBar extends StatelessWidget {
   final int              currentIndex;
@@ -104,10 +105,13 @@ class _NavBar extends StatelessWidget {
       top: false,
       child: Container(
         height: _barH,
-        margin: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        margin: EdgeInsets.zero,
         decoration: BoxDecoration(
-          color:        surface,
-          borderRadius: BorderRadius.circular(28),
+          color: surface,
+          borderRadius: const BorderRadius.only(
+            topLeft:  Radius.circular(28),
+            topRight: Radius.circular(28),
+          ),
           border: Border.all(color: border.withValues(alpha: 0.5), width: 0.6),
           boxShadow: [
             BoxShadow(color: shadow, blurRadius: 20, offset: const Offset(0, 4)),
