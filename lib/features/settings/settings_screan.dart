@@ -16,7 +16,7 @@ class SettingsScreen extends ConsumerWidget {
 
   static const _githubRepoUrl = 'https://github.com/Marindo-12/qada_tracker';
   // TODO: remplace par ta vraie adresse email de contact
-  static const _contactEmail = 'marindodkh@gmail.com';
+  static const _contactEmail = 'contact@marindo.dev';
 
   static Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
@@ -57,7 +57,12 @@ class SettingsScreen extends ConsumerWidget {
                   shape: BoxShape.circle,
                 ),
                 padding: const EdgeInsets.all(16),
-                child: const _GitHubMark(color: Colors.black, size: 32),
+                child: Image.asset(
+                  'assets/icon/github_logo.png',
+                  width: 32,
+                  height: 32,
+                  fit: BoxFit.contain,
+                ),
               ).animate().scale(
                     duration: 250.ms,
                     curve: Curves.easeOutBack,
@@ -96,7 +101,12 @@ class SettingsScreen extends ConsumerWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const _GitHubMark(color: Colors.black, size: 18),
+                      Image.asset(
+                        'assets/icon/github_logo.png',
+                        width: 18,
+                        height: 18,
+                        fit: BoxFit.contain,
+                      ),
                       const SizedBox(width: 8),
                       Flexible(
                         child: Text(
@@ -626,70 +636,6 @@ class _HoverIconState extends State<_HoverIcon> {
           : content,
     );
   }
-}
-
-// ─── Simple black GitHub mark (no external asset / package needed) ────────
-class _GitHubMark extends StatelessWidget {
-  final Color  color;
-  final double size;
-  const _GitHubMark({required this.color, this.size = 24});
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CustomPaint(painter: _GitHubMarkPainter(color)),
-    );
-  }
-}
-
-class _GitHubMarkPainter extends CustomPainter {
-  final Color color;
-  _GitHubMarkPainter(this.color);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-    final w = size.width;
-    final h = size.height;
-
-    // head
-    canvas.drawCircle(Offset(w * 0.5, h * 0.42), w * 0.30, paint);
-
-    // ears
-    final earL = Path()
-      ..moveTo(w * 0.24, h * 0.32)
-      ..lineTo(w * 0.32, h * 0.10)
-      ..lineTo(w * 0.42, h * 0.26)
-      ..close();
-    final earR = Path()
-      ..moveTo(w * 0.76, h * 0.32)
-      ..lineTo(w * 0.68, h * 0.10)
-      ..lineTo(w * 0.58, h * 0.26)
-      ..close();
-    canvas.drawPath(earL, paint);
-    canvas.drawPath(earR, paint);
-
-    // body + legs
-    final body = Path()
-      ..moveTo(w * 0.30, h * 0.52)
-      ..quadraticBezierTo(w * 0.5, h * 0.66, w * 0.70, h * 0.52)
-      ..lineTo(w * 0.78, h * 0.90)
-      ..quadraticBezierTo(w * 0.70, h * 1.0, w * 0.62, h * 0.88)
-      ..lineTo(w * 0.55, h * 0.70)
-      ..lineTo(w * 0.45, h * 0.70)
-      ..lineTo(w * 0.38, h * 0.88)
-      ..quadraticBezierTo(w * 0.30, h * 1.0, w * 0.22, h * 0.90)
-      ..close();
-    canvas.drawPath(body, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _GitHubMarkPainter oldDelegate) =>
-      oldDelegate.color != color;
 }
 
 // ─── Daily Target Editor ──────────────────────────────────────────────────────

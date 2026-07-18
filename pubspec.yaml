@@ -49,6 +49,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/icon/icon.png
+    - assets/icon/github_logo.png
   fonts:
     - family: ScheherazadeNew
       fonts:
