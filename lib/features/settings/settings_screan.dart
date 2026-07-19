@@ -16,11 +16,11 @@ class SettingsScreen extends ConsumerWidget {
 
   static const _githubRepoUrl = 'https://github.com/Marindo-12/qada_tracker';
   // TODO: remplace par ta vraie adresse email de contact
-  static const _contactEmail = 'marindodkh@gmail.com';
+  static const _contactEmail = 'contact@marindo.dev';
   // TODO: remplace par ton vrai lien LinkedIn
-  static const _linkedinUrl = 'https://www.linkedin.com/in/mohammed-douakh-32595b3ab/';
+  static const _linkedinUrl = 'https://www.linkedin.com/in/TODO';
   // TODO: remplace par ton vrai lien WhatsApp (format: https://wa.me/2126XXXXXXXX)
-  static const _whatsappUrl = 'https://wa.me/212601401569';
+  static const _whatsappUrl = 'https://wa.me/TODO';
 
   static Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
@@ -141,7 +141,7 @@ class SettingsScreen extends ConsumerWidget {
               const Divider(),
               const SizedBox(height: 12),
               Text(
-                'حتى لو لم تكن مطوراً، يمكنك إرسال بريد إلكتروني إذا كانت لديك أفكار أو واجهت مشاكل تقنية أو مشاكل في التصميم.',
+                'حتى لو لم تكن مطوراً، يمكنك التواصل معي عبر إحدى الوسائل التالية إذا كانت لديك أفكار أو واجهت مشاكل تقنية أو مشاكل في التصميم.',
                 style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
                       color: AppColors.mutedFgOf(context),
                       height: 1.5,
@@ -155,11 +155,12 @@ class SettingsScreen extends ConsumerWidget {
                   _ContactIconButton(
                     assetPath: 'assets/icon/linkedin-icon.png',
                     tooltip: 'LinkedIn',
+                    iconSize: 28,
                     onTap: () => _launchUrl(_linkedinUrl),
                   ),
                   const SizedBox(width: 18),
                   _ContactIconButton(
-                    assetPath: 'assets/icon/whatsapp-icon.png',
+                    assetPath: 'assets/icon/watssap-icon.png',
                     tooltip: 'WhatsApp',
                     onTap: () => _launchUrl(_whatsappUrl),
                   ),
@@ -666,15 +667,19 @@ class _ContactIconButton extends StatelessWidget {
   final String       assetPath;
   final String       tooltip;
   final VoidCallback onTap;
+  final double?       iconSize;
 
   const _ContactIconButton({
     required this.assetPath,
     required this.tooltip,
     required this.onTap,
+    this.iconSize,
   });
 
   @override
   Widget build(BuildContext context) {
+    final image = Image.asset(assetPath, fit: BoxFit.contain);
+
     return Tooltip(
       message: tooltip,
       child: _HoverIcon(
@@ -689,10 +694,11 @@ class _ContactIconButton extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: AppColors.borderOf(context)),
           ),
-          child: Image.asset(
-            assetPath,
-            fit: BoxFit.contain,
-          ),
+          child: iconSize == null
+              ? image
+              : Center(
+                  child: SizedBox(width: iconSize, height: iconSize, child: image),
+                ),
         ),
       ),
     );
