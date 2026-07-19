@@ -16,18 +16,21 @@ class SettingsScreen extends ConsumerWidget {
 
   static const _githubRepoUrl = 'https://github.com/Marindo-12/qada_tracker';
   // TODO: remplace par ta vraie adresse email de contact
-  static const _contactEmail = 'contact@marindo.dev';
+  static const _contactEmail = 'marindodkh@gmail.com';
+  // TODO: remplace par ton vrai lien LinkedIn
+  static const _linkedinUrl = 'https://www.linkedin.com/in/mohammed-douakh-32595b3ab/';
+  // TODO: remplace par ton vrai lien WhatsApp (format: https://wa.me/2126XXXXXXXX)
+  static const _whatsappUrl = 'https://wa.me/212601401569';
 
   static Future<void> _launchUrl(String url) async {
     final uri = Uri.parse(url);
-
-    if (!await canLaunchUrl(uri)) {
-      return;
-    }
-
-    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!launched) {
-      await launchUrl(uri, mode: LaunchMode.platformDefault);
+    try {
+      final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (!launched) {
+        debugPrint('Impossible d\'ouvrir $url (launchUrl a retourné false)');
+      }
+    } catch (e) {
+      debugPrint('Erreur en ouvrant $url: $e');
     }
   }
 
@@ -37,8 +40,13 @@ class SettingsScreen extends ConsumerWidget {
       path: _contactEmail,
       query: 'subject=${Uri.encodeComponent('فكرة أو مشكلة في تطبيق قضاء')}',
     );
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+    try {
+      final launched = await launchUrl(uri);
+      if (!launched) {
+        debugPrint('Impossible d\'ouvrir le client mail (launchUrl a retourné false)');
+      }
+    } catch (e) {
+      debugPrint('Erreur en ouvrant le client mail: $e');
     }
   }
 
@@ -141,18 +149,27 @@ class SettingsScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 14),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: _launchEmail,
-                  icon: const Icon(Icons.email_outlined, size: 18),
-                  label: const Text('إرسال بريد إلكتروني'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    minimumSize: const Size.fromHeight(46),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _ContactIconButton(
+                    assetPath: 'assets/icon/linkedin-icon.png',
+                    tooltip: 'LinkedIn',
+                    onTap: () => _launchUrl(_linkedinUrl),
                   ),
-                ),
+                  const SizedBox(width: 18),
+                  _ContactIconButton(
+                    assetPath: 'assets/icon/watssap-icon.png',
+                    tooltip: 'WhatsApp',
+                    onTap: () => _launchUrl(_whatsappUrl),
+                  ),
+                  const SizedBox(width: 18),
+                  _ContactIconButton(
+                    assetPath: 'assets/icon/gmail-icon.png',
+                    tooltip: 'Gmail',
+                    onTap: _launchEmail,
+                  ),
+                ],
               ),
               const SizedBox(height: 8),
               SizedBox(
@@ -640,6 +657,44 @@ class _HoverIconState extends State<_HoverIcon> {
       child: widget.onTap != null
           ? GestureDetector(onTap: widget.onTap, child: content)
           : content,
+    );
+  }
+}
+
+// ─── Contact icon button (LinkedIn / WhatsApp / Gmail) ─────────────────────
+class _ContactIconButton extends StatelessWidget {
+  final String       assetPath;
+  final String       tooltip;
+  final VoidCallback onTap;
+
+  const _ContactIconButton({
+    required this.assetPath,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: _HoverIcon(
+        onTap: onTap,
+        scale: 1.12,
+        child: Container(
+          width: 48,
+          height: 48,
+          padding: const EdgeInsets.all(11),
+          decoration: BoxDecoration(
+            color: AppColors.mutedOf(context).withValues(alpha: 0.4),
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.borderOf(context)),
+          ),
+          child: Image.asset(
+            assetPath,
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
     );
   }
 }
