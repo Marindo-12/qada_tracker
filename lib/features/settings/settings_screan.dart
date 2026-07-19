@@ -159,7 +159,7 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(width: 18),
                   _ContactIconButton(
-                    assetPath: 'assets/icon/watssap-icon.png',
+                    assetPath: 'assets/icon/whatsapp-icon.png',
                     tooltip: 'WhatsApp',
                     onTap: () => _launchUrl(_whatsappUrl),
                   ),
