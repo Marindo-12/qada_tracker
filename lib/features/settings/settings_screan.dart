@@ -155,12 +155,12 @@ class SettingsScreen extends ConsumerWidget {
                   _ContactIconButton(
                     assetPath: 'assets/icon/linkedin-icon.png',
                     tooltip: 'LinkedIn',
-                    iconSize: 28,
+                    iconSize: 30,
                     onTap: () => _launchUrl(_linkedinUrl),
                   ),
                   const SizedBox(width: 18),
                   _ContactIconButton(
-                    assetPath: 'assets/icon/watssap-icon.png',
+                    assetPath: 'assets/icon/whatsapp-icon.png',
                     tooltip: 'WhatsApp',
                     onTap: () => _launchUrl(_whatsappUrl),
                   ),
