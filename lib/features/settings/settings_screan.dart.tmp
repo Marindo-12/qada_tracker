@@ -24,7 +24,7 @@ class SettingsScreen extends ConsumerWidget {
     try {
       final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
       if (!launched) {
-        debugPrint('Impossible d\'ouvrir $url (launchUrl a retourn� false)');
+        debugPrint('Impossible d\'ouvrir $url (launchUrl a retourné false)');
       }
     } catch (e) {
       debugPrint('Erreur en ouvrant $url: $e');
@@ -35,12 +35,12 @@ class SettingsScreen extends ConsumerWidget {
     final uri = Uri(
       scheme: 'mailto',
       path: _contactEmail,
-      query: 'subject=${Uri.encodeComponent('???? ?? ????? ?? ????? ????')}',
+      query: 'subject=${Uri.encodeComponent('فكرة أو مشكلة في تطبيق قضاء')}',
     );
     try {
       final launched = await launchUrl(uri);
       if (!launched) {
-        debugPrint('Impossible d\'ouvrir le client mail (launchUrl a retourn� false)');
+        debugPrint('Impossible d\'ouvrir le client mail (launchUrl a retourné false)');
       }
     } catch (e) {
       debugPrint('Erreur en ouvrant le client mail: $e');
@@ -57,11 +57,11 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('?????????', style: theme.textTheme.titleLarge),
+        title: Text('الإعدادات', style: theme.textTheme.titleLarge),
       ),
       body: planAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('???: $e')),
+        error: (e, _) => Center(child: Text('خطأ: $e')),
         data: (plan) => ListView(
           padding: const EdgeInsets.all(16),
           children: const [

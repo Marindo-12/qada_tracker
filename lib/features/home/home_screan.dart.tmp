@@ -1,0 +1,36 @@
+// lib/features/home/home_screen.dart
+import 'dart:math' as math;
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+import '../../core/theme/app_theme.dart';
+import '../../core/utils/app_utils.dart';
+import '../../shared/providers/providers.dart';
+import '../../core/navigation/app_router.dart';
+import 'widgets/today_checklist.dart';
+import 'widgets/prayer_progress_breakdown.dart';
+import 'widgets/streak_card.dart';
+import 'widgets/recent_activity.dart';
+import 'widgets/previous_day_logger.dart';
+import '../setup/setup_screen.dart';
+
+class HomeScreen extends ConsumerWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final planAsync = ref.watch(planProvider);
+
+    return planAsync.when(
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
+      data: (plan) {
+        if (plan == null) return const _WelcomeScreen();
+        return const _Dashboard();
+      },
+    );
+  }
+}

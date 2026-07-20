@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../shared/providers/providers.dart';
-import 'setup_screan.dart';
+import 'setup_screen.dart';
 
 class SetupIntroScreen extends ConsumerStatefulWidget {
   const SetupIntroScreen({super.key});

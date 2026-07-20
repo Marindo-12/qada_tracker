@@ -14,7 +14,7 @@ import 'widgets/prayer_progress_breakdown.dart';
 import 'widgets/streak_card.dart';
 import 'widgets/recent_activity.dart';
 import 'widgets/previous_day_logger.dart';
-import '../setup/setup_screan.dart';
+import '../setup/setup_screen.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});

@@ -53,6 +53,7 @@ flutter:
     - assets/icon/linkedin-icon.png
     - assets/icon/whatsapp-icon.png
     - assets/icon/gmail-icon.png
+    - assets/icon/man-icon.png
   fonts:
     - family: ScheherazadeNew
       fonts:
