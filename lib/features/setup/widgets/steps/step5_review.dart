@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/app_utils.dart';
-import '../shared/misc_widgets.dart';
 import '../shared/tip_tile.dart';
 
 class StepReview extends StatelessWidget {

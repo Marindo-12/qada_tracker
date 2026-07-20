@@ -1,6 +1,5 @@
 // lib/core/theme/app_theme.dart
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 // ─── Enum des thèmes disponibles ─────────────────────────────────────────────
 enum AppColorTheme { green, blue, gold }
@@ -323,7 +322,10 @@ class AppTheme {
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          textStyle: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: _arabicTextStyle(
+            const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            color: primaryFg,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -373,21 +375,29 @@ class AppTheme {
 
   static TextTheme _buildTextTheme(Brightness brightness, Color color) {
     return TextTheme(
-      displayLarge:   GoogleFonts.cairo(fontSize: 32, fontWeight: FontWeight.w700, color: color),
-      displayMedium:  GoogleFonts.cairo(fontSize: 28, fontWeight: FontWeight.w700, color: color),
-      displaySmall:   GoogleFonts.cairo(fontSize: 24, fontWeight: FontWeight.w700, color: color),
-      headlineLarge:  GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.w700, color: color),
-      headlineMedium: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.w600, color: color),
-      headlineSmall:  GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w600, color: color),
-      titleLarge:     GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.w600, color: color),
-      titleMedium:    GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: color),
-      titleSmall:     GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w600, color: color),
-      bodyLarge:      GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.w400, color: color),
-      bodyMedium:     GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w400, color: color),
-      bodySmall:      GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w400, color: color),
-      labelLarge:     GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: color),
-      labelMedium:    GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w500, color: color),
-      labelSmall:     GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.w500, color: color),
+      displayLarge:   _arabicTextStyle(const TextStyle(fontSize: 32, fontWeight: FontWeight.w700), color: color),
+      displayMedium:  _arabicTextStyle(const TextStyle(fontSize: 28, fontWeight: FontWeight.w700), color: color),
+      displaySmall:   _arabicTextStyle(const TextStyle(fontSize: 24, fontWeight: FontWeight.w700), color: color),
+      headlineLarge:  _arabicTextStyle(const TextStyle(fontSize: 22, fontWeight: FontWeight.w700), color: color),
+      headlineMedium: _arabicTextStyle(const TextStyle(fontSize: 20, fontWeight: FontWeight.w600), color: color),
+      headlineSmall:  _arabicTextStyle(const TextStyle(fontSize: 18, fontWeight: FontWeight.w600), color: color),
+      titleLarge:     _arabicTextStyle(const TextStyle(fontSize: 16, fontWeight: FontWeight.w600), color: color),
+      titleMedium:    _arabicTextStyle(const TextStyle(fontSize: 14, fontWeight: FontWeight.w600), color: color),
+      titleSmall:     _arabicTextStyle(const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), color: color),
+      bodyLarge:      _arabicTextStyle(const TextStyle(fontSize: 16, fontWeight: FontWeight.w400), color: color),
+      bodyMedium:     _arabicTextStyle(const TextStyle(fontSize: 14, fontWeight: FontWeight.w400), color: color),
+      bodySmall:      _arabicTextStyle(const TextStyle(fontSize: 12, fontWeight: FontWeight.w400), color: color),
+      labelLarge:     _arabicTextStyle(const TextStyle(fontSize: 14, fontWeight: FontWeight.w600), color: color),
+      labelMedium:    _arabicTextStyle(const TextStyle(fontSize: 12, fontWeight: FontWeight.w500), color: color),
+      labelSmall:     _arabicTextStyle(const TextStyle(fontSize: 10, fontWeight: FontWeight.w500), color: color),
+    );
+  }
+
+  static TextStyle _arabicTextStyle(TextStyle style, {required Color color}) {
+    return style.copyWith(
+      color: color,
+      fontFamily: 'Amiri',
+      fontFamilyFallback: const ['ScheherazadeNew', 'Cairo', 'Noto Naskh Arabic'],
     );
   }
 }

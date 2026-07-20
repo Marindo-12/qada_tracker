@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/home/home_screan.dart';
 import '../../features/calendar/calendar_screan.dart';
 import '../../features/guide/guide_screen.dart';
-import '../../features/settings/settings_screan.dart';
+import '../../features/settings/settings_screen.dart';
 import '../../features/setup/setup_intro_screen.dart';
 import '../../features/setup/username_setup_screen.dart';
 import '../../shared/providers/providers.dart';
