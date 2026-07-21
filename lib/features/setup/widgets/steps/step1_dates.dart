@@ -4,16 +4,19 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/app_utils.dart';
 import '../../data/approx_options.dart';
 import '../../design/design_tokens.dart';
+import '../shared/animated_chip.dart';
+import '../shared/animated_toggle.dart';
+import '../shared/expandable_section.dart';
+import '../shared/hover_press_row.dart';
+import '../shared/underline_date_field.dart';
 
 /// ─── Step 1: Dates ───────────────────────────────────────────────────────
 ///
 /// Redesigned from the Google Stitch mockup (code.html).
 /// All motion here is hand-built with [AnimationController] + [Tween] +
-/// [AnimatedBuilder] (no flutter_animate), as requested:
-///   • a staggered fade/slide-up entrance for each section
-///   • a slow, continuous "floating" bob for the hero avatar
-///   • an expand/collapse animation for the quick-select puberty helper
-///   • press + hover "lift" feedback on the age chips and the toggle
+/// [AnimatedBuilder] (no flutter_animate). Shared pieces (underline field,
+/// toggle, expandable section, chip, hover row) now live under
+/// widgets/shared/ so Step 2 can reuse them too.
 class StepDates extends StatefulWidget {
   final DateTime? birthDate;
   final DateTime? bulughDate;
@@ -45,8 +48,7 @@ class _StepDatesState extends State<StepDates> with TickerProviderStateMixin {
   // Drives the expand/collapse of the quick-select puberty helper.
   late final AnimationController _expandCtrl;
 
-  // Briefly highlights the puberty field's border after a quick pick,
-  // mirroring the JS pulse in the original Stitch mockup.
+  // Briefly highlights the puberty field's border after a quick pick.
   late final AnimationController _pulseCtrl;
 
   @override
@@ -223,7 +225,7 @@ class _StepDatesState extends State<StepDates> with TickerProviderStateMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _UnderlineDateField(
+                UnderlineDateField(
                   label: 'تاريخ الميلاد',
                   icon: Icons.cake_outlined,
                   value: widget.birthDate,
@@ -239,7 +241,7 @@ class _StepDatesState extends State<StepDates> with TickerProviderStateMixin {
                       1 - (_pulseCtrl.value - 0).abs().clamp(0.0, 1.0),
                     );
                     final glow = _pulseCtrl.isAnimating ? pulse : 0.0;
-                    return _UnderlineDateField(
+                    return UnderlineDateField(
                       label: 'تاريخ البلوغ',
                       icon: Icons.history_edu_outlined,
                       hint: 'غالباً بين سن ١٢ و ١٥',
@@ -254,12 +256,12 @@ class _StepDatesState extends State<StepDates> with TickerProviderStateMixin {
                 const SizedBox(height: 20),
 
                 // Toggle helper
-                _HoverPress(
+                HoverPressRow(
                   onTap: () => widget.onBulughApproxChanged(!widget.bulughApprox),
                   builder: (context, lift) {
                     return Row(
                       children: [
-                        _AnimatedToggle(
+                        AnimatedToggle(
                           value: widget.bulughApprox,
                           onChanged: widget.onBulughApproxChanged,
                         ),
@@ -278,7 +280,7 @@ class _StepDatesState extends State<StepDates> with TickerProviderStateMixin {
                 ),
 
                 // Expandable quick-select section
-                _ExpandableSection(
+                ExpandableSection(
                   controller: _expandCtrl,
                   child: Padding(
                     padding: const EdgeInsets.only(top: 16),
@@ -307,329 +309,6 @@ class _StepDatesState extends State<StepDates> with TickerProviderStateMixin {
           end: 1.0,
         ),
       ],
-    );
-  }
-}
-
-// ─── Underline-style date field (matches the Stitch mockup) ───────────────
-class _UnderlineDateField extends StatelessWidget {
-  final String label;
-  final String? hint;
-  final IconData icon;
-  final DateTime? value;
-  final DateTime firstDate, lastDate;
-  final double highlight; // 0..1, transient pulse after a quick-pick
-  final ValueChanged<DateTime?> onChanged;
-
-  const _UnderlineDateField({
-    required this.label,
-    this.hint,
-    required this.icon,
-    required this.value,
-    required this.firstDate,
-    required this.lastDate,
-    required this.onChanged,
-    this.highlight = 0,
-  });
-
-  DateTime _clamp(DateTime d, DateTime mn, DateTime mx) {
-    if (d.isBefore(mn)) return mn;
-    if (d.isAfter(mx)) return mx;
-    return d;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = AppColors.primaryOf(context);
-    final mutedFg = AppColors.mutedFgOf(context);
-    final border = AppColors.borderOf(context);
-    final initial = _clamp(value ?? DateTime.now(), firstDate, lastDate);
-
-    final borderColor = Color.lerp(
-      value != null ? primary.withValues(alpha: 0.5) : border,
-      primary,
-      highlight,
-    );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: theme.textTheme.labelSmall?.copyWith(
-            color: mutedFg,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.4,
-          ),
-        ),
-        const SizedBox(height: 4),
-        InkWell(
-          onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: initial,
-              firstDate: firstDate,
-              lastDate: lastDate,
-              locale: const Locale('ar'),
-            );
-            if (picked != null) onChanged(picked);
-          },
-          child: AnimatedContainer(
-            duration: SetupDS.fast,
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              border: Border(bottom: BorderSide(color: borderColor!, width: highlight > 0 ? 2 : 1)),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    value != null ? formatArabicDate(dateToIso(value!)) : (hint ?? 'اختر تاريخاً'),
-                    style: theme.textTheme.bodyLarge?.copyWith(color: value != null ? null : mutedFg),
-                  ),
-                ),
-                Icon(icon, size: 20, color: value != null ? primary : mutedFg),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ─── Expandable section (height + fade), controller-driven ────────────────
-class _ExpandableSection extends StatelessWidget {
-  final AnimationController controller;
-  final Widget child;
-
-  const _ExpandableSection({required this.controller, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final curved = CurvedAnimation(parent: controller, curve: Curves.easeOutCubic);
-    return AnimatedBuilder(
-      animation: curved,
-      builder: (context, _) {
-        return ClipRect(
-          child: Align(
-            alignment: Alignment.topCenter,
-            heightFactor: curved.value,
-            child: Opacity(
-              opacity: curved.value,
-              child: child,
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-// ─── Custom animated toggle switch ─────────────────────────────────────────
-class _AnimatedToggle extends StatefulWidget {
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  const _AnimatedToggle({required this.value, required this.onChanged});
-
-  @override
-  State<_AnimatedToggle> createState() => _AnimatedToggleState();
-}
-
-class _AnimatedToggleState extends State<_AnimatedToggle> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: SetupDS.fast,
-      value: widget.value ? 1 : 0,
-    );
-  }
-
-  @override
-  void didUpdateWidget(covariant _AnimatedToggle old) {
-    super.didUpdateWidget(old);
-    if (widget.value != old.value) {
-      widget.value ? _controller.forward() : _controller.reverse();
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final primary = AppColors.primaryOf(context);
-    final track = AppColors.mutedOf(context);
-    final curved = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-
-    return GestureDetector(
-      onTap: () => widget.onChanged(!widget.value),
-      child: AnimatedBuilder(
-        animation: curved,
-        builder: (context, _) {
-          final t = curved.value;
-          return Container(
-            width: 44,
-            height: 26,
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-              color: Color.lerp(track.withValues(alpha: 0.6), primary, t),
-              borderRadius: BorderRadius.circular(13),
-            ),
-            child: Align(
-              alignment: Alignment.lerp(Alignment.centerRight, Alignment.centerLeft, t)!,
-              child: Container(
-                width: 20,
-                height: 20,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.15),
-                      blurRadius: 3,
-                      offset: const Offset(0, 1),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-// ─── Hover/press "lift" wrapper (used for the toggle row) ─────────────────
-class _HoverPress extends StatefulWidget {
-  final VoidCallback onTap;
-  final Widget Function(BuildContext context, double lift) builder;
-
-  const _HoverPress({required this.onTap, required this.builder});
-
-  @override
-  State<_HoverPress> createState() => _HoverPressState();
-}
-
-class _HoverPressState extends State<_HoverPress> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _lift;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: SetupDS.fast);
-    _lift = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _setTarget(double target) => _controller.animateTo(target, curve: Curves.easeOut);
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => _setTarget(0.5),
-      onExit: (_) => _setTarget(0),
-      child: GestureDetector(
-        onTapDown: (_) => _setTarget(1),
-        onTapUp: (_) => _setTarget(0.5),
-        onTapCancel: () => _setTarget(0),
-        onTap: widget.onTap,
-        child: AnimatedBuilder(
-          animation: _lift,
-          builder: (context, _) => widget.builder(context, _lift.value),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Age chip with press + hover scale feedback ────────────────────────────
-class _AgeChip extends StatefulWidget {
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _AgeChip({required this.label, required this.selected, required this.onTap});
-
-  @override
-  State<_AgeChip> createState() => _AgeChipState();
-}
-
-class _AgeChipState extends State<_AgeChip> with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: SetupDS.fast);
-    _scale = Tween<double>(begin: 1.0, end: 0.94).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final primary = AppColors.primaryOf(context);
-    final border = AppColors.borderOf(context);
-    final mutedFg = AppColors.mutedFgOf(context);
-
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => _controller.animateTo(0.4),
-      onExit: (_) => _controller.animateTo(0),
-      child: GestureDetector(
-        onTapDown: (_) => _controller.animateTo(1),
-        onTapUp: (_) => _controller.animateTo(0),
-        onTapCancel: () => _controller.animateTo(0),
-        onTap: widget.onTap,
-        child: AnimatedBuilder(
-          animation: _scale,
-          builder: (context, child) {
-            return Transform.scale(scale: _scale.value, child: child);
-          },
-          child: AnimatedContainer(
-            duration: SetupDS.fast,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: widget.selected ? primary.withValues(alpha: 0.08) : Colors.transparent,
-              border: Border.all(color: widget.selected ? primary : border),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              widget.label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: widget.selected ? FontWeight.w700 : FontWeight.w500,
-                color: widget.selected ? primary : mutedFg,
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -700,7 +379,7 @@ class _QuickSelectPuberty extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: malePubertyAges.map((age) {
-            return _AgeChip(
+            return AnimatedChip(
               label: age == 15 ? '١٥ سنة (الافتراضي)' : '${formatNumber(age, useArabic: true)} سنة',
               selected: isAgeSelected(age),
               onTap: () => onPickAge(age),
@@ -730,7 +409,7 @@ class _QuickSelectPuberty extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: femalePubertyAges.map((age) {
-            return _AgeChip(
+            return AnimatedChip(
               label: '${formatNumber(age, useArabic: true)} سنوات',
               selected: isAgeSelected(age),
               onTap: () => onPickAge(age),

@@ -366,8 +366,8 @@ class ArticleView extends StatelessWidget {
             icon: Icons.help_outline_rounded,
             title: 'لماذا نقضي الصلوات الفائتة؟'),
         const SizedBox(height: 10),
-        _ArticleCard(
-          child: const Column(
+        const _ArticleCard(
+          child: Column(
             children: [
               Row(
                 children: [
@@ -405,8 +405,8 @@ class ArticleView extends StatelessWidget {
         const _ArticleSectionHeader(
             icon: Icons.balance_rounded, title: 'الحكم الشرعي للقضاء'),
         const SizedBox(height: 10),
-        _ArticleCard(
-          child: const Column(
+        const _ArticleCard(
+          child: Column(
             children: [
               _BodyText(
                 text:
@@ -559,7 +559,6 @@ class _ArticleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = context.primary;
     final onSurface = context.onSurface;
 
     return Container(
