@@ -30,7 +30,7 @@ class SetupScreen extends ConsumerStatefulWidget {
 
 class _SetupScreenState extends ConsumerState<SetupScreen> {
   int _step = 0;
-  static const int _totalSteps = 6;
+  static const int _totalSteps = 7;
 
   DateTime? _birthDate;
   DateTime? _bulughDate;
@@ -69,7 +69,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     'التواريخ الأساسية',
     'تاريخ الالتزام',
     'تقدير الأيام',
-    'خطة القضاء',
+    'احتياج القضاء',
+    'بداية الخطة',
     'مراجعة',
   ];
 
@@ -84,6 +85,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         return _granularTotal > 0;
       case 4:
         return _dailyTarget >= 1;
+      case 5:
+        return true;
       default:
         return true;
     }
@@ -155,6 +158,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         );
       case 4:
         return StepTarget(
+          page: StepTargetPage.needs,
           dailyTarget: _dailyTarget,
           missedDays: _missedDays,
           startDate: _startDate,
@@ -165,6 +169,18 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
           onNotesChanged: (v) => setState(() => _notes = v),
         );
       case 5:
+        return StepTarget(
+          page: StepTargetPage.schedule,
+          dailyTarget: _dailyTarget,
+          missedDays: _missedDays,
+          startDate: _startDate,
+          notes: _notes,
+          useArabic: useArabic,
+          onTargetChanged: (v) => setState(() => _dailyTarget = v),
+          onStartChanged: (d) => setState(() => _startDate = d),
+          onNotesChanged: (v) => setState(() => _notes = v),
+        );
+      case 6:
         return StepReview(
           birthDate: _birthDate,
           bulughDate: _bulughDate,

@@ -26,11 +26,14 @@ import '../shared/misc_widgets.dart';
 ///     no callback) until that logic exists — wire them up once it does.
 ///   - Tapping anywhere outside a focused field now dismisses the
 ///     keyboard/focus, matching the fix applied in step3.
+enum StepTargetPage { needs, schedule }
+
 class StepTarget extends StatefulWidget {
   final int dailyTarget, missedDays;
   final DateTime startDate;
   final String notes;
   final bool useArabic;
+  final StepTargetPage page;
   final ValueChanged<int> onTargetChanged;
   final ValueChanged<DateTime> onStartChanged;
   final ValueChanged<String> onNotesChanged;
@@ -42,6 +45,7 @@ class StepTarget extends StatefulWidget {
     required this.startDate,
     required this.notes,
     required this.useArabic,
+    this.page = StepTargetPage.needs,
     required this.onTargetChanged,
     required this.onStartChanged,
     required this.onNotesChanged,
@@ -120,8 +124,11 @@ class _StepTargetState extends State<StepTarget> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    return widget.page == StepTargetPage.needs ? _buildNeedsPage(context) : _buildSchedulePage(context);
+  }
+
+  Widget _buildNeedsPage(BuildContext context) {
     final theme = Theme.of(context);
-    final scheme = theme.colorScheme;
     final primary = AppColors.primaryOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
     final daysNeeded = widget.dailyTarget > 0 ? (widget.missedDays / widget.dailyTarget).ceil() : 0;
@@ -202,6 +209,59 @@ class _StepTargetState extends State<StepTarget> with TickerProviderStateMixin {
             ),
           ],
 
+          const SizedBox(height: 20),
+          _reveal(
+            _TargetSummaryCard(
+              dailyTarget: widget.dailyTarget,
+              missedDays: widget.missedDays,
+              daysNeeded: daysNeeded,
+              useArabic: widget.useArabic,
+            ),
+            start: 0.55,
+            end: 0.95,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSchedulePage(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+
+    return GestureDetector(
+      // Tapping outside a focused field (e.g. the notes box) dismisses the
+      // keyboard/focus glow instead of leaving it stuck.
+      behavior: HitTestBehavior.translucent,
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+
+          _reveal(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'متى تبدأ؟',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700, color: primary),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'ثبت تاريخ البداية، ثم أضف ملاحظات تساعدك على تنظيم وقت القضاء.',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg, height: 1.7),
+                ),
+              ],
+            ),
+            start: 0.0,
+            end: 0.35,
+          ),
+
           const SizedBox(height: 24),
 
           // ── Start date ────────────────────────────────────────────
@@ -223,7 +283,19 @@ class _StepTargetState extends State<StepTarget> with TickerProviderStateMixin {
             end: 0.85,
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 18),
+
+          _reveal(
+            _ScheduleOverviewCard(
+              startDate: widget.startDate,
+              dailyTarget: widget.dailyTarget,
+              useArabic: widget.useArabic,
+            ),
+            start: 0.35,
+            end: 0.75,
+          ),
+
+          const SizedBox(height: 18),
 
           // ── Notes ─────────────────────────────────────────────────
           _reveal(
@@ -290,6 +362,178 @@ class _StepTargetState extends State<StepTarget> with TickerProviderStateMixin {
 }
 
 // ─── Preset card: neutral (non-brown) icon circle + selection state ───────
+class _TargetSummaryCard extends StatelessWidget {
+  final int dailyTarget;
+  final int missedDays;
+  final int daysNeeded;
+  final bool useArabic;
+
+  const _TargetSummaryCard({
+    required this.dailyTarget,
+    required this.missedDays,
+    required this.daysNeeded,
+    required this.useArabic,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+
+    return Container(
+      padding: const EdgeInsets.all(SetupDS.cardPad),
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(SetupDS.radiusLg),
+        border: Border.all(color: primary.withValues(alpha: 0.12)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: primary.withValues(alpha: 0.14),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.insights_rounded, color: primary, size: 22),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'ملخص الاحتياج',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${formatNumber(missedDays, useArabic: useArabic)} يوم متراكم · ${formatNumber(dailyTarget, useArabic: useArabic)} يوم يوميا',
+                  style: theme.textTheme.bodySmall?.copyWith(color: mutedFg, height: 1.45),
+                ),
+                if (daysNeeded > 0) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    'المدة المتوقعة: ${formatNumber(daysNeeded, useArabic: useArabic)} يوم',
+                    style: theme.textTheme.bodySmall?.copyWith(color: mutedFg, height: 1.45),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ScheduleOverviewCard extends StatelessWidget {
+  final DateTime startDate;
+  final int dailyTarget;
+  final bool useArabic;
+
+  const _ScheduleOverviewCard({
+    required this.startDate,
+    required this.dailyTarget,
+    required this.useArabic,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+    final muted = AppColors.mutedOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+
+    return Container(
+      padding: const EdgeInsets.all(SetupDS.cardPad),
+      decoration: BoxDecoration(
+        color: muted.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(SetupDS.radiusLg),
+        border: Border.all(color: primary.withValues(alpha: 0.08)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.event_available_rounded, color: primary, size: 20),
+              const SizedBox(width: 10),
+              Text(
+                'نظرة سريعة',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  color: primary,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _OverviewRow(
+            icon: Icons.calendar_today_rounded,
+            label: 'البداية',
+            value: formatArabicDate(dateToIso(startDate)),
+          ),
+          const SizedBox(height: 8),
+          _OverviewRow(
+            icon: Icons.done_all_rounded,
+            label: 'الوتيرة',
+            value: '${formatNumber(dailyTarget, useArabic: useArabic)} يوم · ${formatNumber(dailyTarget * 5, useArabic: useArabic)} صلاة',
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'يمكنك تعديل هذه التفاصيل لاحقا من الإعدادات.',
+            style: theme.textTheme.bodySmall?.copyWith(color: mutedFg, height: 1.45),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OverviewRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+
+  const _OverviewRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+
+    return Row(
+      children: [
+        Icon(icon, color: primary, size: 16),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: theme.textTheme.bodySmall?.copyWith(color: mutedFg),
+        ),
+        const Spacer(),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.left,
+            style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _PresetCard extends StatefulWidget {
   final IconData icon;
   final String label;
