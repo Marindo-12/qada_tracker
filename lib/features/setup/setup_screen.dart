@@ -42,7 +42,6 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   DateTime _startDate = DateTime.now();
   String _notes = '';
   int _years = 0, _months = 0, _days = 0;
-  bool _granularMode = true;
   bool _reviewConfirmed = false;
   bool _saving = false;
 
@@ -61,7 +60,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     _dailyTarget = plan.dailyTarget;
     _startDate = isoToDate(plan.startDate);
     _notes = plan.notes ?? '';
-    _granularMode = false;
+    // On ne force plus de mode, le plan chargé utilise directement _missedDays.
+    // Les champs années/mois/jours peuvent être recalculés si nécessaire.
   }
 
   static const _stepTitles = [
@@ -80,7 +80,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       case 2:
         return _commitmentDate != null;
       case 3:
-        return _granularMode ? _granularTotal > 0 : _missedDays > 0;
+        // Maintenant seule la saisie granulaire existe, on vérifie qu’il y a au moins un jour.
+        return _granularTotal > 0;
       case 4:
         return _dailyTarget >= 1;
       default:
@@ -89,7 +90,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   }
 
   void _nextStep() {
-    if (_step == 3 && _granularMode) {
+    if (_step == 3) {
+      // Calcule automatiquement _missedDays à partir des champs années/mois/jours.
       setState(() => _missedDays = _granularTotal.clamp(1, 999999));
     }
     setState(() => _step++);
@@ -142,17 +144,14 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         return StepEstimate(
           bulughDate: _bulughDate,
           commitmentDate: _commitmentDate,
-          granularMode: _granularMode,
           years: _years,
           months: _months,
           days: _days,
           missedDays: _missedDays,
           useArabic: useArabic,
-          onModeChanged: (m) => setState(() => _granularMode = m),
           onYearsChanged: (v) => setState(() => _years = v),
           onMonthsChanged: (v) => setState(() => _months = v),
           onDaysChanged: (v) => setState(() => _days = v),
-          onMissedDaysChanged: (v) => setState(() => _missedDays = v),
         );
       case 4:
         return StepTarget(
