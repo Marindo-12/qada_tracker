@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../../core/theme/app_theme.dart';
-import '../../data/islamic_content.dart';
 import '../../design/design_tokens.dart';
 import '../shared/animated_count.dart';
 import '../shared/auto_calc_banner.dart';
-import '../shared/tip_tile.dart';
 
 /// ─── Step 3: Estimate ─────────────────────────────────────────────────────
 ///
@@ -59,18 +57,12 @@ class StepEstimate extends StatefulWidget {
 
 class _StepEstimateState extends State<StepEstimate> with TickerProviderStateMixin {
   late final AnimationController _entranceCtrl;
-  // A slow, continuous scale wobble for the hadith card's watermark icon —
-  // mirrors the mockup's `group-hover:scale-110` but ambient instead of
-  // hover-only so it still reads on touch devices.
-  late final AnimationController _watermarkCtrl;
 
   @override
   void initState() {
     super.initState();
     _entranceCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
       ..forward();
-    _watermarkCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 6000))
-      ..repeat(reverse: true);
 
     // Back-compat: an older plan saved with only a total (granularMode ==
     // false) has years/months/days at 0. Convert it once so the fields
@@ -101,7 +93,6 @@ class _StepEstimateState extends State<StepEstimate> with TickerProviderStateMix
   @override
   void dispose() {
     _entranceCtrl.dispose();
-    _watermarkCtrl.dispose();
     super.dispose();
   }
 
@@ -144,36 +135,34 @@ class _StepEstimateState extends State<StepEstimate> with TickerProviderStateMix
 
           // ── Heading ───────────────────────────────────────────────
           _reveal(
-            Column(
+            Stack(
+              alignment: Alignment.topLeft,
               children: [
-                Text(
-                  'تقدير الصلوات الفائتة',
-                  style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700, color: primary),
-                  textAlign: TextAlign.center,
+                Column(
+                  children: [
+                    const SizedBox(width: double.infinity),
+                    Text(
+                      'تقدير الصلوات الفائتة',
+                      style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700, color: primary),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'دعنا نحسب قضاءك بدقة.',
+                      style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 6),
-                Text(
-                  'دعنا نحسب قضاءك بدقة.',
-                  style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg),
-                  textAlign: TextAlign.center,
-                ),
+                _EstimateHelpButton(primary: primary),
               ],
             ),
             start: 0.0,
             end: 0.35,
           ),
 
-          const SizedBox(height: 20),
-
-          // ── Gold-accented hadith card ────────────────────────────
-          _reveal(
-            _GoldHadithCard(watermarkCtrl: _watermarkCtrl),
-            start: 0.05,
-            end: 0.4,
-          ),
-
           if (autoCalc != null) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             _reveal(
               AutoCalcBanner(
                 autoCalcDays: autoCalc,
@@ -198,13 +187,7 @@ class _StepEstimateState extends State<StepEstimate> with TickerProviderStateMix
 
           // ── Plain label (no switch — only one entry mode now) ────
           _reveal(
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                'سنوات / أشهر / أيام',
-                style: theme.textTheme.labelMedium?.copyWith(color: mutedFg, fontWeight: FontWeight.w700),
-              ),
-            ),
+            const _OrnateInputLabel(),
             start: 0.15,
             end: 0.5,
           ),
@@ -271,11 +254,174 @@ class _StepEstimateState extends State<StepEstimate> with TickerProviderStateMix
             end: 0.65,
           ),
 
-          const SizedBox(height: 16),
-          _reveal(
-            const TipTile(icon: Icons.auto_awesome_rounded, text: IslamicContent.approxOk),
-            start: 0.4,
-            end: 0.75,
+          const SizedBox(height: 12),
+        ],
+      ),
+    );
+  }
+}
+
+class _EstimateHelpButton extends StatelessWidget {
+  final Color primary;
+
+  const _EstimateHelpButton({required this.primary});
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: 'شرح اختيار القيم',
+      onPressed: () => _showEstimateHelp(context),
+      style: IconButton.styleFrom(
+        backgroundColor: primary.withValues(alpha: 0.08),
+        foregroundColor: primary,
+        fixedSize: const Size(42, 42),
+      ),
+      icon: const Icon(Icons.description_outlined, size: 22),
+    );
+  }
+
+  void _showEstimateHelp(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: AppColors.surfaceOf(context),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(22, 18, 22, 24),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: primary.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.description_outlined, color: primary),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'كيف تختار السنوات والأشهر والأيام؟',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            color: primary,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'اختر المدة الأقرب للحقيقة، وليس رقما عشوائيا. الفكرة أن تحدد الفترة التي يغلب على ظنك أنك لم تكن تصلي فيها بانتظام، ثم تدخلها هنا كمدة تقريبية.',
+                    style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg, height: 1.7),
+                  ),
+                  const SizedBox(height: 14),
+                  _HelpPoint(
+                    icon: Icons.search_rounded,
+                    title: 'ابدأ من أقرب تاريخ واضح',
+                    text:
+                        'إذا كنت لا تعرف اليوم بالضبط، اختر التاريخ الأقرب: بداية سنة دراسية، رمضان معين، عمل جديد، سفر، أو مرحلة تذكر أنها كانت بداية التغيير.',
+                  ),
+                  _HelpPoint(
+                    icon: Icons.timeline_rounded,
+                    title: 'قسّم حياتك إلى مراحل',
+                    text:
+                        'قد تكون هناك فترة بدأت فيها الصلاة ثم توقفت، ثم عدت مرة أخرى. احسب فقط الفترات التي كان فيها التفريط واضحا، واجمعها في النهاية.',
+                  ),
+                  _HelpPoint(
+                    icon: Icons.verified_rounded,
+                    title: 'اطمئن مع التقدير القريب',
+                    text:
+                        'المطلوب هنا تقدير مسؤول وصادق. إذا ترددت بين رقمين، اختر الأقرب لما يغلب على ظنك، ويمكنك زيادة هامش بسيط للاحتياط إن أردت.',
+                  ),
+                  const SizedBox(height: 10),
+                  _ExampleBox(
+                    title: 'مثال 1',
+                    text:
+                        'شخص بدأ الالتزام في 2024، لكنه كان يصلي أحيانا بين 2021 و2024. إذا وجد أن الفترة غير المنتظمة تقريبا سنتان و3 أشهر، يكتب: 2 سنوات، 3 أشهر، 0 أيام.',
+                  ),
+                  const SizedBox(height: 10),
+                  _ExampleBox(
+                    title: 'مثال 2',
+                    text:
+                        'شخص صلى فترة في الجامعة ثم توقف بعد العمل لمدة 8 أشهر، ثم عاد. لا يحسب كل سنوات الجامعة؛ يحسب فقط الثمانية أشهر التي يعلم أنها كانت فترة انقطاع أو تفريط واضح.',
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('فهمت'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _HelpPoint extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String text;
+
+  const _HelpPoint({
+    required this.icon,
+    required this.title,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: primary, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  text,
+                  style: theme.textTheme.bodySmall?.copyWith(color: mutedFg, height: 1.55),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -283,13 +429,14 @@ class _StepEstimateState extends State<StepEstimate> with TickerProviderStateMix
   }
 }
 
-// ─── Gold-accented hadith card with a faint, ambient watermark icon ───────
-class _GoldHadithCard extends StatelessWidget {
-  final AnimationController watermarkCtrl;
+class _ExampleBox extends StatelessWidget {
+  final String title;
+  final String text;
 
-  const _GoldHadithCard({required this.watermarkCtrl});
-
-  static const _gold = Color(0xFFB8860B);
+  const _ExampleBox({
+    required this.title,
+    required this.text,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -298,44 +445,89 @@ class _GoldHadithCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      clipBehavior: Clip.antiAlias,
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surfaceOf(context),
-        borderRadius: BorderRadius.circular(SetupDS.radiusLg),
-        border: Border(right: BorderSide(color: _gold, width: 4)),
-        boxShadow: [
-          BoxShadow(color: primary.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 4)),
-        ],
+        color: AppColors.mutedOf(context).withValues(alpha: 0.45),
+        borderRadius: BorderRadius.circular(SetupDS.radiusMd),
+        border: Border.all(color: AppColors.borderOf(context)),
       ),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Positioned(
-            top: -10,
-            left: -10,
-            child: AnimatedBuilder(
-              animation: watermarkCtrl,
-              builder: (context, child) {
-                final scale = 1.0 + (watermarkCtrl.value * 0.15);
-                return Transform.scale(scale: scale, child: child);
-              },
-              child: Icon(Icons.auto_stories_rounded, size: 72, color: primary.withValues(alpha: 0.08)),
+          Text(
+            title,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: primary,
+              fontWeight: FontWeight.w800,
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(SetupDS.cardPad),
-            child: Text(
-              IslamicContent.estimateHelp,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: primary,
-                fontWeight: FontWeight.w700,
-                height: 1.8,
-                fontStyle: FontStyle.italic,
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ),
+          const SizedBox(height: 4),
+          Text(text, style: theme.textTheme.bodySmall?.copyWith(height: 1.55)),
         ],
       ),
+    );
+  }
+}
+
+class _OrnateInputLabel extends StatelessWidget {
+  const _OrnateInputLabel();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+
+    return Row(
+      children: [
+        Expanded(child: _MosqueLine(color: primary)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'سنوات / أشهر / أيام',
+            textAlign: TextAlign.center,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: primary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        Expanded(child: _MosqueLine(color: primary, reverse: true)),
+      ],
+    );
+  }
+}
+
+class _MosqueLine extends StatelessWidget {
+  final Color color;
+  final bool reverse;
+
+  const _MosqueLine({required this.color, this.reverse = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final line = Container(
+      height: 2,
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(2),
+      ),
+    );
+    final corner = Container(
+      width: 14,
+      height: 14,
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: color.withValues(alpha: 0.55), width: 2),
+          right: BorderSide(color: color.withValues(alpha: 0.55), width: 2),
+        ),
+        borderRadius: const BorderRadius.only(topRight: Radius.circular(8)),
+      ),
+    );
+
+    return Row(
+      children: reverse
+          ? [Expanded(child: line), Transform.rotate(angle: 3.14159, child: corner)]
+          : [corner, Expanded(child: line)],
     );
   }
 }
@@ -422,12 +614,18 @@ class _StyledNumberFieldState extends State<_StyledNumberField> with TickerProvi
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primary = AppColors.primaryOf(context);
-    final mutedFg = AppColors.mutedFgOf(context);
     final curved = CurvedAnimation(parent: _focusCtrl, curve: Curves.easeOut);
 
     return Column(
       children: [
-        Text(widget.label, style: theme.textTheme.labelMedium?.copyWith(color: mutedFg)),
+        Text(
+          widget.label,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.titleSmall?.copyWith(
+            color: primary,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         const SizedBox(height: 6),
         AnimatedBuilder(
           animation: curved,

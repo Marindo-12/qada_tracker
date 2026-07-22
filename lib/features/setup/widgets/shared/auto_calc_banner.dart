@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/app_utils.dart';
 import '../../design/design_tokens.dart';
 
@@ -66,6 +67,10 @@ class _AutoCalcBannerState extends State<AutoCalcBanner> with TickerProviderStat
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primary = widget.primary;
+    final muted = AppColors.mutedOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+    final border = AppColors.borderOf(context);
+    final surface = AppColors.surfaceOf(context);
 
     return MouseRegion(
       onEnter: (_) => _hoverCtrl.forward(),
@@ -77,11 +82,11 @@ class _AutoCalcBannerState extends State<AutoCalcBanner> with TickerProviderStat
           return Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Color.lerp(primary.withValues(alpha: 0.05), primary.withValues(alpha: 0.08), t),
+              color: Color.lerp(muted.withValues(alpha: 0.48), surface, t),
               borderRadius: BorderRadius.circular(SetupDS.radiusMd),
-              border: Border.all(color: primary.withValues(alpha: 0.2)),
+              border: Border.all(color: Color.lerp(border, primary.withValues(alpha: 0.18), t)!),
               boxShadow: [
-                BoxShadow(color: primary.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 4)),
+                BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 14, offset: const Offset(0, 4)),
               ],
             ),
             child: child,
@@ -92,7 +97,7 @@ class _AutoCalcBannerState extends State<AutoCalcBanner> with TickerProviderStat
             Container(
               width: 40,
               height: 40,
-              decoration: BoxDecoration(color: primary.withValues(alpha: 0.15), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: primary.withValues(alpha: 0.12), shape: BoxShape.circle),
               child: Icon(Icons.calculate_outlined, color: primary, size: 20),
             ),
             const SizedBox(width: 12),
@@ -105,7 +110,7 @@ class _AutoCalcBannerState extends State<AutoCalcBanner> with TickerProviderStat
                   const SizedBox(height: 2),
                   Text(
                     '${formatNumber(widget.autoCalcDays, useArabic: widget.useArabic)} يوم',
-                    style: theme.textTheme.bodySmall?.copyWith(color: primary.withValues(alpha: 0.75)),
+                    style: theme.textTheme.bodySmall?.copyWith(color: mutedFg),
                   ),
                 ],
               ),
