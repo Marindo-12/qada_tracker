@@ -142,7 +142,7 @@ class _StepCommitmentState extends State<StepCommitment> with TickerProviderStat
 
         const SizedBox(height: 24),
 
-        // ── Date field ────────────────────────────────────────────────
+        // ── Date field (fond blanc forcé) ────────────────────────────
         _reveal(
           AnimatedBuilder(
             animation: _pulseCtrl,
@@ -151,17 +151,24 @@ class _StepCommitmentState extends State<StepCommitment> with TickerProviderStat
                 1 - (_pulseCtrl.value - 0).abs().clamp(0.0, 1.0),
               );
               final glow = _pulseCtrl.isAnimating ? pulse : 0.0;
-              return UnderlineDateField(
-                label: 'تاريخ الالتزام الكامل',
-                icon: Icons.event_outlined,
-                hint: 'اختر التاريخ',
-                value: widget.commitmentDate,
-                firstDate: widget.bulughDate ?? DateTime(1900),
-                lastDate: DateTime.now(),
-                highlight: glow,
-                onChanged: (d) {
-                  if (d != null) _pickDate(d);
-                },
+              return Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(SetupDS.radiusMd),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                child: UnderlineDateField(
+                  label: 'تاريخ الالتزام الكامل',
+                  icon: Icons.event_outlined,
+                  hint: 'اختر التاريخ',
+                  value: widget.commitmentDate,
+                  firstDate: widget.bulughDate ?? DateTime(1900),
+                  lastDate: DateTime.now(),
+                  highlight: glow,
+                  onChanged: (d) {
+                    if (d != null) _pickDate(d);
+                  },
+                ),
               );
             },
           ),
@@ -265,91 +272,7 @@ class _StepCommitmentState extends State<StepCommitment> with TickerProviderStat
           end: 0.9,
         ),
 
-        const SizedBox(height: 20),
-
-        // ── Descriptive illustration (Stitch mockup's image block) ───
-        _reveal(
-          const _CommitmentIllustration(),
-          start: 0.6,
-          end: 1.0,
-        ),
       ],
-    );
-  }
-}
-
-// ─── Descriptive illustration with a hover zoom, matching the Stitch
-// mockup's `group-hover:scale-105` on its image block. ─────────────────────
-class _CommitmentIllustration extends StatefulWidget {
-  const _CommitmentIllustration();
-
-  @override
-  State<_CommitmentIllustration> createState() => _CommitmentIllustrationState();
-}
-
-class _CommitmentIllustrationState extends State<_CommitmentIllustration>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
-    _scale = Tween<double>(begin: 1.0, end: 1.05).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final primary = AppColors.primaryOf(context);
-    final border = AppColors.borderOf(context);
-
-    return MouseRegion(
-      onEnter: (_) => _controller.forward(),
-      onExit: (_) => _controller.reverse(),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(SetupDS.radiusLg),
-        child: Container(
-          height: 180,
-          decoration: BoxDecoration(border: Border.all(color: border)),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              AnimatedBuilder(
-                animation: _scale,
-                builder: (context, child) => Transform.scale(scale: _scale.value, child: child),
-                child: Image.asset(
-                  'assets/icon/step2-icon.png',
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stack) => Container(
-                    color: primary.withValues(alpha: 0.08),
-                    alignment: Alignment.center,
-                    child: Icon(Icons.calendar_month_rounded, size: 48, color: primary.withValues(alpha: 0.4)),
-                  ),
-                ),
-              ),
-              // Soft gradient at the bottom, matching the mockup's overlay.
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [primary.withValues(alpha: 0.2), Colors.transparent],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
