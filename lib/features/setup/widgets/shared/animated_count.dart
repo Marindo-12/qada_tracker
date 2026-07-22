@@ -33,7 +33,7 @@ class _AnimatedCountState extends State<AnimatedCount> with SingleTickerProvider
   void initState() {
     super.initState();
     _from = widget.value;
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 650));
     _animation = AlwaysStoppedAnimation<double>(widget.value.toDouble());
   }
 

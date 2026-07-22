@@ -446,17 +446,33 @@ class _StyledNumberField extends StatefulWidget {
   State<_StyledNumberField> createState() => _StyledNumberFieldState();
 }
 
-class _StyledNumberFieldState extends State<_StyledNumberField> with SingleTickerProviderStateMixin {
+class _StyledNumberFieldState extends State<_StyledNumberField> with TickerProviderStateMixin {
   late final TextEditingController _ctrl;
   late final FocusNode _focusNode;
   late final AnimationController _focusCtrl;
+  // Animates the field's own displayed digits from the old to the new
+  // value whenever it changes externally (e.g. auto-calc), so the person
+  // sees the numbers climb instead of jumping instantly.
+  late final AnimationController _countCtrl;
+  double _countFrom = 0;
+  double _countTo = 0;
 
   @override
   void initState() {
     super.initState();
+    _countFrom = widget.value.toDouble();
+    _countTo = widget.value.toDouble();
     _ctrl = TextEditingController(text: widget.value == 0 ? '' : widget.value.toString());
     _focusNode = FocusNode()..addListener(_onFocusChange);
     _focusCtrl = AnimationController(vsync: this, duration: SetupDS.fast);
+    _countCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 650))
+      ..addListener(_onCountTick);
+  }
+
+  void _onCountTick() {
+    final t = Curves.easeOutCubic.transform(_countCtrl.value);
+    final v = (_countFrom + (_countTo - _countFrom) * t).round();
+    _ctrl.text = v == 0 ? '' : v.toString();
   }
 
   void _onFocusChange() {
@@ -466,8 +482,16 @@ class _StyledNumberFieldState extends State<_StyledNumberField> with SingleTicke
   @override
   void didUpdateWidget(covariant _StyledNumberField old) {
     super.didUpdateWidget(old);
-    final next = widget.value == 0 ? '' : widget.value.toString();
-    if (!_focusNode.hasFocus && _ctrl.text != next) _ctrl.text = next;
+    if (widget.value == old.value) return;
+    if (_focusNode.hasFocus) {
+      // The person is actively typing here — sync silently, no animation.
+      _countFrom = widget.value.toDouble();
+      _countTo = widget.value.toDouble();
+      return;
+    }
+    _countFrom = _countTo;
+    _countTo = widget.value.toDouble();
+    _countCtrl.forward(from: 0);
   }
 
   @override
@@ -476,6 +500,7 @@ class _StyledNumberFieldState extends State<_StyledNumberField> with SingleTicke
     _focusNode.removeListener(_onFocusChange);
     _focusNode.dispose();
     _focusCtrl.dispose();
+    _countCtrl.dispose();
     super.dispose();
   }
 
@@ -517,10 +542,13 @@ class _StyledNumberFieldState extends State<_StyledNumberField> with SingleTicke
                 ?.copyWith(fontWeight: FontWeight.bold, color: primary),
             decoration: const InputDecoration(
               hintText: '0',
+              filled: false,
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
               contentPadding: EdgeInsets.zero,
+              isCollapsed: true,
             ),
             onChanged: (v) {
               final parsed = int.tryParse(v) ?? 0;
@@ -575,7 +603,7 @@ class _PlainStatCard extends StatelessWidget {
   }
 }
 
-// ─── Premium stat card (total prayers) — primary bg + gold text ────────────
+// ─── "Premium" stat card (total prayers) — light gray bg + green accent ───
 class _PremiumStatCard extends StatelessWidget {
   final String label;
   final int value;
@@ -583,47 +611,36 @@ class _PremiumStatCard extends StatelessWidget {
 
   const _PremiumStatCard({required this.label, required this.value, required this.useArabic});
 
-  static const _gold = Color(0xFFD4AF37);
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
 
     return Container(
-      clipBehavior: Clip.antiAlias,
       padding: const EdgeInsets.all(SetupDS.cardPad),
       decoration: BoxDecoration(
-        color: primary,
+        color: AppColors.mutedOf(context).withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(SetupDS.radiusLg),
-        boxShadow: [BoxShadow(color: primary.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 6))],
+        border: Border.all(color: AppColors.borderOf(context)),
       ),
-      child: Stack(
+      child: Column(
         children: [
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.white.withValues(alpha: 0.08), Colors.transparent],
-                ),
-              ),
-            ),
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(color: primary.withValues(alpha: 0.12), shape: BoxShape.circle),
+            child: Icon(Icons.mosque_rounded, size: 15, color: primary),
           ),
-          Column(
-            children: [
-              Text(label,
-                  style: theme.textTheme.labelSmall
-                      ?.copyWith(color: Colors.white.withValues(alpha: 0.8), letterSpacing: 0.6),
-                  textAlign: TextAlign.center),
-              const SizedBox(height: 6),
-              AnimatedCount(
-                value: value,
-                useArabic: useArabic,
-                style: theme.textTheme.headlineMedium?.copyWith(color: _gold, fontWeight: FontWeight.bold),
-              ),
-            ],
+          const SizedBox(height: 8),
+          Text(label,
+              style: theme.textTheme.labelSmall?.copyWith(color: mutedFg, letterSpacing: 0.6),
+              textAlign: TextAlign.center),
+          const SizedBox(height: 6),
+          AnimatedCount(
+            value: value,
+            useArabic: useArabic,
+            style: theme.textTheme.headlineMedium?.copyWith(color: primary, fontWeight: FontWeight.bold),
           ),
         ],
       ),
