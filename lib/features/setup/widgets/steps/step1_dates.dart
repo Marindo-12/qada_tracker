@@ -42,9 +42,6 @@ class StepDates extends StatefulWidget {
 class _StepDatesState extends State<StepDates> with TickerProviderStateMixin {
   // Drives the staggered entrance of each section on first build.
   late final AnimationController _entranceCtrl;
-  // Drives the slow up/down "floating" bob of the hero avatar.
-  late final AnimationController _floatCtrl;
-  late final Animation<double> _floatTween;
   // Drives the expand/collapse of the quick-select puberty helper.
   late final AnimationController _expandCtrl;
 
@@ -57,12 +54,6 @@ class _StepDatesState extends State<StepDates> with TickerProviderStateMixin {
 
     _entranceCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900))
       ..forward();
-
-    _floatCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2600))
-      ..repeat(reverse: true);
-    _floatTween = Tween<double>(begin: -6, end: 6).animate(
-      CurvedAnimation(parent: _floatCtrl, curve: Curves.easeInOut),
-    );
 
     _expandCtrl = AnimationController(
       vsync: this,
@@ -84,7 +75,6 @@ class _StepDatesState extends State<StepDates> with TickerProviderStateMixin {
   @override
   void dispose() {
     _entranceCtrl.dispose();
-    _floatCtrl.dispose();
     _expandCtrl.dispose();
     _pulseCtrl.dispose();
     super.dispose();
@@ -149,43 +139,6 @@ class _StepDatesState extends State<StepDates> with TickerProviderStateMixin {
         _reveal(
           Column(
             children: [
-              AnimatedBuilder(
-                animation: _floatTween,
-                builder: (context, child) {
-                  return Transform.translate(
-                    offset: Offset(0, _floatTween.value),
-                    child: child,
-                  );
-                },
-                child: Container(
-                  width: 112,
-                  height: 112,
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: primary.withValues(alpha: 0.12), width: 4),
-                    boxShadow: [
-                      BoxShadow(
-                        color: primary.withValues(alpha: 0.12),
-                        blurRadius: 18,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                  ),
-                  child: ClipOval(
-                    child: Container(
-                      color: AppColors.mutedOf(context).withValues(alpha: 0.4),
-                      child: Image.asset(
-                        'assets/icon/man-icon.png',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stack) =>
-                            Icon(Icons.person_rounded, size: 56, color: primary),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
               Text(
                 'التأسيس',
                 style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),

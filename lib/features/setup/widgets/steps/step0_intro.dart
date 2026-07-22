@@ -20,8 +20,19 @@ class StepIntro extends StatelessWidget {
         Container(
           width: 88,
           height: 88,
-          decoration: BoxDecoration(color: primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-          child: Icon(Icons.menu_book_rounded, size: 44, color: primary),
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: primary.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+            border: Border.all(color: primary.withValues(alpha: 0.12), width: 3),
+          ),
+          child: ClipOval(
+            child: Image.asset(
+              'assets/icon/man-icon.png',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stack) => Icon(Icons.person_rounded, size: 44, color: primary),
+            ),
+          ),
         ).animate().scale(duration: 500.ms, curve: Curves.elasticOut),
         const SizedBox(height: 24),
         Text(
