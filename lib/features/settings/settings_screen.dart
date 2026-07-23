@@ -284,7 +284,7 @@ class SettingsScreen extends ConsumerWidget {
                     Expanded(
                       child: _ThemeOption(
                         icon:   AppColorTheme.blue.icon,
-                        label:  'الحالي',
+                        label:  'فجر',
                         active: colorTheme == AppColorTheme.blue,
                         onTap:  () => ref
                             .read(themeColorProvider.notifier)
@@ -295,7 +295,7 @@ class SettingsScreen extends ConsumerWidget {
                     Expanded(
                       child: _ThemeOption(
                         icon:   AppColorTheme.green.icon,
-                        label:  'الأخضر',
+                        label:  'ورق',
                         active: colorTheme == AppColorTheme.green,
                         onTap:  () => ref
                             .read(themeColorProvider.notifier)
