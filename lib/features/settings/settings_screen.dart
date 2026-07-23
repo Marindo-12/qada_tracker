@@ -9,6 +9,7 @@ import '../../core/database/app_database.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/app_utils.dart';
 import '../../shared/providers/providers.dart';
+import '../../shared/providers/theme_provider.dart';
 import '../setup/setup_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -192,6 +193,7 @@ class SettingsScreen extends ConsumerWidget {
     final planAsync  = ref.watch(planProvider);
     final useArabic  = ref.watch(digitStyleProvider);
     final themeMode  = ref.watch(themeModeProvider);
+    final colorTheme = ref.watch(themeColorProvider);
     final theme      = Theme.of(context);
 
     return Scaffold(
@@ -268,6 +270,42 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
             ).animate().fadeIn(delay: 150.ms),
+
+            const SizedBox(height: 16),
+
+            _SectionCard(
+              icon: Icons.palette_outlined,
+              title: 'لون الواجهة',
+              subtitle: 'اختر بين اللون الحالي واللون الأخضر',
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _ThemeOption(
+                        icon:   AppColorTheme.blue.icon,
+                        label:  'الحالي',
+                        active: colorTheme == AppColorTheme.blue,
+                        onTap:  () => ref
+                            .read(themeColorProvider.notifier)
+                            .setTheme(AppColorTheme.blue),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _ThemeOption(
+                        icon:   AppColorTheme.green.icon,
+                        label:  'الأخضر',
+                        active: colorTheme == AppColorTheme.green,
+                        onTap:  () => ref
+                            .read(themeColorProvider.notifier)
+                            .setTheme(AppColorTheme.green),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ).animate().fadeIn(delay: 200.ms),
 
             const SizedBox(height: 16),
 

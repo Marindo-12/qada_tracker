@@ -8,6 +8,7 @@ import 'core/navigation/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/splash/app_start_splash_screen.dart';
 import 'shared/providers/providers.dart';
+import 'shared/providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,6 +33,7 @@ class QadaApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(digitStyleProvider);
     final themeMode = ref.watch(themeModeProvider);
+    final colorTheme = ref.watch(themeColorProvider);
 
     return MaterialApp(
       title: 'قضاء الصلوات',
@@ -46,8 +48,14 @@ class QadaApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      theme: AppTheme.buildTheme(brightness: Brightness.light),
-      darkTheme: AppTheme.buildTheme(brightness: Brightness.dark),
+      theme: AppTheme.buildTheme(
+        brightness: Brightness.light,
+        colorTheme: colorTheme,
+      ),
+      darkTheme: AppTheme.buildTheme(
+        brightness: Brightness.dark,
+        colorTheme: colorTheme,
+      ),
       themeMode: themeMode,
       builder: (context, child) {
         return Directionality(

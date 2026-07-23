@@ -6,6 +6,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/app_utils.dart';
 import '../../shared/providers/providers.dart';
+import '../../shared/providers/theme_provider.dart';
 import 'widgets/day_edit_dialog.dart';
 
 class CalendarScreen extends ConsumerWidget {
@@ -18,6 +19,7 @@ class CalendarScreen extends ConsumerWidget {
     final selectedHijriMonth = ref.watch(selectedHijriMonthProvider);
     final calendarType       = ref.watch(calendarTypeProvider);
     final useArabic          = ref.watch(digitStyleProvider);
+    final colorTheme         = ref.watch(themeColorProvider);
     final mutedFg            = AppColors.mutedFgOf(context);
     final border             = AppColors.borderOf(context);
     final isDark             = AppColors.isDark(context);
@@ -222,6 +224,7 @@ class CalendarScreen extends ConsumerWidget {
                       isFuture:   isFuture,
                       useArabic:  useArabic,
                       isDark:     isDark,
+                      colorTheme: colorTheme,
                     );
                   },
                 ).animate().fadeIn(duration: 400.ms);
@@ -261,7 +264,7 @@ class CalendarScreen extends ConsumerWidget {
                     style: theme.textTheme.labelSmall
                         ?.copyWith(color: mutedFg, fontSize: 10)),
                 const SizedBox(width: 6),
-                ...AppColors.heatmapColors(isDark: isDark)
+                ...AppColors.heatmapColors(colorTheme, isDark: isDark)
                     .map((c) => Container(
                           width:  14,
                           height: 14,
@@ -295,6 +298,7 @@ class _CalendarCell extends ConsumerStatefulWidget {
   final bool             isFuture;
   final bool             useArabic;
   final bool             isDark;
+  final AppColorTheme    colorTheme;
 
   const _CalendarCell({
     required this.day,
@@ -304,6 +308,7 @@ class _CalendarCell extends ConsumerStatefulWidget {
     required this.isFuture,
     required this.useArabic,
     required this.isDark,
+    required this.colorTheme,
   });
 
   @override
@@ -521,7 +526,10 @@ class _CalendarCellState extends ConsumerState<_CalendarCell>
 
   // ── Heatmap color — respecte le thème choisi ──────────────────────────────
   Color _cellColor() {
-    final palette = AppColors.heatmapColors(isDark: widget.isDark);
+    final palette = AppColors.heatmapColors(
+      widget.colorTheme,
+      isDark: widget.isDark,
+    );
     if (widget.data == null || widget.data!.completed == 0) return palette[0];
     final r = widget.data!.ratio;
     if (r >= 1.0)  return palette[4];

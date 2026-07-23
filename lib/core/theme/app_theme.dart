@@ -1,5 +1,31 @@
 import 'package:flutter/material.dart';
 
+// ─── Enum des thèmes disponibles ─────────────────────────────────────────────
+enum AppColorTheme {
+  blue,  // Thème bleu (défaut)
+  green, // Thème vert émeraude
+}
+
+extension AppColorThemeX on AppColorTheme {
+  String get label {
+    switch (this) {
+      case AppColorTheme.blue:
+        return 'Blue';
+      case AppColorTheme.green:
+        return 'Green';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case AppColorTheme.blue:
+        return Icons.water_drop_rounded;
+      case AppColorTheme.green:
+        return Icons.eco_rounded;
+    }
+  }
+}
+
 class AppColors {
   static const background = Color(0xFFF9F9F8);
   static const foreground = Color(0xFF1A1C1C);
@@ -47,6 +73,34 @@ class AppColors {
   static const darkSecondary = Color(0xFF3B4A44);
   static const darkAccent = Color(0xFFFFB77D);
 
+  // ════════════════════════════════════════════════════════════════════════════
+  // THÈME VERT ÉMERAUDE (Variante alternative)
+  // ════════════════════════════════════════════════════════════════════════════
+  // Light mode
+  static const greenBackground = Color(0xFFF5F0E8);
+  static const greenSurface = Color(0xFFFFFFFF);
+  static const greenBorder = Color(0xFFD9CCB5);
+  static const greenPrimary = Color(0xFF0D6B45);
+  static const greenPrimaryFg = Color(0xFFFFFFFF);
+  static const greenSecondary = Color(0xFFE8DFC8);
+  static const greenSecondaryFg = Color(0xFF1A2332);
+  static const greenAccent = Color(0xFF9B6E1A);
+  static const greenAccentFg = Color(0xFFFFFFFF);
+  static const greenHeatmap0 = Color(0xFFE8DFC8);
+  static const greenHeatmap1 = Color(0xFFB3D9C4);
+  static const greenHeatmap2 = Color(0xFF6DB89A);
+  static const greenHeatmap3 = Color(0xFF3D9970);
+  static const greenHeatmap4 = Color(0xFF0D6B45);
+
+  // Dark mode - Green
+  static const greenDarkBackground = Color(0xFF0F1621);
+  static const greenDarkCard = Color(0xFF1A2535);
+  static const greenDarkBorder = Color(0xFF2A3545);
+  static const greenDarkPrimary = Color(0xFF22C55E);
+  static const greenDarkPrimaryFg = Color(0xFF052E16);
+  static const greenDarkSecondary = Color(0xFF3B4A44);
+  static const greenDarkAccent = Color(0xFFD4A853);
+
   static bool isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
 
@@ -84,42 +138,87 @@ class AppColors {
     return isDark(context) ? primaryContainer : Theme.of(context).colorScheme.primary;
   }
 
-  static List<Color> heatmapColors({bool isDark = false}) {
-    if (isDark) {
-      return [
-        darkMuted,
-        darkPrimary.withValues(alpha: 0.25),
-        darkPrimary.withValues(alpha: 0.50),
-        darkPrimary.withValues(alpha: 0.75),
-        darkPrimary,
-      ];
-    }
+  static List<Color> heatmapColors(AppColorTheme colorTheme, {bool isDark = false}) {
+    switch (colorTheme) {
+      case AppColorTheme.green:
+        if (isDark) {
+          return [
+            AppColors.greenDarkSecondary,
+            const Color(0xFF22C55E).withValues(alpha: 0.25),
+            const Color(0xFF22C55E).withValues(alpha: 0.50),
+            const Color(0xFF22C55E).withValues(alpha: 0.75),
+            const Color(0xFF22C55E),
+          ];
+        }
+        return const [
+          AppColors.greenHeatmap0,
+          AppColors.greenHeatmap1,
+          AppColors.greenHeatmap2,
+          AppColors.greenHeatmap3,
+          AppColors.greenHeatmap4,
+        ];
 
-    return const [
-      Color(0xFFE2E2E2),
-      Color(0xFFD3E3DC),
-      Color(0xFF95D3BA),
-      Color(0xFF2B6954),
-      Color(0xFF064E3B),
-    ];
+      case AppColorTheme.blue:
+        if (isDark) {
+          return [
+            AppColors.darkMuted,
+            AppColors.darkPrimary.withValues(alpha: 0.25),
+            AppColors.darkPrimary.withValues(alpha: 0.50),
+            AppColors.darkPrimary.withValues(alpha: 0.75),
+            AppColors.darkPrimary,
+          ];
+        }
+        return const [
+          Color(0xFFE2E2E2),
+          Color(0xFFD3E3DC),
+          Color(0xFF95D3BA),
+          Color(0xFF2B6954),
+          Color(0xFF064E3B),
+        ];
+    }
   }
 }
 
 class AppTheme {
   static ThemeData buildTheme({
     required Brightness brightness,
+    AppColorTheme colorTheme = AppColorTheme.blue,
   }) {
     final isDark = brightness == Brightness.dark;
     final textColor = isDark ? const Color(0xFFF1F1F0) : AppColors.foreground;
-    final scaffoldBg = isDark ? AppColors.darkBackground : AppColors.background;
-    final surfaceColor = isDark ? AppColors.darkCard : AppColors.card;
-    final borderColor = isDark ? AppColors.darkBorder : AppColors.border;
-    final primaryColor = isDark ? AppColors.darkPrimary : AppColors.primary;
-    final primaryFg = isDark ? AppColors.darkPrimaryFg : AppColors.primaryFg;
-    final secondaryColor = isDark ? AppColors.darkSecondary : AppColors.secondary;
-    final secondaryFg = isDark ? const Color(0xFFD5E6DF) : AppColors.secondaryFg;
-    final accentColor = isDark ? AppColors.darkAccent : AppColors.accent;
-    final progressTrack = isDark ? AppColors.darkMuted : AppColors.secondary;
+    final scaffoldBg;
+    final surfaceColor;
+    final borderColor;
+    final primaryColor;
+    final primaryFg;
+    final secondaryColor;
+    final secondaryFg;
+    final accentColor;
+    final progressTrack;
+
+    switch (colorTheme) {
+      case AppColorTheme.green:
+        scaffoldBg = isDark ? AppColors.greenDarkBackground : AppColors.greenBackground;
+        surfaceColor = isDark ? AppColors.greenDarkCard : AppColors.greenSurface;
+        borderColor = isDark ? AppColors.greenDarkBorder : AppColors.greenBorder;
+        primaryColor = isDark ? AppColors.greenDarkPrimary : AppColors.greenPrimary;
+        primaryFg = isDark ? AppColors.greenDarkPrimaryFg : AppColors.greenPrimaryFg;
+        secondaryColor = isDark ? AppColors.greenDarkSecondary : AppColors.greenSecondary;
+        secondaryFg = isDark ? const Color(0xFFD5E6DF) : AppColors.greenSecondaryFg;
+        accentColor = isDark ? AppColors.greenDarkAccent : AppColors.greenAccent;
+        progressTrack = isDark ? const Color(0xFF2F363F) : const Color(0xFFCDE8DA);
+
+      case AppColorTheme.blue:
+        scaffoldBg = isDark ? AppColors.darkBackground : AppColors.background;
+        surfaceColor = isDark ? AppColors.darkCard : AppColors.card;
+        borderColor = isDark ? AppColors.darkBorder : AppColors.border;
+        primaryColor = isDark ? AppColors.darkPrimary : AppColors.primary;
+        primaryFg = isDark ? AppColors.darkPrimaryFg : AppColors.primaryFg;
+        secondaryColor = isDark ? AppColors.darkSecondary : AppColors.secondary;
+        secondaryFg = isDark ? const Color(0xFFD5E6DF) : AppColors.secondaryFg;
+        accentColor = isDark ? AppColors.darkAccent : AppColors.accent;
+        progressTrack = isDark ? AppColors.darkMuted : AppColors.secondary;
+    }
 
     return ThemeData(
       useMaterial3: true,
