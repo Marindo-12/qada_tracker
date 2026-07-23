@@ -55,6 +55,7 @@ flutter:
     - assets/icon/gmail-icon.png
     - assets/icon/man-icon.png
     - assets/icon/step2-icon.png
+    - assets/icon/username.png
   fonts:
     - family: ScheherazadeNew
       fonts:

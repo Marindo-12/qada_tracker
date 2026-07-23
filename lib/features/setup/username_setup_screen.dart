@@ -94,15 +94,12 @@ class _UsernameSetupScreenState extends ConsumerState<UsernameSetupScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ── Icon ────────────────────────────────────────────
-                  Container(
+                  // ── Avatar image ───────────────────────────────────
+                  Image.asset(
+                    'assets/icon/username.png',
                     width: 72,
                     height: 72,
-                    decoration: BoxDecoration(
-                      color: primary.withValues(alpha: 0.10),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.person_outline, color: primary, size: 34),
+                    fit: BoxFit.contain,
                   ),
 
                   const SizedBox(height: 24),
