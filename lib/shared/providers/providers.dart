@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/database/app_database.dart';
 import '../../core/database/daos/plan_dao.dart';
 import '../../core/database/daos/prayer_log_dao.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/utils/app_utils.dart';
 
 // ─── Database ─────────────────────────────────────────────────────────────────
@@ -48,37 +47,6 @@ final themeModeProvider =
 });
 
 // ─── Color Theme ──────────────────────────────────────────────────────────────
-final colorThemeProvider =
-    StateNotifierProvider<ColorThemeNotifier, AppColorTheme>((ref) {
-  return ColorThemeNotifier(ref);
-});
-
-class ColorThemeNotifier extends StateNotifier<AppColorTheme> {
-  final Ref _ref;
-  static const _key = 'qada.colorTheme';
-
-  ColorThemeNotifier(this._ref) : super(AppColorTheme.green) {
-    _load();
-  }
-
-  Future<void> _load() async {
-    final prefs = await _ref.read(sharedPrefsProvider.future);
-    final stored = prefs.getString(_key);
-    if (stored != null) {
-      state = AppColorTheme.values.firstWhere(
-        (e) => e.name == stored,
-        orElse: () => AppColorTheme.green,
-      );
-    }
-  }
-
-  Future<void> set(AppColorTheme theme) async {
-    final prefs = await _ref.read(sharedPrefsProvider.future);
-    state = theme;
-    await prefs.setString(_key, theme.name);
-  }
-}
-
 // ─── Digit Style ──────────────────────────────────────────────────────────────
 class DigitStyleNotifier extends StateNotifier<bool> {
   final Ref _ref;
@@ -111,7 +79,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   final Ref _ref;
   static const _key = 'qada.themeMode';
 
-  ThemeModeNotifier(this._ref) : super(ThemeMode.system) {
+  ThemeModeNotifier(this._ref) : super(ThemeMode.light) {
     _load();
   }
 
@@ -130,7 +98,7 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
     return switch (value) {
       'light' => ThemeMode.light,
       'dark'  => ThemeMode.dark,
-      _       => ThemeMode.system,
+      _       => ThemeMode.light,
     };
   }
 }

@@ -551,7 +551,7 @@ class _StyledNumberField extends StatefulWidget {
 }
 
 class _StyledNumberFieldState extends State<_StyledNumberField> with TickerProviderStateMixin {
-  static const _gold = Color(0xFFB8860B);
+  static const _accent = AppColors.tertiaryContainer;
 
   late final TextEditingController _ctrl;
   late final FocusNode _focusNode;
@@ -631,7 +631,7 @@ class _StyledNumberFieldState extends State<_StyledNumberField> with TickerProvi
           animation: curved,
           builder: (context, child) {
             final t = curved.value;
-            final borderColor = Color.lerp(_gold.withValues(alpha: 0.65), _gold, t)!;
+            final borderColor = Color.lerp(_accent.withValues(alpha: 0.65), _accent, t)!;
             return Container(
               height: 70,
               alignment: Alignment.center,
@@ -640,7 +640,7 @@ class _StyledNumberFieldState extends State<_StyledNumberField> with TickerProvi
                 borderRadius: BorderRadius.circular(SetupDS.radiusMd),
                 border: Border.all(color: borderColor, width: t > 0 ? 2.0 : 1.6),
                 boxShadow: t > 0
-                    ? [BoxShadow(color: _gold.withValues(alpha: 0.16), blurRadius: 10, offset: const Offset(0, 2))]
+                    ? [BoxShadow(color: _accent.withValues(alpha: 0.16), blurRadius: 10, offset: const Offset(0, 2))]
                     : null,
               ),
               child: child,

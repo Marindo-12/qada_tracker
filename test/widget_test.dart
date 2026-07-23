@@ -16,12 +16,9 @@ void main() {
     expect(find.byType(QadaApp), findsOneWidget);
   });
 
-  test('blue theme uses a stronger primary blue', () {
-    final theme = AppTheme.buildTheme(
-      brightness: Brightness.light,
-      colorTheme: AppColorTheme.blue,
-    );
+  test('default theme uses the Serene Path primary emerald', () {
+    final theme = AppTheme.buildTheme(brightness: Brightness.light);
 
-    expect(theme.colorScheme.primary, const Color(0xFF2563EB));
+    expect(theme.colorScheme.primary, const Color(0xFF003527));
   });
 }

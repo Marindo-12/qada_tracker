@@ -192,7 +192,6 @@ class SettingsScreen extends ConsumerWidget {
     final planAsync  = ref.watch(planProvider);
     final useArabic  = ref.watch(digitStyleProvider);
     final themeMode  = ref.watch(themeModeProvider);
-    final colorTheme = ref.watch(colorThemeProvider);
     final theme      = Theme.of(context);
 
     return Scaffold(
@@ -250,15 +249,6 @@ class SettingsScreen extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: _ThemeOption(
-                        icon:   Icons.phone_android,
-                        label:  'تلقائي',
-                        active: themeMode == ThemeMode.system,
-                        onTap:  () => ref.read(themeModeProvider.notifier).set(ThemeMode.system),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _ThemeOption(
                         icon:   Icons.light_mode_outlined,
                         label:  'فاتح',
                         active: themeMode == ThemeMode.light,
@@ -278,65 +268,6 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ),
             ).animate().fadeIn(delay: 150.ms),
-
-            const SizedBox(height: 16),
-
-            // ─── Color Theme ────────────────────────────────────────────
-            // NOTE: options now laid out as a Row (flex), not a Column (flex-col)
-            _SectionCard(
-              icon: Icons.palette_outlined,
-              title: 'لون التطبيق',
-              subtitle: 'اختر نظام الألوان المفضل لديك',
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _ColorThemeOption(
-                        active:   colorTheme == AppColorTheme.green,
-                        label:    'الأخضر الكلاسيكي',
-                        subtitle: 'الافتراضي',
-                        dotColors: const [
-                          Color(0xFF0D6B45),
-                          Color(0xFFB8932A),
-                          Color(0xFFF5F0E8),
-                        ],
-                        onTap: () => ref.read(colorThemeProvider.notifier).set(AppColorTheme.green),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _ColorThemeOption(
-                        active:   colorTheme == AppColorTheme.blue,
-                        label:    'الأزرق الحديث',
-                        subtitle: 'iOS/Material',
-                        dotColors: const [
-                          Color(0xFF378ADD),
-                          Color(0xFF185FA5),
-                          Color(0xFFF8F9FA),
-                        ],
-                        onTap: () => ref.read(colorThemeProvider.notifier).set(AppColorTheme.blue),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: _ColorThemeOption(
-                        active:   colorTheme == AppColorTheme.gold,
-                        label:    'الذهبي الفاخر',
-                        subtitle: 'أناقة كلاسيكية',
-                        dotColors: const [
-                          Color(0xFFB8932A),
-                          Color(0xFF8B6914),
-                          Color(0xFFF5F0E8),
-                        ],
-                        onTap: () => ref.read(colorThemeProvider.notifier).set(AppColorTheme.gold),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ).animate().fadeIn(delay: 200.ms),
 
             const SizedBox(height: 16),
 
@@ -1185,107 +1116,6 @@ class _ThemeOption extends StatelessWidget {
                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Color Theme Option ───────────────────────────────────────────────────────
-// Redesigned for a Row/flex layout: dots on top, label + short subtitle
-// below, active check badge pinned to the corner instead of pushing content.
-class _ColorThemeOption extends StatelessWidget {
-  final bool         active;
-  final String       label;
-  final String       subtitle;
-  final List<Color>  dotColors;
-  final VoidCallback onTap;
-
-  const _ColorThemeOption({
-    required this.active,
-    required this.label,
-    required this.subtitle,
-    required this.dotColors,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme   = Theme.of(context);
-    final primary = AppColors.primaryOf(context);
-    final border  = AppColors.borderOf(context);
-    final mutedFg = AppColors.mutedFgOf(context);
-
-    return _HoverIcon(
-      onTap: onTap,
-      scale: 1.03,
-      child: AnimatedContainer(
-        duration: 200.ms,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-        decoration: BoxDecoration(
-          color: active ? primary.withValues(alpha: 0.08) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: active ? primary.withValues(alpha: 0.5) : border,
-            width: active ? 2 : 1,
-          ),
-        ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: dotColors
-                      .map((c) => Container(
-                            width: 16, height: 16,
-                            margin: const EdgeInsets.symmetric(horizontal: 2),
-                            decoration: BoxDecoration(
-                              color:  c,
-                              shape:  BoxShape.circle,
-                              border: Border.all(color: border, width: 0.5),
-                            ),
-                          ))
-                      .toList(),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color:      active ? primary : null,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: mutedFg, fontSize: 10.5),
-                ),
-              ],
-            ),
-            if (active)
-              Positioned(
-                top: -8,
-                right: -8,
-                child: Icon(Icons.check_circle_rounded, color: primary, size: 18)
-                    .animate()
-                    .scale(
-                      duration: 180.ms,
-                      curve: Curves.easeOutBack,
-                      begin: const Offset(0.5, 0.5),
-                      end: const Offset(1, 1),
-                    ),
-              ),
           ],
         ),
       ),

@@ -21,7 +21,6 @@ class CalendarScreen extends ConsumerWidget {
     final mutedFg            = AppColors.mutedFgOf(context);
     final border             = AppColors.borderOf(context);
     final isDark             = AppColors.isDark(context);
-    final colorTheme         = ref.watch(colorThemeProvider);
 
     final now = DateTime.now();
 
@@ -223,7 +222,6 @@ class CalendarScreen extends ConsumerWidget {
                       isFuture:   isFuture,
                       useArabic:  useArabic,
                       isDark:     isDark,
-                      colorTheme: colorTheme,
                     );
                   },
                 ).animate().fadeIn(duration: 400.ms);
@@ -263,7 +261,7 @@ class CalendarScreen extends ConsumerWidget {
                     style: theme.textTheme.labelSmall
                         ?.copyWith(color: mutedFg, fontSize: 10)),
                 const SizedBox(width: 6),
-                ...AppColors.heatmapColors(colorTheme, isDark: isDark)
+                ...AppColors.heatmapColors(isDark: isDark)
                     .map((c) => Container(
                           width:  14,
                           height: 14,
@@ -297,7 +295,6 @@ class _CalendarCell extends ConsumerStatefulWidget {
   final bool             isFuture;
   final bool             useArabic;
   final bool             isDark;
-  final AppColorTheme    colorTheme;
 
   const _CalendarCell({
     required this.day,
@@ -307,7 +304,6 @@ class _CalendarCell extends ConsumerStatefulWidget {
     required this.isFuture,
     required this.useArabic,
     required this.isDark,
-    required this.colorTheme,
   });
 
   @override
@@ -365,9 +361,9 @@ class _CalendarCellState extends ConsumerState<_CalendarCell>
 
     final primary = AppColors.primaryOf(context);
     final isDark  = widget.isDark;
-    final bg      = isDark ? const Color(0xFF1E2D42) : Colors.white;
-    final fg      = isDark ? const Color(0xFFF5F0E8) : const Color(0xFF1A2332);
-    final muted   = isDark ? const Color(0xFFC7BFAE) : const Color(0xFF5A6A7A);
+    final bg      = AppColors.surfaceOf(context);
+    final fg      = AppColors.foregroundOf(context);
+    final muted   = AppColors.mutedFgOf(context);
 
     final data      = widget.data;
     final completed = data?.completed ?? 0;
@@ -525,10 +521,7 @@ class _CalendarCellState extends ConsumerState<_CalendarCell>
 
   // ── Heatmap color — respecte le thème choisi ──────────────────────────────
   Color _cellColor() {
-    final palette = AppColors.heatmapColors(
-      widget.colorTheme,
-      isDark: widget.isDark,
-    );
+    final palette = AppColors.heatmapColors(isDark: widget.isDark);
     if (widget.data == null || widget.data!.completed == 0) return palette[0];
     final r = widget.data!.ratio;
     if (r >= 1.0)  return palette[4];

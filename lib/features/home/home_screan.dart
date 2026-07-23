@@ -358,60 +358,6 @@ class _DigitMenuItem extends StatelessWidget {
   }
 }
 
-// ─── Color theme menu item (popup) ───────────────────────────────────────────
-class _ColorThemeMenuItem extends StatelessWidget {
-  final String           label;
-  final List<Color>      dots;
-  final bool             selected;
-
-  const _ColorThemeMenuItem({
-    required this.label,
-    required this.dots,
-    required this.selected,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme   = Theme.of(context);
-    final primary = AppColors.primaryOf(context);
-    final mutedFg = AppColors.mutedFgOf(context);
-    final border  = AppColors.borderOf(context);
-
-    return Row(
-      children: [
-        Icon(
-          selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-          size: 18,
-          color: selected ? primary : mutedFg,
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: selected ? primary : AppColors.foregroundOf(context),
-              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            ),
-          ),
-        ),
-        Row(
-          children: dots
-              .map((c) => Container(
-                    width: 14, height: 14,
-                    margin: const EdgeInsets.only(left: 3),
-                    decoration: BoxDecoration(
-                      color: c,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: border, width: 0.5),
-                    ),
-                  ))
-              .toList(),
-        ),
-      ],
-    );
-  }
-}
-
 // ─── App Wordmark ─────────────────────────────────────────────────────────────
 class _AppWordmark extends StatelessWidget {
   const _AppWordmark();
@@ -449,34 +395,12 @@ class _AppWordmark extends StatelessWidget {
 class _Dashboard extends ConsumerWidget {
   const _Dashboard();
 
-  // Métadonnées des thèmes pour le popup
-  static const _colorThemes = [
-    (
-      value: AppColorTheme.green,
-      label: 'أخضر كلاسيكي',
-      dots: [Color(0xFF0D6B45), Color(0xFFB8932A), Color(0xFFF5F0E8)],
-    ),
-    (
-      value: AppColorTheme.blue,
-      label: 'أزرق حديث',
-      dots: [Color(0xFF378ADD), Color(0xFF185FA5), Color(0xFFF8F9FA)],
-    ),
-    (
-      value: AppColorTheme.gold,
-      label: 'ذهبي فاخر',
-      dots: [Color(0xFFB8932A), Color(0xFF8B6914), Color(0xFFF5F0E8)],
-    ),
-  ];
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme        = Theme.of(context);
     final useArabic    = ref.watch(digitStyleProvider);
     final themeMode    = ref.watch(themeModeProvider);
-    final colorTheme   = ref.watch(colorThemeProvider);  // ← nouveau
-    final isDarkMode   = themeMode == ThemeMode.dark ||
-        (themeMode == ThemeMode.system &&
-            Theme.of(context).brightness == Brightness.dark);
+    final isDarkMode = themeMode == ThemeMode.dark;
     final mutedFg = AppColors.mutedFgOf(context);
 
     return Scaffold(
@@ -501,26 +425,6 @@ class _Dashboard extends ConsumerWidget {
             onPressed: () => ref
                 .read(themeModeProvider.notifier)
                 .set(isDarkMode ? ThemeMode.light : ThemeMode.dark),
-          ),
-
-          // ── Popup couleur du thème ───────────────────────────────────
-          PopupMenuButton<AppColorTheme>(
-            tooltip: 'لون التطبيق',
-            icon: Icon(Icons.palette_outlined, color: mutedFg),
-            onSelected: (value) =>
-                ref.read(colorThemeProvider.notifier).set(value),
-            itemBuilder: (context) => _colorThemes
-                .map(
-                  (t) => PopupMenuItem<AppColorTheme>(
-                    value: t.value,
-                    child: _ColorThemeMenuItem(
-                      label:    t.label,
-                      dots:     t.dots,
-                      selected: colorTheme == t.value,
-                    ),
-                  ),
-                )
-                .toList(),
           ),
 
           // ── Popup chiffres ───────────────────────────────────────────

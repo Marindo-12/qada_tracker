@@ -1,11 +1,11 @@
-// lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'core/theme/app_theme.dart';
+
 import 'core/navigation/app_router.dart';
+import 'core/theme/app_theme.dart';
 import 'features/splash/app_start_splash_screen.dart';
 import 'shared/providers/providers.dart';
 
@@ -31,8 +31,7 @@ class QadaApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(digitStyleProvider);
-    final themeMode  = ref.watch(themeModeProvider);
-    final colorTheme = ref.watch(colorThemeProvider); // ← nouveau
+    final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp(
       title: 'قضاء الصلوات',
@@ -47,15 +46,8 @@ class QadaApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      // ── Thèmes dynamiques selon colorTheme ──────────────────────────────
-      theme: AppTheme.buildTheme(
-        brightness: Brightness.light,
-        colorTheme: colorTheme,
-      ),
-      darkTheme: AppTheme.buildTheme(
-        brightness: Brightness.dark,
-        colorTheme: colorTheme,
-      ),
+      theme: AppTheme.buildTheme(brightness: Brightness.light),
+      darkTheme: AppTheme.buildTheme(brightness: Brightness.dark),
       themeMode: themeMode,
       builder: (context, child) {
         return Directionality(

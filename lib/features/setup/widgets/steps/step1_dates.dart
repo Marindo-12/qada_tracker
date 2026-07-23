@@ -293,12 +293,12 @@ class _QuickSelectPuberty extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.mutedOf(context).withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(SetupDS.radiusSm),
-            border: Border(right: BorderSide(color: Colors.amber.shade600, width: 4)),
+            border: const Border(right: BorderSide(color: AppColors.tertiaryContainer, width: 4)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.info_outline_rounded, size: 20, color: Colors.amber.shade700),
+              const Icon(Icons.info_outline_rounded, size: 20, color: AppColors.tertiaryContainer),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(

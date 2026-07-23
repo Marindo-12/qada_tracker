@@ -244,10 +244,10 @@ class _StepCommitmentState extends State<StepCommitment> with TickerProviderStat
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.15),
+                      color: AppColors.tertiaryContainer.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(SetupDS.radiusSm),
                     ),
-                    child: Icon(Icons.lightbulb_outline_rounded, color: Colors.amber.shade700, size: 18),
+                    child: const Icon(Icons.lightbulb_outline_rounded, color: AppColors.tertiaryContainer, size: 18),
                   ),
                   const SizedBox(width: 12),
                   Expanded(

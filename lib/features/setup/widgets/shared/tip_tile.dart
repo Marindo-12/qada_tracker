@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_theme.dart';
 import '../../design/design_tokens.dart';
 
 /// Small muted tip row — secondary info, quiet design.
@@ -12,23 +13,24 @@ class TipTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final accent = Theme.of(context).colorScheme.tertiary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.amber.withValues(alpha: 0.07),
+        color: accent.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(SetupDS.radiusMd),
-        border: Border.all(color: Colors.amber.withValues(alpha: 0.22)),
+        border: Border.all(color: accent.withValues(alpha: 0.22)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: Colors.amber.shade700.withValues(alpha: 0.8)),
+          Icon(icon, size: 16, color: accent.withValues(alpha: 0.8)),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               text,
               style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.amber.shade900.withValues(alpha: 0.85),
+                color: AppColors.foregroundOf(context).withValues(alpha: 0.85),
                 height: 1.6,
               ),
             ),
