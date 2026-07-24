@@ -390,9 +390,15 @@ class _EstimateHelpButton extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         const _ExampleBox(
-                          title: 'مثال',
+                          title: 'مثال 1',
                           text:
                               'بدأ الالتزام 2024، لكنه صلى أحيانا بين 2021 و2024. فترة عدم الانتظام تقريبا سنتان و3 أشهر → يكتب: 2 سنوات، 3 أشهر.',
+                        ),
+                        const SizedBox(height: 8),
+                        const _ExampleBox(
+                          title: 'مثال 2',
+                          text:
+                              'لا يتذكر تاريخا دقيقا إطلاقا، فيعتمد تقديرا عاما بناء على عمره وبداية بلوغه، فيكتب مثلا 5 سنوات فقط دون تفاصيل الأشهر والأيام.',
                         ),
                       ],
                     ),
@@ -409,10 +415,33 @@ class _EstimateHelpButton extends StatelessWidget {
                   ),
                   child: SizedBox(
                     width: double.infinity,
-                    height: 44,
+                    height: 48,
                     child: ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('فهمت'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primary,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(SetupDS.radiusMd),
+                          side: BorderSide(color: primary, width: 1.6),
+                        ),
+                      ),
+                      // Center explicitly — this is what fixes the text
+                      // sitting low: ElevatedButton's default child
+                      // alignment can drift when height is constrained
+                      // via SizedBox instead of minimumSize.
+                      child: Center(
+                        child: Text(
+                          'فهمت',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            height: 1.0,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
