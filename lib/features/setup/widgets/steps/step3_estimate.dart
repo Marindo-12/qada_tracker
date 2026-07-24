@@ -574,7 +574,7 @@ class _ExampleBox extends StatelessWidget {
         ],
       ),
     );
-  }
+  } 
 }
 
 class _OrnateInputLabel extends StatelessWidget {
