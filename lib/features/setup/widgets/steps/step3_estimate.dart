@@ -273,15 +273,38 @@ class _EstimateHelpButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      tooltip: 'شرح اختيار القيم',
-      onPressed: () => _showEstimateHelp(context),
-      style: IconButton.styleFrom(
-        backgroundColor: primary.withValues(alpha: 0.08),
-        foregroundColor: primary,
-        fixedSize: const Size(42, 42),
+    // Button is a plain rounded circle; the label sits underneath as a
+    // caption instead of inline, so the tap target stays a clean round
+    // shape while still telling the user what it does.
+    return Tooltip(
+      message: 'شرح اختيار القيم',
+      child: InkWell(
+        onTap: () => _showEstimateHelp(context),
+        borderRadius: BorderRadius.circular(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: primary.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+                border: Border.all(color: primary, width: 1.4),
+              ),
+              child: Icon(Icons.description_outlined, color: primary, size: 20),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'شرح',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                    color: primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+          ],
+        ),
       ),
-      icon: const Icon(Icons.description_outlined, size: 22),
     );
   }
 
