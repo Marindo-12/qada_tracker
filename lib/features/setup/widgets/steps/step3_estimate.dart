@@ -261,6 +261,11 @@ class _StepEstimateState extends State<StepEstimate> with TickerProviderStateMix
   }
 }
 
+// ─── Replace the _EstimateHelpButton class (and _HelpPoint / _ExampleBox
+// below it) in step_estimate.dart with the versions below. Everything else
+// in the file — StepEstimate, _StyledNumberField, the stat cards, etc. —
+// stays exactly as it was.
+
 class _EstimateHelpButton extends StatelessWidget {
   final Color primary;
 
@@ -284,6 +289,7 @@ class _EstimateHelpButton extends StatelessWidget {
     final theme = Theme.of(context);
     final primary = AppColors.primaryOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
+    final screenH = MediaQuery.of(context).size.height;
 
     showModalBottomSheet<void>(
       context: context,
@@ -296,82 +302,121 @@ class _EstimateHelpButton extends StatelessWidget {
       builder: (context) {
         return Directionality(
           textDirection: TextDirection.rtl,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(22, 18, 22, 24),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
+          // Cap the sheet instead of letting it grow to whatever the
+          // content needs — this is what was pushing it to fill the
+          // whole screen.
+          child: ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: screenH * 0.7),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Drag handle
+                const SizedBox(height: 10),
+                Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.borderOf(context),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // ── Sticky header ────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 0, 10, 8),
+                  child: Row(
                     children: [
                       Container(
-                        width: 42,
-                        height: 42,
+                        width: 34,
+                        height: 34,
                         decoration: BoxDecoration(
                           color: primary.withValues(alpha: 0.12),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.description_outlined, color: primary),
+                        child: Icon(Icons.description_outlined, color: primary, size: 18),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           'كيف تختار السنوات والأشهر والأيام؟',
-                          style: theme.textTheme.titleLarge?.copyWith(
+                          style: theme.textTheme.titleMedium?.copyWith(
                             color: primary,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close_rounded, size: 20),
+                        visualDensity: VisualDensity.compact,
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 14),
-                  Text(
-                    'اختر المدة الأقرب للحقيقة، وليس رقما عشوائيا. الفكرة أن تحدد الفترة التي يغلب على ظنك أنك لم تكن تصلي فيها بانتظام، ثم تدخلها هنا كمدة تقريبية.',
-                    style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg, height: 1.7),
+                ),
+                Divider(height: 1, color: AppColors.borderOf(context)),
+
+                // ── Scrollable body (only this part scrolls) ─────
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(18, 14, 18, 8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'اختر المدة الأقرب للحقيقة، لا رقما عشوائيا. حدد الفترة التي يغلب على ظنك أنك لم تكن تصلي فيها بانتظام، وأدخلها هنا كتقريب.',
+                          style: theme.textTheme.bodySmall?.copyWith(color: mutedFg, height: 1.6),
+                        ),
+                        const SizedBox(height: 12),
+                        const _HelpPoint(
+                          icon: Icons.search_rounded,
+                          title: 'ابدأ من أقرب تاريخ واضح',
+                          text:
+                              'إن لم تعرف اليوم بالضبط، اختر الأقرب: بداية سنة دراسية، رمضان معين، عمل جديد، أو مرحلة تذكر أنها كانت بداية التغيير.',
+                        ),
+                        const _HelpPoint(
+                          icon: Icons.timeline_rounded,
+                          title: 'قسّم حياتك إلى مراحل',
+                          text:
+                              'احسب فقط الفترات التي كان فيها التفريط واضحا، حتى إن توقفت وعدت أكثر من مرة، ثم اجمعها.',
+                        ),
+                        const _HelpPoint(
+                          icon: Icons.verified_rounded,
+                          title: 'اطمئن مع التقدير القريب',
+                          text:
+                              'إذا ترددت بين رقمين اختر الأقرب لظنك، ويمكنك زيادة هامش بسيط للاحتياط.',
+                          showDivider: false,
+                        ),
+                        const SizedBox(height: 4),
+                        const _ExampleBox(
+                          title: 'مثال',
+                          text:
+                              'بدأ الالتزام 2024، لكنه صلى أحيانا بين 2021 و2024. فترة عدم الانتظام تقريبا سنتان و3 أشهر → يكتب: 2 سنوات، 3 أشهر.',
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 14),
-                  _HelpPoint(
-                    icon: Icons.search_rounded,
-                    title: 'ابدأ من أقرب تاريخ واضح',
-                    text:
-                        'إذا كنت لا تعرف اليوم بالضبط، اختر التاريخ الأقرب: بداية سنة دراسية، رمضان معين، عمل جديد، سفر، أو مرحلة تذكر أنها كانت بداية التغيير.',
+                ),
+
+                // ── Sticky footer button ──────────────────────────
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    18,
+                    10,
+                    18,
+                    10 + MediaQuery.of(context).padding.bottom,
                   ),
-                  _HelpPoint(
-                    icon: Icons.timeline_rounded,
-                    title: 'قسّم حياتك إلى مراحل',
-                    text:
-                        'قد تكون هناك فترة بدأت فيها الصلاة ثم توقفت، ثم عدت مرة أخرى. احسب فقط الفترات التي كان فيها التفريط واضحا، واجمعها في النهاية.',
-                  ),
-                  _HelpPoint(
-                    icon: Icons.verified_rounded,
-                    title: 'اطمئن مع التقدير القريب',
-                    text:
-                        'المطلوب هنا تقدير مسؤول وصادق. إذا ترددت بين رقمين، اختر الأقرب لما يغلب على ظنك، ويمكنك زيادة هامش بسيط للاحتياط إن أردت.',
-                  ),
-                  const SizedBox(height: 10),
-                  _ExampleBox(
-                    title: 'مثال 1',
-                    text:
-                        'شخص بدأ الالتزام في 2024، لكنه كان يصلي أحيانا بين 2021 و2024. إذا وجد أن الفترة غير المنتظمة تقريبا سنتان و3 أشهر، يكتب: 2 سنوات، 3 أشهر، 0 أيام.',
-                  ),
-                  const SizedBox(height: 10),
-                  _ExampleBox(
-                    title: 'مثال 2',
-                    text:
-                        'شخص صلى فترة في الجامعة ثم توقف بعد العمل لمدة 8 أشهر، ثم عاد. لا يحسب كل سنوات الجامعة؛ يحسب فقط الثمانية أشهر التي يعلم أنها كانت فترة انقطاع أو تفريط واضح.',
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
+                  child: SizedBox(
                     width: double.infinity,
+                    height: 44,
                     child: ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(),
                       child: const Text('فهمت'),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );
@@ -384,11 +429,13 @@ class _HelpPoint extends StatelessWidget {
   final IconData icon;
   final String title;
   final String text;
+  final bool showDivider;
 
   const _HelpPoint({
     required this.icon,
     required this.title,
     required this.text,
+    this.showDivider = true,
   });
 
   @override
@@ -398,31 +445,40 @@ class _HelpPoint extends StatelessWidget {
     final mutedFg = AppColors.mutedFgOf(context);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: primary, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: primary,
-                    fontWeight: FontWeight.w800,
-                  ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: primary, size: 17),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: primary,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      text,
+                      style: theme.textTheme.bodySmall?.copyWith(color: mutedFg, height: 1.5),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  text,
-                  style: theme.textTheme.bodySmall?.copyWith(color: mutedFg, height: 1.55),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
+          if (showDivider) ...[
+            const SizedBox(height: 10),
+            Divider(height: 1, color: AppColors.borderOf(context).withValues(alpha: 0.6)),
+          ],
         ],
       ),
     );
@@ -445,7 +501,7 @@ class _ExampleBox extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.mutedOf(context).withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(SetupDS.radiusMd),
@@ -456,13 +512,13 @@ class _ExampleBox extends StatelessWidget {
         children: [
           Text(
             title,
-            style: theme.textTheme.labelLarge?.copyWith(
+            style: theme.textTheme.labelMedium?.copyWith(
               color: primary,
               fontWeight: FontWeight.w800,
             ),
           ),
-          const SizedBox(height: 4),
-          Text(text, style: theme.textTheme.bodySmall?.copyWith(height: 1.55)),
+          const SizedBox(height: 3),
+          Text(text, style: theme.textTheme.bodySmall?.copyWith(height: 1.5)),
         ],
       ),
     );
