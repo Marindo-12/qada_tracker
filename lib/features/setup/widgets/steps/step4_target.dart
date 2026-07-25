@@ -16,17 +16,14 @@ import '../shared/misc_widgets.dart';
 /// useArabic, onTargetChanged, onStartChanged, onNotesChanged) so it drops
 /// straight into setup_screen.dart without touching the parent.
 ///
-/// Changes in this pass:
-///   - Preset card icon circles no longer use Material 3's
-///     secondaryContainer/primaryContainer (which rendered brownish on
-///     this color scheme) — they now use the same muted/primary tint
-///     pattern as the rest of the app, and the icon itself is smaller.
-///   - The notes field's "quick tag" chips were removed. In their place:
-///     2 reminder checkboxes as placeholders for the app's real
-///     notification system. They're purely visual for now (local state,
-///     no callback) until that logic exists — wire them up once it does.
-///   - Tapping anywhere outside a focused field now dismisses the
-///     keyboard/focus, matching the fix applied in step3.
+/// This pass redesigns the "متى تبدأ؟" (schedule) page:
+///   - Start date, notes, and notifications now read as one coherent
+///     section instead of three separate floating blocks: the date field
+///     stays light (it's an input, not content), notes get a subtle tint,
+///     and notifications — the most important control on this page — get
+///     the strongest visual treatment: a tinted card, a real icon badge,
+///     and switch rows instead of custom checkboxes, so state (on/off)
+///     reads instantly instead of looking like a to-do list.
 enum StepTargetPage { needs, schedule }
 
 class StepTarget extends StatefulWidget {
@@ -270,6 +267,8 @@ class _StepTargetState extends State<StepTarget> with TickerProviderStateMixin {
           const SizedBox(height: 24),
 
           // ── Start date ────────────────────────────────────────────
+          // Kept light: it's a single input, not content, so it doesn't
+          // need a heavy card treatment like the sections below it.
           _reveal(
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -300,63 +299,30 @@ class _StepTargetState extends State<StepTarget> with TickerProviderStateMixin {
             end: 0.75,
           ),
 
-          const SizedBox(height: 18),
+          const SizedBox(height: 24),
 
           // ── Notes ─────────────────────────────────────────────────
+          // Subtly tinted card: secondary in importance to notifications
+          // below, so it gets a quieter surfaceContainerLow treatment.
           _reveal(
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const FieldLabel('ملاحظات (اختياري)'),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    color: scheme.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(SetupDS.radiusLg),
-                    border: Border.all(
-                      color: _notesFocused ? primary.withValues(alpha: 0.35) : Colors.transparent,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: TextField(
-                    controller: _notesCtrl,
-                    focusNode: _notesFocus,
-                    maxLines: 3,
-                    onChanged: widget.onNotesChanged,
-                    textDirection: TextDirection.rtl,
-                    decoration: InputDecoration(
-                      hintText: 'أوقات الفراغ المناسبة للقضاء...',
-                      filled: true,
-                      fillColor: Colors.transparent,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(SetupDS.radiusLg),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(SetupDS.radiusLg),
-                        borderSide: BorderSide.none,
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(SetupDS.radiusLg),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.all(SetupDS.cardPad),
-                    ),
-                  ),
-                ),
-              ],
+            _NotesSection(
+              controller: _notesCtrl,
+              focusNode: _notesFocus,
+              focused: _notesFocused,
+              onChanged: widget.onNotesChanged,
             ),
             start: 0.55,
             end: 0.9,
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
-          // ── Reminders — placeholder checkboxes ───────────────────
-          // Not wired to anything yet: purely visual until the app's
-          // real notification system is ready to hook in here.
+          // ── Notifications ─────────────────────────────────────────
+          // The most important control on this page: strongest visual
+          // treatment here — tinted primary card, icon badge, and real
+          // switch rows so on/off state reads at a glance.
           _reveal(
-            _RemindersSection(
+            _NotificationsSection(
               preferences: widget.notificationPreferences,
               onChanged: widget.onNotificationPreferencesChanged,
             ),
@@ -642,88 +608,265 @@ class _PresetCardState extends State<_PresetCard> {
   }
 }
 
-// ─── Reminders section — 2 placeholder checkboxes, no wiring yet ──────────
-class _RemindersSection extends StatefulWidget {
-  final NotificationPreferences preferences;
-  final ValueChanged<NotificationPreferences> onChanged;
+// ─── Notes section: quiet, secondary card ─────────────────────────────────
+//
+// Deliberately lighter than the notifications card below it — notes are
+// optional context, not a decision the user needs to make, so it gets a
+// subtle surfaceContainerLow tint with a thin border instead of a primary
+// tint or icon badge.
+class _NotesSection extends StatelessWidget {
+  final TextEditingController controller;
+  final FocusNode focusNode;
+  final bool focused;
+  final ValueChanged<String> onChanged;
 
-  const _RemindersSection({
-    required this.preferences,
+  const _NotesSection({
+    required this.controller,
+    required this.focusNode,
+    required this.focused,
     required this.onChanged,
   });
 
   @override
-  State<_RemindersSection> createState() => _RemindersSectionState();
-}
-
-class _RemindersSectionState extends State<_RemindersSection> {
-  // Local-only for now — intentionally not reported back to the parent
-  // step until the app's real notification system exists to drive this.
-  bool _morning = false;
-  bool _perPrayer = false;
-
-  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final primary = AppColors.primaryOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const FieldLabel('التذكيرات'),
-        const SizedBox(height: 4),
-        Text(
-          'ستُفعَّل هذه الخيارات لاحقاً مع نظام الإشعارات.',
-          style: theme.textTheme.bodySmall?.copyWith(color: mutedFg),
+        Row(
+          children: [
+            Icon(Icons.edit_note_rounded, size: 18, color: mutedFg),
+            const SizedBox(width: 8),
+            const FieldLabel('ملاحظات (اختياري)'),
+          ],
         ),
         const SizedBox(height: 8),
-        _ReminderCheckbox(
-          label: 'تذكير صباحي يومي',
-          value: _morning,
-          onChanged: (v) => setState(() => _morning = v),
-        ),
-        _ReminderCheckbox(
-          label: 'تذكير بعد كل صلاة',
-          value: _perPrayer,
-          onChanged: (v) => setState(() => _perPrayer = v),
+        AnimatedContainer(
+          duration: SetupDS.normal,
+          decoration: BoxDecoration(
+            color: scheme.surfaceContainerLow,
+            borderRadius: BorderRadius.circular(SetupDS.radiusLg),
+            border: Border.all(
+              color: focused ? primary.withValues(alpha: 0.35) : scheme.outline.withValues(alpha: 0.18),
+              width: focused ? 1.5 : 1,
+            ),
+          ),
+          child: TextField(
+            controller: controller,
+            focusNode: focusNode,
+            maxLines: 3,
+            onChanged: onChanged,
+            textDirection: TextDirection.rtl,
+            decoration: InputDecoration(
+              hintText: 'أوقات الفراغ المناسبة للقضاء...',
+              filled: true,
+              fillColor: Colors.transparent,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(SetupDS.radiusLg),
+                borderSide: BorderSide.none,
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(SetupDS.radiusLg),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(SetupDS.radiusLg),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.all(SetupDS.cardPad),
+            ),
+          ),
         ),
       ],
     );
   }
 }
 
-class _ReminderCheckbox extends StatelessWidget {
-  final String label;
-  final bool value;
-  final ValueChanged<bool> onChanged;
+// ─── Notifications section — the strongest card on this page ──────────────
+//
+// Placeholder toggles for now (local state, no callback into
+// notificationPreferences yet — same intentional gap as before, kept until
+// the app's real notification system exists), but the *visual* weight now
+// matches how important this decision actually is: tinted primary card,
+// icon badge in a circle (matching the pattern used elsewhere in this
+// file), a short one-line explainer, and switch rows instead of custom
+// checkboxes so on/off state is unambiguous at a glance.
+class _NotificationsSection extends StatefulWidget {
+  final NotificationPreferences preferences;
+  final ValueChanged<NotificationPreferences> onChanged;
 
-  const _ReminderCheckbox({required this.label, required this.value, required this.onChanged});
+  const _NotificationsSection({
+    required this.preferences,
+    required this.onChanged,
+  });
+
+  @override
+  State<_NotificationsSection> createState() => _NotificationsSectionState();
+}
+
+class _NotificationsSectionState extends State<_NotificationsSection> {
+  // Local-only for now — intentionally not reported back to the parent
+  // step until the app's real notification system exists to drive this.
+  bool _morning = false;
+  bool _perPrayer = false;
+
+  Future<void> _pickMorningTime(BuildContext context) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: widget.preferences.morningHour,
+        minute: widget.preferences.morningMinute,
+      ),
+    );
+    if (picked == null) return;
+    widget.onChanged(widget.preferences.copyWith(
+      morningEnabled: true,
+      morningHour: picked.hour,
+      morningMinute: picked.minute,
+    ));
+  }
+
+  String _timeLabel(BuildContext context) {
+    return TimeOfDay(
+      hour: widget.preferences.morningHour,
+      minute: widget.preferences.morningMinute,
+    ).format(context);
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+
+    return Container(
+      padding: const EdgeInsets.all(SetupDS.cardPad),
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(SetupDS.radiusLg),
+        border: Border.all(color: primary.withValues(alpha: 0.22), width: 1.2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Header: icon badge + title + short explainer ───────────
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: primary.withValues(alpha: 0.16),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.notifications_active_rounded, color: primary, size: 19),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'التذكيرات',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: primary,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'ستُفعَّل هذه الخيارات لاحقاً مع نظام الإشعارات.',
+            style: theme.textTheme.bodySmall?.copyWith(color: mutedFg, height: 1.5),
+          ),
+
+          const SizedBox(height: 14),
+          Divider(color: primary.withValues(alpha: 0.14), height: 1),
+          const SizedBox(height: 4),
+
+          // ── Rows ────────────────────────────────────────────────────
+          _NotificationSwitchRow(
+            icon: Icons.wb_twilight_rounded,
+            label: 'تذكير صباحي يومي',
+            subtitle: _morning ? _timeLabel(context) : null,
+            value: _morning,
+            onChanged: (v) {
+              setState(() => _morning = v);
+              if (v) _pickMorningTime(context);
+            },
+          ),
+          Divider(color: primary.withValues(alpha: 0.10), height: 1),
+          _NotificationSwitchRow(
+            icon: Icons.mosque_rounded,
+            label: 'تذكير بعد كل صلاة',
+            subtitle: null,
+            value: _perPrayer,
+            onChanged: (v) => setState(() => _perPrayer = v),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotificationSwitchRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String? subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _NotificationSwitchRow({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
 
     return InkWell(
       onTap: () => onChanged(!value),
       borderRadius: BorderRadius.circular(SetupDS.radiusSm),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           children: [
-            AnimatedContainer(
-              duration: SetupDS.fast,
-              width: 20,
-              height: 20,
-              decoration: BoxDecoration(
-                color: value ? primary : Colors.transparent,
-                borderRadius: BorderRadius.circular(5),
-                border: Border.all(color: value ? primary : AppColors.mutedFgOf(context), width: 1.4),
+            Icon(icon, size: 18, color: value ? primary : mutedFg),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: value ? FontWeight.w700 : FontWeight.w500,
+                      color: value ? theme.textTheme.bodyMedium?.color : mutedFg,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: theme.textTheme.bodySmall?.copyWith(color: primary, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ],
               ),
-              child: value ? const Icon(Icons.check, color: Colors.white, size: 14) : null,
             ),
-            const SizedBox(width: 10),
-            Text(label, style: theme.textTheme.bodyMedium),
+            Switch.adaptive(
+              value: value,
+              onChanged: onChanged,
+              activeThumbColor: primary,
+            ),
           ],
         ),
       ),
