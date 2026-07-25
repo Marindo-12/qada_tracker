@@ -9,6 +9,7 @@ import '../../features/settings/settings_screen.dart';
 import '../../features/setup/setup_intro_screen.dart';
 import '../../features/setup/username_setup_screen.dart';
 import '../../shared/providers/providers.dart';
+import '../../shared/widgets/starfield_background.dart';
 import '../../core/theme/app_theme.dart';
 
 final currentTabProvider = StateProvider<int>((ref) => 0);
@@ -52,27 +53,48 @@ class AppShell extends ConsumerWidget {
           );
         }
 
-        return Scaffold(
-          body: MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              padding: MediaQuery.of(context).padding.copyWith(
-                bottom: 80 + 10 + MediaQuery.of(context).padding.bottom,
+        final isDark = AppColors.isDark(context);
+
+        return Stack(
+          children: [
+            // ── Solid base layer (dark mode only) ─────────────────────
+            // Paints the real dark background color. Every Scaffold in the
+            // tree has a transparent scaffoldBackgroundColor in dark mode
+            // (see app_theme.dart), so this is what actually shows through
+            // as the base of the night sky.
+            if (isDark)
+              const Positioned.fill(
+                child: ColoredBox(color: AppColors.darkBackground),
+              ),
+
+            // ── Animated starfield (dark mode only) ───────────────────
+            if (isDark) const Positioned.fill(child: StarfieldBackground()),
+
+            // ── App content ────────────────────────────────────────────
+            Scaffold(
+              backgroundColor: Colors.transparent,
+              body: MediaQuery(
+                data: MediaQuery.of(context).copyWith(
+                  padding: MediaQuery.of(context).padding.copyWith(
+                    bottom: 80 + 10 + MediaQuery.of(context).padding.bottom,
+                  ),
+                ),
+                child: IndexedStack(
+                  index: currentTab.clamp(0, 3),
+                  children: const [
+                    HomeScreen(),
+                    CalendarScreen(),
+                    GuidePage(),
+                    SettingsScreen(),
+                  ],
+                ),
+              ),
+              bottomNavigationBar: _NavBar(
+                currentIndex: currentTab.clamp(0, 3),
+                onTap: (i) => ref.read(currentTabProvider.notifier).state = i,
               ),
             ),
-            child: IndexedStack(
-              index: currentTab.clamp(0, 3),
-              children: const [
-                HomeScreen(),
-                CalendarScreen(),
-                GuidePage(),
-                SettingsScreen(),
-              ],
-            ),
-          ),
-          bottomNavigationBar: _NavBar(
-            currentIndex: currentTab.clamp(0, 3),
-            onTap: (i) => ref.read(currentTabProvider.notifier).state = i,
-          ),
+          ],
         );
       },
     );

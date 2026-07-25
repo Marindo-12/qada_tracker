@@ -130,6 +130,21 @@ class AppColors {
   static Color backgroundOf(BuildContext context) =>
       Theme.of(context).scaffoldBackgroundColor;
 
+  /// The real, opaque dark/light background color for the active color
+  /// theme — independent of `scaffoldBackgroundColor`, which is forced
+  /// transparent in dark mode so the animated starfield in AppShell can
+  /// show through. Use this to paint the solid base layer behind the
+  /// starfield (see AppShell in app_router.dart).
+  static Color solidBackgroundOf(BuildContext context, {AppColorTheme colorTheme = AppColorTheme.blue}) {
+    final dark = isDark(context);
+    switch (colorTheme) {
+      case AppColorTheme.green:
+        return dark ? greenDarkBackground : greenBackground;
+      case AppColorTheme.blue:
+        return dark ? darkBackground : background;
+    }
+  }
+
   static Color progressTrackOf(BuildContext context) =>
       Theme.of(context).progressIndicatorTheme.linearTrackColor ??
       Theme.of(context).colorScheme.primary.withValues(alpha: 0.18);
@@ -223,7 +238,12 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      scaffoldBackgroundColor: scaffoldBg,
+      // In dark mode the real background color (scaffoldBg, computed above)
+      // is instead painted by AppShell as the solid base layer of a Stack,
+      // with an animated starfield layered on top of it. So every
+      // Scaffold's own background must be transparent in dark mode to let
+      // that show through. Light mode is unaffected.
+      scaffoldBackgroundColor: isDark ? Colors.transparent : scaffoldBg,
       colorScheme: ColorScheme(
         brightness: brightness,
         primary: primaryColor,
@@ -249,7 +269,7 @@ class AppTheme {
         ),
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: scaffoldBg,
+        backgroundColor: isDark ? Colors.transparent : scaffoldBg,
         foregroundColor: textColor,
         elevation: 0,
         centerTitle: true,
