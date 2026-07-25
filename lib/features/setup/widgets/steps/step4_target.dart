@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/notifications/notification_service.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/app_utils.dart';
 import '../../data/islamic_content.dart';
@@ -32,11 +33,13 @@ class StepTarget extends StatefulWidget {
   final int dailyTarget, missedDays;
   final DateTime startDate;
   final String notes;
+  final NotificationPreferences notificationPreferences;
   final bool useArabic;
   final StepTargetPage page;
   final ValueChanged<int> onTargetChanged;
   final ValueChanged<DateTime> onStartChanged;
   final ValueChanged<String> onNotesChanged;
+  final ValueChanged<NotificationPreferences> onNotificationPreferencesChanged;
 
   const StepTarget({
     super.key,
@@ -44,11 +47,13 @@ class StepTarget extends StatefulWidget {
     required this.missedDays,
     required this.startDate,
     required this.notes,
+    required this.notificationPreferences,
     required this.useArabic,
     this.page = StepTargetPage.needs,
     required this.onTargetChanged,
     required this.onStartChanged,
     required this.onNotesChanged,
+    required this.onNotificationPreferencesChanged,
   });
 
   static const _presets = [
@@ -351,7 +356,10 @@ class _StepTargetState extends State<StepTarget> with TickerProviderStateMixin {
           // Not wired to anything yet: purely visual until the app's
           // real notification system is ready to hook in here.
           _reveal(
-            const _RemindersSection(),
+            _RemindersSection(
+              preferences: widget.notificationPreferences,
+              onChanged: widget.onNotificationPreferencesChanged,
+            ),
             start: 0.65,
             end: 1.0,
           ),
@@ -636,7 +644,13 @@ class _PresetCardState extends State<_PresetCard> {
 
 // ─── Reminders section — 2 placeholder checkboxes, no wiring yet ──────────
 class _RemindersSection extends StatefulWidget {
-  const _RemindersSection();
+  final NotificationPreferences preferences;
+  final ValueChanged<NotificationPreferences> onChanged;
+
+  const _RemindersSection({
+    required this.preferences,
+    required this.onChanged,
+  });
 
   @override
   State<_RemindersSection> createState() => _RemindersSectionState();

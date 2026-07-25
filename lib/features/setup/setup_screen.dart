@@ -2,8 +2,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' hide Column;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/notifications/notification_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/app_utils.dart';
 import '../../shared/providers/providers.dart';
@@ -41,6 +43,8 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   int _dailyTarget = 1;
   DateTime _startDate = DateTime.now();
   String _notes = '';
+  NotificationPreferences _notificationPreferences =
+      const NotificationPreferences();
   int _years = 0, _months = 0, _days = 0;
   bool _reviewConfirmed = false;
   bool _saving = false;
@@ -50,6 +54,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
   @override
   void initState() {
     super.initState();
+    _loadNotificationPreferences();
     final plan = widget.initialPlan;
     if (plan == null) return;
     _step = 1;
@@ -62,6 +67,15 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
     _notes = plan.notes ?? '';
     // On ne force plus de mode, le plan chargé utilise directement _missedDays.
     // Les champs années/mois/jours peuvent être recalculés si nécessaire.
+  }
+
+  Future<void> _loadNotificationPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _notificationPreferences =
+          QadaNotificationService.loadPreferences(prefs);
+    });
   }
 
   static const _stepTitles = [
@@ -112,6 +126,12 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
       startDate: dateToIso(_startDate),
       notes: Value(_notes.isEmpty ? null : _notes),
     ));
+    final prefs = await SharedPreferences.getInstance();
+    await QadaNotificationService.saveAndSchedule(
+      prefs: prefs,
+      preferences: _notificationPreferences,
+      dailyTarget: _dailyTarget,
+    );
     ref.invalidate(planProvider);
     if (mounted) {
       ref.read(currentTabProvider.notifier).state = 0;
@@ -163,10 +183,13 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
           missedDays: _missedDays,
           startDate: _startDate,
           notes: _notes,
+          notificationPreferences: _notificationPreferences,
           useArabic: useArabic,
           onTargetChanged: (v) => setState(() => _dailyTarget = v),
           onStartChanged: (d) => setState(() => _startDate = d),
           onNotesChanged: (v) => setState(() => _notes = v),
+          onNotificationPreferencesChanged: (v) =>
+              setState(() => _notificationPreferences = v),
         );
       case 5:
         return StepTarget(
@@ -175,10 +198,13 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
           missedDays: _missedDays,
           startDate: _startDate,
           notes: _notes,
+          notificationPreferences: _notificationPreferences,
           useArabic: useArabic,
           onTargetChanged: (v) => setState(() => _dailyTarget = v),
           onStartChanged: (d) => setState(() => _startDate = d),
           onNotesChanged: (v) => setState(() => _notes = v),
+          onNotificationPreferencesChanged: (v) =>
+              setState(() => _notificationPreferences = v),
         );
       case 6:
         return StepReview(
