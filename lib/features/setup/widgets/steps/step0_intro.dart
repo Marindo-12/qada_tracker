@@ -18,8 +18,8 @@ class StepIntro extends StatelessWidget {
       children: [
         const SizedBox(height: 20),
         Container(
-          width: 88,
-          height: 88,
+          width: 116,
+          height: 116,
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: primary.withValues(alpha: 0.1),
