@@ -1,5 +1,8 @@
 // lib/features/settings/settings_screen.dart
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:drift/drift.dart' hide Column;
@@ -206,6 +209,11 @@ class SettingsScreen extends ConsumerWidget {
         data: (plan) => ListView(
           padding: const EdgeInsets.all(16),
           children: [
+
+            // ─── Username ───────────────────────────────────────────────
+            const _UsernameEditorCard().animate().fadeIn(delay: 50.ms),
+
+            const SizedBox(height: 16),
 
             // ─── Digit Style ────────────────────────────────────────────
             _SectionCard(
@@ -582,6 +590,117 @@ class SettingsScreen extends ConsumerWidget {
       ref.invalidate(todayLogsProvider);
       ref.invalidate(calendarDataProvider);
     }
+  }
+}
+
+// ─── Username display + inline edit (Arabic-only) ─────────────────────────
+//
+// Shows the currently saved username and lets it be edited inline, the
+// same "tap the field, type, it saves" pattern as _DailyTargetEditor uses
+// for the daily routine counter (no separate confirm dialog).
+//
+// Input is restricted to Arabic script only: a TextInputFormatter blocks
+// Latin letters, digits, and most symbols as they're typed, so the field
+// physically can't hold non-Arabic characters rather than validating
+// after the fact.
+class _UsernameEditorCard extends ConsumerStatefulWidget {
+  const _UsernameEditorCard();
+
+  @override
+  ConsumerState<_UsernameEditorCard> createState() => _UsernameEditorCardState();
+}
+
+class _UsernameEditorCardState extends ConsumerState<_UsernameEditorCard> {
+  late final TextEditingController _controller;
+  final FocusNode _focusNode = FocusNode();
+  Timer? _debounce;
+  bool _initialized = false;
+  bool _saving = false;
+
+  // Allows Arabic letters (main block + presentation forms), Arabic
+  // diacritics/tatweel, and plain spaces. Blocks Latin letters, digits
+  // (Arabic-Indic digits included, since a name shouldn't contain digits),
+  // and punctuation/symbols.
+  static final _arabicOnly = RegExp(r'^[\u0600-\u06FF\u0750-\u077F\s]*$');
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _onChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () => _save(value));
+  }
+
+  Future<void> _save(String rawValue) async {
+    final name = rawValue.trim();
+    if (name.isEmpty) return; // don't persist an empty name silently
+    setState(() => _saving = true);
+    final prefs = await ref.read(sharedPrefsProvider.future);
+    await prefs.setString(userNamePrefsKey, name);
+    ref.invalidate(userNameProvider);
+    if (mounted) setState(() => _saving = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = AppColors.primaryOf(context);
+    final mutedFg = AppColors.mutedFgOf(context);
+    final userNameAsync = ref.watch(userNameProvider);
+
+    // Seed the controller once with the saved name, without overwriting
+    // what the user is actively typing on subsequent rebuilds.
+    userNameAsync.whenData((name) {
+      if (!_initialized) {
+        _initialized = true;
+        _controller.text = name ?? '';
+      }
+    });
+
+    return _SectionCard(
+      icon: Icons.badge_outlined,
+      title: 'الاسم',
+      subtitle: 'يُعرض داخل التطبيق فقط، ويُكتب بالعربية',
+      trailing: _saving
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : null,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+        child: TextField(
+          controller: _controller,
+          focusNode: _focusNode,
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.rtl,
+          textCapitalization: TextCapitalization.words,
+          style: theme.textTheme.titleMedium,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(_arabicOnly),
+          ],
+          onChanged: _onChanged,
+          onSubmitted: _save,
+          decoration: InputDecoration(
+            hintText: 'اسمك بالعربية',
+            hintStyle: theme.textTheme.titleMedium?.copyWith(color: mutedFg),
+            suffixIcon: Icon(Icons.edit_outlined, size: 18, color: primary),
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -31,7 +31,7 @@ class StepIntro extends ConsumerWidget {
     // isMale == false  -> recognized female -> woman icon
     // isMale == true / null (unknown, not yet loaded, no name) -> man icon
     final avatarAsset = isMale == false
-        ? 'assets/icon/woman-icon.png'
+        ? 'assets/icon/women-icon.png'
         : 'assets/icon/man-icon.png';
 
     return Column(
