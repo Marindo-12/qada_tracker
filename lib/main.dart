@@ -19,12 +19,13 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-    ),
-  );
+  // NOTE: the actual status/navigation bar styling now lives in QadaApp's
+  // build() via AnnotatedRegion, because it needs to react to theme
+  // changes (light/dark) at runtime. A one-time call here would freeze
+  // the system UI colors at whatever the theme was on cold start — which
+  // was the cause of the Android system navigation bar staying black even
+  // in light mode (Android defaults systemNavigationBarColor to black
+  // when it's never explicitly set).
   runApp(const ProviderScope(child: QadaApp()));
 }
 
@@ -37,35 +38,65 @@ class QadaApp extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
     final colorTheme = ref.watch(themeColorProvider);
 
-    return MaterialApp(
-      title: 'قضاء الصلوات',
-      debugShowCheckedModeBanner: false,
-      locale: const Locale('ar', 'SA'),
-      supportedLocales: const [
-        Locale('ar', 'SA'),
-        Locale('en', 'US'),
-      ],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      theme: AppTheme.buildTheme(
-        brightness: Brightness.light,
-        colorTheme: colorTheme,
+    // Resolve whether we're actually in dark mode right now. themeMode can
+    // be ThemeMode.system, in which case we fall back to the platform
+    // brightness reported by the current MediaQuery/PlatformDispatcher.
+    final platformBrightness = MediaQuery.platformBrightnessOf(context);
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            platformBrightness == Brightness.dark);
+
+    final navBarColor = AppColors.solidBackgroundFor(
+      colorTheme,
+      isDark: isDark,
+    );
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      // Re-applied automatically whenever isDark changes (theme toggle,
+      // or system theme change if themeMode is ThemeMode.system) since
+      // this whole build() re-runs on those changes.
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        // This is the actual fix: previously unset, so Android defaulted
+        // it to black regardless of theme. Now it always matches the
+        // active theme's real background color.
+        systemNavigationBarColor: navBarColor,
+        systemNavigationBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarDividerColor: Colors.transparent,
       ),
-      darkTheme: AppTheme.buildTheme(
-        brightness: Brightness.dark,
-        colorTheme: colorTheme,
+      child: MaterialApp(
+        title: 'قضاء الصلوات',
+        debugShowCheckedModeBanner: false,
+        locale: const Locale('ar', 'SA'),
+        supportedLocales: const [
+          Locale('ar', 'SA'),
+          Locale('en', 'US'),
+        ],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        theme: AppTheme.buildTheme(
+          brightness: Brightness.light,
+          colorTheme: colorTheme,
+        ),
+        darkTheme: AppTheme.buildTheme(
+          brightness: Brightness.dark,
+          colorTheme: colorTheme,
+        ),
+        themeMode: themeMode,
+        builder: (context, child) {
+          return Directionality(
+            textDirection: TextDirection.rtl,
+            child: child!,
+          );
+        },
+        home: const AppStartSplashScreen(child: AppShell()),
       ),
-      themeMode: themeMode,
-      builder: (context, child) {
-        return Directionality(
-          textDirection: TextDirection.rtl,
-          child: child!,
-        );
-      },
-      home: const AppStartSplashScreen(child: AppShell()),
     );
   }
 }

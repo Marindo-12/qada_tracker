@@ -9,23 +9,37 @@ import '../../features/settings/settings_screen.dart';
 import '../../features/setup/setup_intro_screen.dart';
 import '../../features/setup/username_setup_screen.dart';
 import '../../shared/providers/providers.dart';
+import '../../shared/providers/theme_provider.dart';
 import '../../shared/widgets/starfield_background.dart';
 import '../../core/theme/app_theme.dart';
 
 final currentTabProvider = StateProvider<int>((ref) => 0);
 
 const _tabs = [
-  _Tab(icon: Icons.home_outlined,           activeIcon: Icons.home_rounded,           label: 'الرئيسية'),
-  _Tab(icon: Icons.calendar_month_outlined, activeIcon: Icons.calendar_month_rounded, label: 'التقويم'),
-  _Tab(icon: Icons.menu_book_outlined,      activeIcon: Icons.menu_book_rounded,      label: 'الدليل'),
-  _Tab(icon: Icons.tune_outlined,           activeIcon: Icons.tune_rounded,           label: 'الإعدادات'),
+  _Tab(
+      icon: Icons.home_outlined,
+      activeIcon: Icons.home_rounded,
+      label: 'الرئيسية'),
+  _Tab(
+      icon: Icons.calendar_month_outlined,
+      activeIcon: Icons.calendar_month_rounded,
+      label: 'التقويم'),
+  _Tab(
+      icon: Icons.menu_book_outlined,
+      activeIcon: Icons.menu_book_rounded,
+      label: 'الدليل'),
+  _Tab(
+      icon: Icons.tune_outlined,
+      activeIcon: Icons.tune_rounded,
+      label: 'الإعدادات'),
 ];
 
 class _Tab {
   final IconData icon;
   final IconData activeIcon;
-  final String   label;
-  const _Tab({required this.icon, required this.activeIcon, required this.label});
+  final String label;
+  const _Tab(
+      {required this.icon, required this.activeIcon, required this.label});
 }
 
 // ─── Shell ────────────────────────────────────────────────────────────────────
@@ -34,18 +48,21 @@ class AppShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final planAsync  = ref.watch(planProvider);
+    final planAsync = ref.watch(planProvider);
     final currentTab = ref.watch(currentTabProvider);
+    final colorTheme = ref.watch(themeColorProvider);
 
     return planAsync.when(
-      loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error:   (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
       data: (plan) {
         if (plan == null && currentTab != 2 && currentTab != 3) {
           final userNameAsync = ref.watch(userNameProvider);
           return userNameAsync.when(
-            loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-            error:   (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
+            loading: () => const Scaffold(
+                body: Center(child: CircularProgressIndicator())),
+            error: (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
             data: (userName) {
               if (userName == null) return const UsernameSetupScreen();
               return const SetupIntroScreen();
@@ -57,15 +74,17 @@ class AppShell extends ConsumerWidget {
 
         return Stack(
           children: [
-            // ── Solid base layer (dark mode only) ─────────────────────
-            // Paints the real dark background color. Every Scaffold in the
-            // tree has a transparent scaffoldBackgroundColor in dark mode
-            // (see app_theme.dart), so this is what actually shows through
-            // as the base of the night sky.
-            if (isDark)
-              const Positioned.fill(
-                child: ColoredBox(color: AppColors.darkBackground),
+            // ── Solid base layer ──────────────────────────────────────
+            // Paints the real app background behind the transparent Scaffold
+            // and behind the rounded nav bar corners.
+            Positioned.fill(
+              child: ColoredBox(
+                color: AppColors.solidBackgroundOf(
+                  context,
+                  colorTheme: colorTheme,
+                ),
               ),
+            ),
 
             // ── Animated starfield (dark mode only) ───────────────────
             if (isDark) const Positioned.fill(child: StarfieldBackground()),
@@ -76,8 +95,8 @@ class AppShell extends ConsumerWidget {
               body: MediaQuery(
                 data: MediaQuery.of(context).copyWith(
                   padding: MediaQuery.of(context).padding.copyWith(
-                    bottom: 80 + 10 + MediaQuery.of(context).padding.bottom,
-                  ),
+                        bottom: 80 + 10 + MediaQuery.of(context).padding.bottom,
+                      ),
                 ),
                 child: IndexedStack(
                   index: currentTab.clamp(0, 3),
@@ -105,9 +124,16 @@ class AppShell extends ConsumerWidget {
 // Design : thin pill indicator (h:1.3) at top of active tab
 //          icon scales up on active, label below always visible
 //          bar is flush with bottom/left/right edges, only top corners rounded
+//
+// Keeps its own opaque background in both modes: the bar has rounded top
+// corners, so if its background were transparent, the starfield behind it
+// (dark mode) would show through the small corner areas outside the
+// radius — same problem the rest of the app avoids by painting a solid
+// layer under the Scaffold. The bar itself isn't part of that transparent
+// layer, so it paints its own solid color.
 // ─────────────────────────────────────────────────────────────────────────────
 class _NavBar extends StatelessWidget {
-  final int              currentIndex;
+  final int currentIndex;
   final ValueChanged<int> onTap;
 
   const _NavBar({required this.currentIndex, required this.onTap});
@@ -116,10 +142,10 @@ class _NavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark  = AppColors.isDark(context);
+    final isDark = AppColors.isDark(context);
     final surface = AppColors.surfaceOf(context);
-    final border  = AppColors.borderOf(context);
-    final shadow  = isDark
+    final border = AppColors.borderOf(context);
+    final shadow = isDark
         ? Colors.black.withValues(alpha: 0.40)
         : Colors.black.withValues(alpha: 0.08);
 
@@ -131,12 +157,13 @@ class _NavBar extends StatelessWidget {
         decoration: BoxDecoration(
           color: surface,
           borderRadius: const BorderRadius.only(
-            topLeft:  Radius.circular(28),
+            topLeft: Radius.circular(28),
             topRight: Radius.circular(28),
           ),
           border: Border.all(color: border.withValues(alpha: 0.5), width: 0.6),
           boxShadow: [
-            BoxShadow(color: shadow, blurRadius: 20, offset: const Offset(0, 4)),
+            BoxShadow(
+                color: shadow, blurRadius: 20, offset: const Offset(0, 4)),
           ],
         ),
         child: Directionality(
@@ -145,10 +172,10 @@ class _NavBar extends StatelessWidget {
             children: List.generate(_tabs.length, (i) {
               return Expanded(
                 child: _NavItem(
-                  tab:    _tabs[i],
+                  tab: _tabs[i],
                   active: currentIndex == i,
-                  onTap:  () => onTap(i),
-                  barH:   _barH,
+                  onTap: () => onTap(i),
+                  barH: _barH,
                 ),
               );
             }),
@@ -163,10 +190,10 @@ class _NavBar extends StatelessWidget {
 // Active  :  thin pill indicator at top  +  icon scale up  +  label primary bold
 // Inactive:  no indicator                +  icon normal     +  label muted
 class _NavItem extends StatefulWidget {
-  final _Tab         tab;
-  final bool         active;
+  final _Tab tab;
+  final bool active;
   final VoidCallback onTap;
-  final double       barH;
+  final double barH;
 
   const _NavItem({
     required this.tab,
@@ -182,7 +209,7 @@ class _NavItem extends StatefulWidget {
 class _NavItemState extends State<_NavItem>
     with SingleTickerProviderStateMixin {
   late AnimationController _ctl;
-  late Animation<double>   _scale;       // icon scale 1.0 → 1.22
+  late Animation<double> _scale; // icon scale 1.0 → 1.22
 
   @override
   void initState() {
@@ -200,8 +227,8 @@ class _NavItemState extends State<_NavItem>
   @override
   void didUpdateWidget(covariant _NavItem old) {
     super.didUpdateWidget(old);
-    if ( widget.active && !old.active) _ctl.forward();
-    if (!widget.active &&  old.active) _ctl.reverse();
+    if (widget.active && !old.active) _ctl.forward();
+    if (!widget.active && old.active) _ctl.reverse();
   }
 
   @override
@@ -228,7 +255,6 @@ class _NavItemState extends State<_NavItem>
             return Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-
                 // ── Thin pill indicator at top ─────────────────────────
                 Padding(
                   padding: const EdgeInsets.only(top: 6),
@@ -236,10 +262,10 @@ class _NavItemState extends State<_NavItem>
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 280),
                       curve: Curves.easeOutCubic,
-                      width:  isActive ? 24.0 : 0.0,
+                      width: isActive ? 24.0 : 0.0,
                       height: 1.3,
                       decoration: BoxDecoration(
-                        color:        isActive ? primary : Colors.transparent,
+                        color: isActive ? primary : Colors.transparent,
                         borderRadius: BorderRadius.circular(0.65),
                       ),
                     ),
@@ -256,7 +282,7 @@ class _NavItemState extends State<_NavItem>
                         scale: _scale.value,
                         child: Icon(
                           isActive ? widget.tab.activeIcon : widget.tab.icon,
-                          size:  22,
+                          size: 22,
                           color: isActive ? primary : mutedFg,
                         ),
                       ),
@@ -268,17 +294,18 @@ class _NavItemState extends State<_NavItem>
                         duration: const Duration(milliseconds: 200),
                         style: TextStyle(
                           fontFamily: 'Cairo',
-                          fontSize:   10,
-                          fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
-                          color:      isActive ? primary : mutedFg,
-                          height:     1.0,
+                          fontSize: 10,
+                          fontWeight:
+                              isActive ? FontWeight.w700 : FontWeight.w400,
+                          color: isActive ? primary : mutedFg,
+                          height: 1.0,
                         ),
                         child: Text(
                           widget.tab.label,
                           textDirection: TextDirection.rtl,
-                          textAlign:     TextAlign.center,
-                          maxLines:      1,
-                          overflow:      TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],

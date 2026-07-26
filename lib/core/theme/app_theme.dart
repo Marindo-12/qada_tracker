@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 // ─── Enum des thèmes disponibles ─────────────────────────────────────────────
 enum AppColorTheme {
-  blue,  // Thème bleu (défaut)
+  blue, // Thème bleu (défaut)
   green, // Thème vert émeraude
 }
 
@@ -117,7 +117,8 @@ class AppColors {
 
   static Color mutedOf(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return Color.lerp(scheme.surface, scheme.primary, isDark(context) ? 0.10 : 0.07) ??
+    return Color.lerp(
+            scheme.surface, scheme.primary, isDark(context) ? 0.10 : 0.07) ??
         scheme.surface;
   }
 
@@ -135,14 +136,19 @@ class AppColors {
   /// transparent in dark mode so the animated starfield in AppShell can
   /// show through. Use this to paint the solid base layer behind the
   /// starfield (see AppShell in app_router.dart).
-  static Color solidBackgroundOf(BuildContext context, {AppColorTheme colorTheme = AppColorTheme.blue}) {
-    final dark = isDark(context);
+  static Color solidBackgroundFor(AppColorTheme colorTheme,
+      {required bool isDark}) {
     switch (colorTheme) {
       case AppColorTheme.green:
-        return dark ? greenDarkBackground : greenBackground;
+        return isDark ? greenDarkBackground : greenBackground;
       case AppColorTheme.blue:
-        return dark ? darkBackground : background;
+        return isDark ? darkBackground : background;
     }
+  }
+
+  static Color solidBackgroundOf(BuildContext context,
+      {AppColorTheme colorTheme = AppColorTheme.blue}) {
+    return solidBackgroundFor(colorTheme, isDark: isDark(context));
   }
 
   static Color progressTrackOf(BuildContext context) =>
@@ -150,10 +156,13 @@ class AppColors {
       Theme.of(context).colorScheme.primary.withValues(alpha: 0.18);
 
   static Color heroBackgroundOf(BuildContext context) {
-    return isDark(context) ? primaryContainer : Theme.of(context).colorScheme.primary;
+    return isDark(context)
+        ? primaryContainer
+        : Theme.of(context).colorScheme.primary;
   }
 
-  static List<Color> heatmapColors(AppColorTheme colorTheme, {bool isDark = false}) {
+  static List<Color> heatmapColors(AppColorTheme colorTheme,
+      {bool isDark = false}) {
     switch (colorTheme) {
       case AppColorTheme.green:
         if (isDark) {
@@ -213,15 +222,24 @@ class AppTheme {
 
     switch (colorTheme) {
       case AppColorTheme.green:
-        scaffoldBg = isDark ? AppColors.greenDarkBackground : AppColors.greenBackground;
-        surfaceColor = isDark ? AppColors.greenDarkCard : AppColors.greenSurface;
-        borderColor = isDark ? AppColors.greenDarkBorder : AppColors.greenBorder;
-        primaryColor = isDark ? AppColors.greenDarkPrimary : AppColors.greenPrimary;
-        primaryFg = isDark ? AppColors.greenDarkPrimaryFg : AppColors.greenPrimaryFg;
-        secondaryColor = isDark ? AppColors.greenDarkSecondary : AppColors.greenSecondary;
-        secondaryFg = isDark ? const Color(0xFFD5E6DF) : AppColors.greenSecondaryFg;
-        accentColor = isDark ? AppColors.greenDarkAccent : AppColors.greenAccent;
-        progressTrack = isDark ? const Color(0xFF2F363F) : const Color(0xFFCDE8DA);
+        scaffoldBg =
+            isDark ? AppColors.greenDarkBackground : AppColors.greenBackground;
+        surfaceColor =
+            isDark ? AppColors.greenDarkCard : AppColors.greenSurface;
+        borderColor =
+            isDark ? AppColors.greenDarkBorder : AppColors.greenBorder;
+        primaryColor =
+            isDark ? AppColors.greenDarkPrimary : AppColors.greenPrimary;
+        primaryFg =
+            isDark ? AppColors.greenDarkPrimaryFg : AppColors.greenPrimaryFg;
+        secondaryColor =
+            isDark ? AppColors.greenDarkSecondary : AppColors.greenSecondary;
+        secondaryFg =
+            isDark ? const Color(0xFFD5E6DF) : AppColors.greenSecondaryFg;
+        accentColor =
+            isDark ? AppColors.greenDarkAccent : AppColors.greenAccent;
+        progressTrack =
+            isDark ? const Color(0xFF2F363F) : const Color(0xFFCDE8DA);
 
       case AppColorTheme.blue:
         scaffoldBg = isDark ? AppColors.darkBackground : AppColors.background;
@@ -265,7 +283,8 @@ class AppTheme {
         shadowColor: primaryColor.withValues(alpha: 0.05),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
-          side: BorderSide(color: borderColor.withValues(alpha: 0.8), width: 0.8),
+          side:
+              BorderSide(color: borderColor.withValues(alpha: 0.8), width: 0.8),
         ),
       ),
       appBarTheme: AppBarTheme(
@@ -280,7 +299,8 @@ class AppTheme {
           foregroundColor: primaryFg,
           elevation: 0,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           textStyle: _arabicTextStyle(
             const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             color: primaryFg,
@@ -292,7 +312,8 @@ class AppTheme {
           foregroundColor: primaryColor,
           side: BorderSide(color: primaryColor.withValues(alpha: 0.7)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -310,7 +331,8 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: primaryColor, width: 1.4),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       ),
       dividerTheme: DividerThemeData(
         color: borderColor.withValues(alpha: 0.65),
@@ -335,21 +357,51 @@ class AppTheme {
 
   static TextTheme _buildTextTheme(Brightness brightness, Color color) {
     return TextTheme(
-      displayLarge: _arabicTextStyle(const TextStyle(fontSize: 32, fontWeight: FontWeight.w700), color: color),
-      displayMedium: _arabicTextStyle(const TextStyle(fontSize: 28, fontWeight: FontWeight.w700), color: color),
-      displaySmall: _arabicTextStyle(const TextStyle(fontSize: 24, fontWeight: FontWeight.w700), color: color),
-      headlineLarge: _arabicTextStyle(const TextStyle(fontSize: 22, fontWeight: FontWeight.w700), color: color),
-      headlineMedium: _arabicTextStyle(const TextStyle(fontSize: 20, fontWeight: FontWeight.w600), color: color),
-      headlineSmall: _arabicTextStyle(const TextStyle(fontSize: 18, fontWeight: FontWeight.w600), color: color),
-      titleLarge: _arabicTextStyle(const TextStyle(fontSize: 16, fontWeight: FontWeight.w600), color: color),
-      titleMedium: _arabicTextStyle(const TextStyle(fontSize: 14, fontWeight: FontWeight.w600), color: color),
-      titleSmall: _arabicTextStyle(const TextStyle(fontSize: 12, fontWeight: FontWeight.w600), color: color),
-      bodyLarge: _arabicTextStyle(const TextStyle(fontSize: 16, fontWeight: FontWeight.w400), color: color),
-      bodyMedium: _arabicTextStyle(const TextStyle(fontSize: 14, fontWeight: FontWeight.w400), color: color),
-      bodySmall: _arabicTextStyle(const TextStyle(fontSize: 12, fontWeight: FontWeight.w400), color: color),
-      labelLarge: _arabicTextStyle(const TextStyle(fontSize: 14, fontWeight: FontWeight.w600), color: color),
-      labelMedium: _arabicTextStyle(const TextStyle(fontSize: 12, fontWeight: FontWeight.w500), color: color),
-      labelSmall: _arabicTextStyle(const TextStyle(fontSize: 10, fontWeight: FontWeight.w500), color: color),
+      displayLarge: _arabicTextStyle(
+          const TextStyle(fontSize: 32, fontWeight: FontWeight.w700),
+          color: color),
+      displayMedium: _arabicTextStyle(
+          const TextStyle(fontSize: 28, fontWeight: FontWeight.w700),
+          color: color),
+      displaySmall: _arabicTextStyle(
+          const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+          color: color),
+      headlineLarge: _arabicTextStyle(
+          const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
+          color: color),
+      headlineMedium: _arabicTextStyle(
+          const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          color: color),
+      headlineSmall: _arabicTextStyle(
+          const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          color: color),
+      titleLarge: _arabicTextStyle(
+          const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          color: color),
+      titleMedium: _arabicTextStyle(
+          const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          color: color),
+      titleSmall: _arabicTextStyle(
+          const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          color: color),
+      bodyLarge: _arabicTextStyle(
+          const TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+          color: color),
+      bodyMedium: _arabicTextStyle(
+          const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+          color: color),
+      bodySmall: _arabicTextStyle(
+          const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+          color: color),
+      labelLarge: _arabicTextStyle(
+          const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          color: color),
+      labelMedium: _arabicTextStyle(
+          const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+          color: color),
+      labelSmall: _arabicTextStyle(
+          const TextStyle(fontSize: 10, fontWeight: FontWeight.w500),
+          color: color),
     );
   }
 
