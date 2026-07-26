@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/app_utils.dart';
@@ -81,9 +82,61 @@ class CalendarScreen extends ConsumerWidget {
         ? selectedHijriMonth
         : selectedMonth;
 
+    // ── Ordered list of gregorian ISO dates for the currently displayed
+    // month, used to build the contribution chart. Mirrors the same hijri/
+    // gregorian resolution logic the grid below already uses per cell.
+    List<String> gregorianDatesForDisplayedMonth() {
+      if (calendarType == CalendarType.hijri) {
+        return allHijriDatesInMonth(selectedHijriMonth).map((date) {
+          final parts = date.split('-');
+          final hijri = HijriDate(
+            int.parse(parts[0]),
+            int.parse(parts[1]),
+            int.parse(parts[2]),
+          );
+          return dateToIso(hijri.toGregorian());
+        }).toList();
+      }
+      return allDatesInMonth(selectedMonth);
+    }
+
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: Text('التقويم', style: theme.textTheme.titleLarge),
+        // In RTL, `leading` renders on the visual right and `actions`
+        // render on the visual left — so the chart button (icon + label)
+        // goes in `leading`, and the hijri/gregorian toggle stays in
+        // `actions`, with the title centered between them.
+        leadingWidth: 120,
+        leading: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: TextButton.icon(
+            onPressed: () {
+              final calendarDataAsync = ref.read(calendarDataProvider);
+              calendarDataAsync.whenData((calendarData) {
+                showDialog(
+                  context: context,
+                  builder: (_) => ContributionChartDialog(
+                    monthLabel: displayMonthLabel,
+                    dates: gregorianDatesForDisplayedMonth(),
+                    calendarData: calendarData,
+                    useArabic: useArabic,
+                  ),
+                );
+              });
+            },
+            icon: const Icon(Icons.show_chart_rounded, size: 18),
+            label: Text(
+              'الرسم',
+              style: theme.textTheme.labelMedium,
+            ),
+            style: TextButton.styleFrom(
+              foregroundColor: theme.colorScheme.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+            ),
+          ),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -282,6 +335,202 @@ class CalendarScreen extends ConsumerWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Contribution chart dialog ─────────────────────────────────────────────
+//
+// GitHub-style "contribution graph": one line, one point per day of the
+// currently displayed month, Y = number of completed قضاء prayers that
+// day. Built on the same calendarDataProvider the grid above already
+// uses, so no new data source is needed. Uses fl_chart's LineChart.
+class ContributionChartDialog extends StatelessWidget {
+  final String monthLabel;
+  final List<String> dates; // gregorian ISO dates, in order, for the month
+  final Map<String, CalendarDayData> calendarData;
+  final bool useArabic;
+
+  const ContributionChartDialog({
+    super.key,
+    required this.monthLabel,
+    required this.dates,
+    required this.calendarData,
+    required this.useArabic,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme    = Theme.of(context);
+    final primary  = AppColors.primaryOf(context);
+    final mutedFg  = AppColors.mutedFgOf(context);
+    final surface  = AppColors.surfaceOf(context);
+    final border   = AppColors.borderOf(context);
+
+    final values = dates
+        .map((d) => calendarData[d]?.completed ?? 0)
+        .toList(growable: false);
+    final maxY = values.isEmpty
+        ? 1.0
+        : (values.reduce((a, b) => a > b ? a : b)).toDouble().clamp(1.0, double.infinity);
+
+    final spots = List.generate(
+      values.length,
+      (i) => FlSpot(i.toDouble(), values[i].toDouble()),
+    );
+
+    return Dialog(
+      backgroundColor: surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(18, 20, 18, 12),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.show_chart_rounded, color: primary, size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'رسم الإنجاز اليومي — $monthLabel',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 20),
+                  onPressed: () => Navigator.of(context).pop(),
+                  color: mutedFg,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'عدد الصلوات المقضية في كل يوم من الشهر المعروض.',
+              style: theme.textTheme.bodySmall?.copyWith(color: mutedFg),
+            ),
+            const SizedBox(height: 16),
+
+            if (spots.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                child: Center(
+                  child: Text('لا توجد بيانات لهذا الشهر', style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg)),
+                ),
+              )
+            else
+              AspectRatio(
+                aspectRatio: 1.5,
+                child: LineChart(
+                  LineChartData(
+                    minX: 0,
+                    maxX: (spots.length - 1).toDouble(),
+                    minY: 0,
+                    maxY: maxY,
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: true,
+                      horizontalInterval: (maxY / 4).clamp(1, double.infinity),
+                      verticalInterval: (spots.length / 6).clamp(1, double.infinity),
+                      getDrawingHorizontalLine: (_) => FlLine(
+                        color: border.withValues(alpha: 0.35),
+                        strokeWidth: 1,
+                      ),
+                      getDrawingVerticalLine: (_) => FlLine(
+                        color: border.withValues(alpha: 0.2),
+                        strokeWidth: 1,
+                      ),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    titlesData: FlTitlesData(
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 28,
+                          interval: (maxY / 4).clamp(1, double.infinity),
+                          getTitlesWidget: (value, meta) => Text(
+                            formatNumber(value.round(), useArabic: useArabic),
+                            style: TextStyle(fontSize: 10, color: mutedFg),
+                          ),
+                        ),
+                      ),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 24,
+                          interval: (spots.length / 6).clamp(1, double.infinity),
+                          getTitlesWidget: (value, meta) {
+                            final i = value.round();
+                            if (i < 0 || i >= dates.length) return const SizedBox.shrink();
+                            final day = dates[i].split('-').last;
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                formatNumber(int.parse(day), useArabic: useArabic),
+                                style: TextStyle(fontSize: 10, color: mutedFg),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    lineTouchData: LineTouchData(
+                      touchTooltipData: LineTouchTooltipData(
+                        getTooltipColor: (_) => primary,
+                        getTooltipItems: (touchedSpots) => touchedSpots.map((s) {
+                          return LineTooltipItem(
+                            formatNumber(s.y.round(), useArabic: useArabic),
+                            const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: spots,
+                        isCurved: true,
+                        curveSmoothness: 0.25,
+                        color: primary,
+                        barWidth: 2.5,
+                        isStrokeCapRound: true,
+                        dotData: FlDotData(
+                          show: true,
+                          getDotPainter: (spot, percent, bar, index) => FlDotCirclePainter(
+                            radius: 3,
+                            color: Colors.white,
+                            strokeWidth: 1.5,
+                            strokeColor: primary,
+                          ),
+                        ),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              primary.withValues(alpha: 0.25),
+                              primary.withValues(alpha: 0.0),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            const SizedBox(height: 8),
+          ],
+        ),
       ),
     );
   }
@@ -572,29 +821,33 @@ class _CalendarCellState extends ConsumerState<_CalendarCell>
         ),
         child: Opacity(
           opacity: widget.isFuture ? 0.3 : 1.0,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                formatNumber(widget.day, useArabic: widget.useArabic),
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: widget.isFuture
-                      ? AppColors.mutedFgOf(context)
-                      : textColor,
-                  fontWeight:
-                      widget.isToday ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-              if (widget.data != null && widget.data!.completed > 0)
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 Text(
-                  formatNumber(widget.data!.completed,
-                      useArabic: widget.useArabic),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: textColor.withValues(alpha: 0.8),
-                    fontSize: 9,
+                  formatNumber(widget.day, useArabic: widget.useArabic),
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: widget.isFuture
+                        ? AppColors.mutedFgOf(context)
+                        : textColor,
+                    fontWeight:
+                        widget.isToday ? FontWeight.bold : FontWeight.normal,
                   ),
                 ),
-            ],
+                if (widget.data != null && widget.data!.completed > 0)
+                  Text(
+                    formatNumber(widget.data!.completed,
+                        useArabic: widget.useArabic),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: textColor.withValues(alpha: 0.8),
+                      fontSize: 9,
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
