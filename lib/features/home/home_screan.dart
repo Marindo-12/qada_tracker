@@ -35,7 +35,7 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-// ─── Welcome Screen ───────────────────────────────────────────────────────────
+// ─── Welcome Screen (onboarding, pas encore de plan) ─────────────────────────
 class _WelcomeScreen extends ConsumerWidget {
   const _WelcomeScreen();
 
@@ -358,35 +358,48 @@ class _DigitMenuItem extends StatelessWidget {
   }
 }
 
-// ─── App Wordmark ─────────────────────────────────────────────────────────────
-class _AppWordmark extends StatelessWidget {
-  const _AppWordmark();
+// ─── Header User Name (remplace le titre de l'app dans l'AppBar) ────────────
+class _HeaderUserName extends ConsumerWidget {
+  const _HeaderUserName();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userNameAsync = ref.watch(userNameProvider);
     final color = AppColors.primaryOf(context);
 
-    return Transform.translate(
-      offset: const Offset(0, -6),
-      child: Text(
-        'قضاء',
-        textAlign: TextAlign.right,
-        style: GoogleFonts.getFont(
-          'Aref Ruqaa',
-          color: color,
-          fontSize: 31,
-          fontWeight: FontWeight.w700,
-          height: 1,
-          letterSpacing: 0,
-          shadows: [
-            Shadow(
-              color: color.withValues(alpha: 0.16),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+    return userNameAsync.when(
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (userName) {
+        final displayName =
+            (userName != null && userName.trim().isNotEmpty)
+                ? userName
+                : 'قضاء';
+
+        return Transform.translate(
+          offset: const Offset(0, -6),
+          child: Text(
+            displayName,
+            textAlign: TextAlign.right,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.getFont(
+              'Aref Ruqaa',
+              color: color,
+              fontSize: 31,
+              fontWeight: FontWeight.w700,
+              height: 1,
+              letterSpacing: 0,
+              shadows: [
+                Shadow(
+                  color: color.withValues(alpha: 0.16),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -409,7 +422,7 @@ class _Dashboard extends ConsumerWidget {
         titleSpacing: 20,
         title: const Align(
           alignment: AlignmentDirectional.centerStart,
-          child: _AppWordmark(),
+          child: _HeaderUserName(),
         ),
         actions: [
           // ── Bouton dark/light ────────────────────────────────────────
