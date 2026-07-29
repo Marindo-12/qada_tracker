@@ -57,6 +57,7 @@ flutter:
     - assets/icon/whatsapp-icon.png
     - assets/icon/gmail-icon.png
     - assets/icon/man-icon.png
+    - assets/icon/women-icon.png
     - assets/icon/step2-icon.png
     - assets/icon/username.png
   fonts:
