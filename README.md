@@ -95,3 +95,116 @@
 > *"قليل دائم خير من كثير منقطع"*
 >
 > ابدأ بخطوة، وواظب عليها — هذا التطبيق هنا ليبقى معك في كل خطوة.
+
+---
+
+## Guide développeur
+
+Cette section explique comment installer le projet en local, faire des modifications, puis proposer les changements avec une Pull Request.
+
+### Prérequis
+
+Avant de commencer, installez :
+
+- Flutter SDK compatible avec Dart `>=3.2.0 <4.0.0`
+- Android Studio ou VS Code avec les extensions Flutter/Dart
+- Git
+- Un émulateur Android/iOS ou un appareil physique connecté
+
+Vérifiez que votre environnement Flutter est prêt :
+
+```bash
+flutter doctor
+```
+
+### Installation locale
+
+Clonez le projet :
+
+```bash
+git clone https://github.com/Marindo-12/qada_tracker.git
+cd qada_tracker
+```
+
+Installez les dépendances :
+
+```bash
+flutter pub get
+```
+
+Si vous modifiez les tables Drift, les DAO, ou les fichiers liés à la base de données, régénérez les fichiers générés :
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
+
+Lancez l'application :
+
+```bash
+flutter run
+```
+
+### Structure du projet
+
+- `lib/core` : configuration globale, navigation, thème, base de données et utilitaires.
+- `lib/features` : écrans et logique métier organisés par fonctionnalité.
+- `lib/shared` : composants, providers et éléments réutilisables.
+- `assets` : images, icônes, polices et ressources statiques.
+- `test` : tests automatisés.
+
+### Bonnes pratiques de contribution
+
+Avant de proposer une modification :
+
+- Créez une branche dédiée :
+
+```bash
+git checkout -b feature/nom-de-la-fonctionnalite
+```
+
+- Gardez les changements liés au même objectif dans la même Pull Request.
+- Respectez le style existant du projet.
+- N'ajoutez pas de refactoring non lié à votre changement.
+- Testez l'application sur au moins un appareil ou émulateur.
+- Mettez à jour le README si votre changement ajoute une nouvelle étape d'installation, une dépendance ou un comportement important.
+
+### Vérifications recommandées
+
+Avant d'ouvrir une Pull Request, lancez :
+
+```bash
+flutter analyze
+flutter test
+```
+
+Si vous avez modifié le code généré par Drift, vérifiez aussi que les fichiers générés sont bien à jour après `build_runner`.
+
+### Ouvrir une Pull Request
+
+1. Commitez vos changements avec un message clair :
+
+```bash
+git add .
+git commit -m "Describe your change"
+```
+
+2. Poussez votre branche :
+
+```bash
+git push origin feature/nom-de-la-fonctionnalite
+```
+
+3. Ouvrez une Pull Request depuis GitHub vers la branche principale du projet.
+4. Dans la description de la Pull Request, indiquez :
+
+- Le problème résolu ou la fonctionnalité ajoutée.
+- Les fichiers ou écrans principaux modifiés.
+- Les tests effectués.
+- Les captures d'écran si le changement touche l'interface.
+
+### Notes importantes
+
+- Les données utilisateur sont stockées localement.
+- Les assets utilisés dans le code doivent être déclarés dans `pubspec.yaml`.
+- Après l'ajout d'un nouvel asset, relancez l'application pour que Flutter le prenne en compte.
+- Pour les changements liés à la base de données, vérifiez les migrations et les fichiers générés avant d'ouvrir la Pull Request.
