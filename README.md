@@ -84,127 +84,222 @@
 
 ---
 
-## المزايا التقنية الجوهرية
-
-- **عربي أولاً** — الواجهة بالكامل بالعربية مع دعم الأرقام العربية  (٠ ١ ٢ ...) والتحويل بزر واحد.
-- **ليلي/نهاري** — يدعم الوضع الداكن والفاتح مع حفظ التفضيل.
-- **سريع وخفيف** — بلا تحميل بطيء ولا اشتراطات تسجيل دخول.
-
----
-
 > *"قليل دائم خير من كثير منقطع"*
 >
 > ابدأ بخطوة، وواظب عليها — هذا التطبيق هنا ليبقى معك في كل خطوة.
 
 ---
 
-## Guide développeur
+## Developer Guide
 
-Cette section explique comment installer le projet en local, faire des modifications, puis proposer les changements avec une Pull Request.
+This section explains how to set up the project locally, make changes, and submit them via a Pull Request.
 
-### Prérequis
+### 1. Install Flutter SDK
 
-Avant de commencer, installez :
+Download Flutter from the official site: https://docs.flutter.dev/get-started/install
 
-- Flutter SDK compatible avec Dart `>=3.2.0 <4.0.0`
-- Android Studio ou VS Code avec les extensions Flutter/Dart
-- Git
-- Un émulateur Android/iOS ou un appareil physique connecté
+- **Windows/macOS/Linux**: download the SDK zip/archive for your OS, or install via a package manager (e.g. `brew install --cask flutter` on macOS).
+- Extract it to a permanent location (e.g. `C:\src\flutter` on Windows, `~/development/flutter` on macOS/Linux). Avoid paths with spaces or that require admin rights.
 
-Vérifiez que votre environnement Flutter est prêt :
+### 2. Add Flutter to your PATH
+
+Flutter won't be recognized in your terminal until its `bin` folder is on your system PATH.
+
+**Windows:**
+1. Search "Environment Variables" in the Start menu → *Edit the system environment variables*.
+2. Under *User variables*, select `Path` → *Edit* → *New*.
+3. Add the full path to `flutter\bin` (e.g. `C:\src\flutter\bin`).
+4. Restart your terminal/IDE.
+
+**macOS/Linux:**
+Add this line to your shell config file (`~/.zshrc`, `~/.bashrc`, or `~/.bash_profile`):
 
 ```bash
-flutter doctor
+export PATH="$PATH:$HOME/development/flutter/bin"
 ```
 
-### Installation locale
+Then reload it:
 
-Clonez le projet :
+```bash
+source ~/.zshrc
+```
+
+**Verify it worked:**
+
+```bash
+flutter --version
+```
+
+### 3. Install Android Studio (required for Android development and the emulator)
+
+1. Download and install Android Studio: https://developer.android.com/studio
+2. On first launch, go through the setup wizard so it installs the **Android SDK**, **Android SDK Command-line Tools**, and **Android SDK Platform-Tools**.
+3. Open Android Studio → *More Actions* (or *Tools*) → **SDK Manager**:
+   - Under *SDK Platforms*, make sure at least one recent Android version is checked.
+   - Under *SDK Tools*, make sure **Android SDK Build-Tools**, **Android Emulator**, and **Android SDK Platform-Tools** are installed.
+4. Accept the Android licenses so Flutter can build for Android:
+
+```bash
+flutter doctor --android-licenses
+```
+
+(Type `y` to accept each one.)
+
+5. Install the **Flutter** and **Dart** plugins inside Android Studio (*Settings/Preferences → Plugins → search "Flutter"* → install, it pulls in the Dart plugin automatically).
+
+> On **macOS**, if you also want to run the app on iOS, you additionally need **Xcode** (from the App Store) plus CocoaPods (`sudo gem install cocoapods`). iOS builds are not possible on Windows/Linux.
+
+### 4. Verify your setup
+
+Run this and fix anything marked with `[✗]`:
+
+```bash
+flutter doctor -v
+```
+
+A healthy setup shows checkmarks for: Flutter, Android toolchain, Android Studio, and Connected device (once you have one — see next step).
+
+### 5. Set up a way to run and see the app
+
+You need either an **emulator** or a **physical phone**.
+
+**Option A — Android Emulator (virtual device):**
+1. In Android Studio, open **Device Manager** (icon on the right sidebar, or *Tools → Device Manager*).
+2. Click **Create device**, pick a phone model (e.g. Pixel 7), select a system image (download one if needed, e.g. Android 14), and finish the wizard.
+3. Click the ▶ play button next to your virtual device to launch it.
+
+**Option B — Physical Android phone (usually faster/simpler):**
+1. On the phone, go to *Settings → About phone* → tap *Build number* 7 times to unlock **Developer options**.
+2. Go to *Settings → Developer options* → enable **USB debugging**.
+3. Connect the phone to your computer via USB cable.
+4. Accept the "Allow USB debugging?" prompt that appears on the phone.
+5. Check the device is detected:
+
+```bash
+flutter devices
+```
+
+Your phone should appear in the list with its device ID.
+
+**Option C — iOS Simulator (macOS only):**
+1. Open Xcode once so it finishes installing components.
+2. Run `open -a Simulator` or launch it from Xcode → *Open Developer Tool → Simulator*.
+
+### 6. Local Project Setup
+
+Clone the project:
 
 ```bash
 git clone https://github.com/Marindo-12/qada_tracker.git
 cd qada_tracker
 ```
 
-Installez les dépendances :
+Install the dependencies:
 
 ```bash
 flutter pub get
 ```
 
-Si vous modifiez les tables Drift, les DAO, ou les fichiers liés à la base de données, régénérez les fichiers générés :
+If you modify Drift tables, DAOs, or database-related files, regenerate the generated files:
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
 ```
 
-Lancez l'application :
+Confirm your emulator/phone is visible, then run the app on it:
 
 ```bash
+flutter devices
 flutter run
 ```
 
-### Structure du projet
-
-- `lib/core` : configuration globale, navigation, thème, base de données et utilitaires.
-- `lib/features` : écrans et logique métier organisés par fonctionnalité.
-- `lib/shared` : composants, providers et éléments réutilisables.
-- `assets` : images, icônes, polices et ressources statiques.
-- `test` : tests automatisés.
-
-### Bonnes pratiques de contribution
-
-Avant de proposer une modification :
-
-- Créez une branche dédiée :
+If more than one device/emulator is connected, `flutter run` will ask you to pick one — or target a specific one directly:
 
 ```bash
-git checkout -b feature/nom-de-la-fonctionnalite
+flutter run -d <device_id>
 ```
 
-- Gardez les changements liés au même objectif dans la même Pull Request.
-- Respectez le style existant du projet.
-- N'ajoutez pas de refactoring non lié à votre changement.
-- Testez l'application sur au moins un appareil ou émulateur.
-- Mettez à jour le README si votre changement ajoute une nouvelle étape d'installation, une dépendance ou un comportement important.
+### Project Structure
 
-### Vérifications recommandées
+- `lib/core`: global configuration, navigation, theme, database, and utilities.
+- `lib/features`: screens and business logic organized by feature.
+- `lib/shared`: reusable components, providers, and elements.
+- `assets`: images, icons, fonts, and static resources.
+- `test`: automated tests.
 
-Avant d'ouvrir une Pull Request, lancez :
+### Contribution Best Practices
+
+Before submitting a change:
+
+- Create a dedicated branch:
+
+```bash
+git checkout -b feature/feature-name
+```
+
+- Keep changes related to the same objective within the same Pull Request.
+- Follow the project's existing style.
+- Do not add unrelated refactoring to your change.
+- Test the app on at least one device or emulator.
+- Update the README if your change adds a new setup step, dependency, or important behavior.
+
+### Recommended Checks
+
+Before opening a Pull Request, run:
 
 ```bash
 flutter analyze
 flutter test
 ```
 
-Si vous avez modifié le code généré par Drift, vérifiez aussi que les fichiers générés sont bien à jour après `build_runner`.
+If you modified Drift-generated code, also verify that the generated files are up to date after running `build_runner`.
 
-### Ouvrir une Pull Request
+### Opening a Pull Request
 
-1. Commitez vos changements avec un message clair :
+1. Commit your changes with a clear message:
 
 ```bash
 git add .
 git commit -m "Describe your change"
 ```
 
-2. Poussez votre branche :
+2. Push your branch:
 
 ```bash
-git push origin feature/nom-de-la-fonctionnalite
+git push origin feature/feature-name
 ```
 
-3. Ouvrez une Pull Request depuis GitHub vers la branche principale du projet.
-4. Dans la description de la Pull Request, indiquez :
+3. Open a Pull Request from GitHub to the project's main branch.
+4. In the Pull Request description, include:
 
-- Le problème résolu ou la fonctionnalité ajoutée.
-- Les fichiers ou écrans principaux modifiés.
-- Les tests effectués.
-- Les captures d'écran si le changement touche l'interface.
+- The problem solved or feature added.
+- The main files or screens changed.
+- The tests performed.
+- Screenshots, if the change affects the UI.
 
-### Notes importantes
+### Important Notes
 
-- Les données utilisateur sont stockées localement.
-- Les assets utilisés dans le code doivent être déclarés dans `pubspec.yaml`.
-- Après l'ajout d'un nouvel asset, relancez l'application pour que Flutter le prenne en compte.
-- Pour les changements liés à la base de données, vérifiez les migrations et les fichiers générés avant d'ouvrir la Pull Request.
+- User data is stored locally.
+- Assets used in the code must be declared in `pubspec.yaml`.
+- After adding a new asset, restart the app so Flutter picks it up.
+- For database-related changes, check migrations and generated files before opening the Pull Request.
+
+---
+
+### A Final Word
+
+Every contribution here — big or small, a typo fix or a new feature — helps someone stay consistent on their own journey of catching up on missed prayers. You don't need to be an expert to contribute; you just need to start and keep going, exactly like the app itself encourages its users to do.
+
+**قليل دائم خير من كثير منقطع** — a small, steady effort is better than a large one that stops.
+
+Thank you for being part of this. 🤍
+
+---
+
+### كلمة أخيرة
+
+كل مساهمة هنا — كبيرة كانت أم صغيرة، تصحيح خطأ إملائي أو إضافة ميزة جديدة — تساعد شخصاً ما على الاستمرار في رحلته الخاصة لقضاء ما فاته من الصلوات. لست بحاجة لأن تكون خبيراً لتُساهم؛ كل ما تحتاجه هو أن تبدأ وتُواظب، تماماً كما يُشجّع التطبيق مستخدميه على فعل ذلك.
+
+**"قليل دائم خير من كثير منقطع"** — القليل المستمر خير من الكثير المنقطع.
+
+شكراً لك على كونك جزءاً من هذا. 🤍
