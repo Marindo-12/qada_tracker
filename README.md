@@ -290,7 +290,7 @@ git push origin feature/feature-name
 
 Every contribution here — big or small, a typo fix or a new feature — helps someone stay consistent on their own journey of catching up on missed prayers. You don't need to be an expert to contribute; you just need to start and keep going, exactly like the app itself encourages its users to do.
 
-**قليل دائم خير من كثير منقطع** — a small, steady effort is better than a large one that stops.
+a small, steady effort is better than a large one that stops.
 
 Thank you for being part of this. 🤍
 
@@ -300,6 +300,6 @@ Thank you for being part of this. 🤍
 
 كل مساهمة هنا — كبيرة كانت أم صغيرة، تصحيح خطأ إملائي أو إضافة ميزة جديدة — تساعد شخصاً ما على الاستمرار في رحلته الخاصة لقضاء ما فاته من الصلوات. لست بحاجة لأن تكون خبيراً لتُساهم؛ كل ما تحتاجه هو أن تبدأ وتُواظب، تماماً كما يُشجّع التطبيق مستخدميه على فعل ذلك.
 
-**"قليل دائم خير من كثير منقطع"** — القليل المستمر خير من الكثير المنقطع.
+**"قليل دائم خير من كثير منقطع"** 
 
 شكراً لك على كونك جزءاً من هذا. 🤍
