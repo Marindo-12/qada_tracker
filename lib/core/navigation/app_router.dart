@@ -81,6 +81,10 @@ class AppShell extends ConsumerWidget {
         }
 
         final isDark = AppColors.isDark(context);
+        final appBackground = AppColors.solidBackgroundOf(
+          context,
+          colorTheme: colorTheme,
+        );
 
         return Stack(
           children: [
@@ -88,12 +92,7 @@ class AppShell extends ConsumerWidget {
             // Paints the real app background behind the transparent Scaffold
             // and behind the rounded nav bar corners.
             Positioned.fill(
-              child: ColoredBox(
-                color: AppColors.solidBackgroundOf(
-                  context,
-                  colorTheme: colorTheme,
-                ),
-              ),
+              child: ColoredBox(color: appBackground),
             ),
 
             // ── Animated starfield (dark mode only) ───────────────────
@@ -102,10 +101,16 @@ class AppShell extends ConsumerWidget {
             // ── App content ────────────────────────────────────────────
             Scaffold(
               backgroundColor: Colors.transparent,
+              // Lets the body extend behind the bottomNavigationBar instead
+              // of Scaffold reserving/painting an opaque strip beneath it —
+              // that opaque strip was the extra background showing up
+              // around the floating featured button.
+              extendBody: true,
               body: MediaQuery(
                 data: MediaQuery.of(context).copyWith(
                   padding: MediaQuery.of(context).padding.copyWith(
-                        bottom: 80 + 10 + MediaQuery.of(context).padding.bottom,
+                        bottom: _NavBar.totalHeight +
+                            MediaQuery.of(context).padding.bottom,
                       ),
                 ),
                 child: IndexedStack(
@@ -122,6 +127,7 @@ class AppShell extends ConsumerWidget {
               bottomNavigationBar: _NavBar(
                 currentIndex: currentTab.clamp(0, 4),
                 onTap: (i) => ref.read(currentTabProvider.notifier).state = i,
+                backgroundColor: appBackground,
               ),
             ),
           ],
@@ -141,13 +147,24 @@ class AppShell extends ConsumerWidget {
 class _NavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
+  final Color? backgroundColor;
 
-  const _NavBar({required this.currentIndex, required this.onTap});
+  const _NavBar({
+    required this.currentIndex,
+    required this.onTap,
+    this.backgroundColor,
+  });
 
   static const double _barH = 72;
   static const double _fabSize = 60;
   static const double _fabOverflow = 24; // extra space reserved above the bar
   static const double _fabTop = 12; // push the fab down (lower = closer to the bar)
+
+  /// The real total visual height of the nav bar (bar + the part of the
+  /// floating button that pokes above it). AppShell uses this as the
+  /// single source of truth for how much bottom clearance page content
+  /// needs, instead of a hard-coded number that can drift out of sync.
+  static const double totalHeight = _barH + _fabOverflow;
 
   // Physical slot (0..4) in the row that stays empty for the floating
   // button — always the middle one, regardless of which tab is featured,
@@ -157,7 +174,7 @@ class _NavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = AppColors.isDark(context);
-    final surface = AppColors.surfaceOf(context);
+    final surface = backgroundColor ?? AppColors.surfaceOf(context);
     final border = AppColors.borderOf(context);
     final primary = AppColors.primaryOf(context);
     final shadow = isDark
@@ -170,87 +187,84 @@ class _NavBar extends StatelessWidget {
         .where((i) => i != _featuredTabIndex)
         .toList();
 
-    return SafeArea(
-      top: false,
-      child: SizedBox(
-        height: _barH + _fabOverflow,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            // ── Bar ──────────────────────────────────────────────────
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: _barH,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: surface,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(28),
-                    topRight: Radius.circular(28),
-                  ),
-                  border: Border.all(
-                      color: border.withValues(alpha: 0.5), width: 0.6),
-                  boxShadow: [
-                    BoxShadow(
-                        color: shadow,
-                        blurRadius: 20,
-                        offset: const Offset(0, 4)),
-                  ],
-                ),
-                child: Directionality(
-                  textDirection: TextDirection.rtl,
-                  child: Row(
-                    children: List.generate(_tabs.length, (slot) {
-                      if (slot == _centerSlot) {
-                        // Empty slot: the floating button sits visually
-                        // above this spot, but still reserves equal width
-                        // so the other tabs stay evenly spaced.
-                        return const Expanded(child: SizedBox.shrink());
-                      }
-                      final orderPos = slot < _centerSlot ? slot : slot - 1;
-                      final tabIndex = regularTabIndices[orderPos];
-                      return Expanded(
-                        child: _NavItem(
-                          tab: _tabs[tabIndex],
-                          active: currentIndex == tabIndex,
-                          onTap: () => onTap(tabIndex),
-                          barH: _barH,
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-              ),
-            ),
-
-            // ── Floating featured button ────────────────────────────
-            Positioned(
-              top: _fabTop,
-              left: 0,
-              right: 0,
-              child: Center(
+    // Material(type: transparency) kills the implicit opaque background
+    // that Scaffold paints behind any custom bottomNavigationBar widget —
+    // otherwise it shows through the empty space above the bar (around
+    // the floating button) as an unwanted solid block.
+    return Material(
+      type: MaterialType.transparency,
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: _barH + _fabOverflow,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // ── Bar ──────────────────────────────────────────────────
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: _barH,
                 child: Container(
-                  width: _fabSize + 4, // 2px ring on each side
-                  height: _fabSize + 4,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Theme.of(context).scaffoldBackgroundColor,
+                    color: surface,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(28),
+                      topRight: Radius.circular(28),
+                    ),
+                    border: Border.all(
+                        color: border.withValues(alpha: 0.5), width: 0.6),
+                    boxShadow: [
+                      BoxShadow(
+                          color: shadow,
+                          blurRadius: 20,
+                          offset: const Offset(0, 4)),
+                    ],
                   ),
-                  child: Center(
-                    child: _NavFab(
-                      tab: _tabs[_featuredTabIndex],
-                      active: currentIndex == _featuredTabIndex,
-                      onTap: () => onTap(_featuredTabIndex),
-                      size: _fabSize,
-                      primary: primary,
+                  child: Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Row(
+                      children: List.generate(_tabs.length, (slot) {
+                        if (slot == _centerSlot) {
+                          // Empty slot: the floating button sits visually
+                          // above this spot, but still reserves equal width
+                          // so the other tabs stay evenly spaced.
+                          return const Expanded(child: SizedBox.shrink());
+                        }
+                        final orderPos = slot < _centerSlot ? slot : slot - 1;
+                        final tabIndex = regularTabIndices[orderPos];
+                        return Expanded(
+                          child: _NavItem(
+                            tab: _tabs[tabIndex],
+                            active: currentIndex == tabIndex,
+                            onTap: () => onTap(tabIndex),
+                            barH: _barH,
+                          ),
+                        );
+                      }),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+
+              // ── Floating featured button ────────────────────────────
+              Positioned(
+                top: _fabTop,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: _NavFab(
+                    tab: _tabs[_featuredTabIndex],
+                    active: currentIndex == _featuredTabIndex,
+                    onTap: () => onTap(_featuredTabIndex),
+                    size: _fabSize,
+                    primary: primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

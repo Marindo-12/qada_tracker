@@ -273,6 +273,7 @@ class _DailyChallengeScreenState extends ConsumerState<DailyChallengeScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
+          bottom: false,
           child: run == null ? _buildSubjectsList() : _buildRun(run),
         ),
       ),
@@ -285,7 +286,7 @@ class _DailyChallengeScreenState extends ConsumerState<DailyChallengeScreen> {
     final useArabic = ref.watch(digitStyleProvider);
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 104),
       children: [
         // ── Centered header, no icon ─────────────────────────────────
         Center(
@@ -368,7 +369,7 @@ class _DailyChallengeScreenState extends ConsumerState<DailyChallengeScreen> {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 104),
       children: [
         Row(
           children: [
@@ -417,11 +418,32 @@ class _DailyChallengeScreenState extends ConsumerState<DailyChallengeScreen> {
             height: 52,
             child: ElevatedButton(
               onPressed: _nextQuestion,
-              child: Text(run.isLastQuestion ? 'إنهاء التحدي' : 'السؤال التالي'),
+              child: _CenteredButtonText(
+                run.isLastQuestion ? 'إنهاء التحدي' : 'السؤال التالي',
+              ),
             ),
           ),
         ],
       ],
+    );
+  }
+}
+
+// ─── Small helper: centered text for ElevatedButton labels ───────────────────
+// ElevatedButton's child isn't centered by default in every ButtonStyle
+// configuration; wrapping the label text here keeps it reliably centered
+// regardless of the app's global button theme.
+class _CenteredButtonText extends StatelessWidget {
+  final String text;
+
+  const _CenteredButtonText(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      textAlign: TextAlign.center,
+      style: const TextStyle(fontWeight: FontWeight.w700),
     );
   }
 }
@@ -685,7 +707,7 @@ class _ChallengeSettingsSheet extends StatelessWidget {
                 height: 52,
                 child: ElevatedButton(
                   onPressed: onStart,
-                  child: const Text('ابدأ التحدي'),
+                  child: const _CenteredButtonText('ابدأ التحدي'),
                 ),
               ),
             ],
@@ -757,7 +779,7 @@ class _RunResultView extends StatelessWidget {
               height: 52,
               child: ElevatedButton(
                 onPressed: onDone,
-                child: const Text('العودة إلى المواضيع'),
+                child: const _CenteredButtonText('العودة إلى المواضيع'),
               ),
             ),
           ],
