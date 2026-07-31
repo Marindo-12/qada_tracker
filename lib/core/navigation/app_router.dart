@@ -39,6 +39,11 @@ const _tabs = [
       label: 'الإعدادات'),
 ];
 
+// Index of the tab shown as the elevated, circular "featured" button
+// (the one styled like the reference design — center item, no label,
+// floating above the bar).
+const int _featuredTabIndex = 0;
+
 class _Tab {
   final IconData icon;
   final IconData activeIcon;
@@ -127,16 +132,11 @@ class AppShell extends ConsumerWidget {
 }
 
 // ─── Nav Bar ─────────────────────────────────────────────────────────────────
-// Design : thin pill indicator (h:1.3) at top of active tab
-//          icon scales up on active, label below always visible
-//          bar is flush with bottom/left/right edges, only top corners rounded
-//
-// Keeps its own opaque background in both modes: the bar has rounded top
-// corners, so if its background were transparent, the starfield behind it
-// (dark mode) would show through the small corner areas outside the
-// radius — same problem the rest of the app avoids by painting a solid
-// layer under the Scaffold. The bar itself isn't part of that transparent
-// layer, so it paints its own solid color.
+// Design : dark pill bar, rounded top corners only, flush with bottom/left/
+//          right edges — regular tabs are icon + label (muted → primary on
+//          active) — the featured tab (_featuredTabIndex) is rendered as a
+//          separate circular button that floats above the bar (gradient
+//          fill + soft glow), matching the reference screenshot.
 // ─────────────────────────────────────────────────────────────────────────────
 class _NavBar extends StatelessWidget {
   final int currentIndex;
@@ -145,54 +145,179 @@ class _NavBar extends StatelessWidget {
   const _NavBar({required this.currentIndex, required this.onTap});
 
   static const double _barH = 72;
+  static const double _fabSize = 60;
+  static const double _fabOverflow = 24; // extra space reserved above the bar
+  static const double _fabTop = 12; // push the fab down (lower = closer to the bar)
+
+  // Physical slot (0..4) in the row that stays empty for the floating
+  // button — always the middle one, regardless of which tab is featured,
+  // so the button stays visually centered.
+  static const int _centerSlot = 2;
 
   @override
   Widget build(BuildContext context) {
     final isDark = AppColors.isDark(context);
     final surface = AppColors.surfaceOf(context);
     final border = AppColors.borderOf(context);
+    final primary = AppColors.primaryOf(context);
     final shadow = isDark
         ? Colors.black.withValues(alpha: 0.40)
         : Colors.black.withValues(alpha: 0.08);
 
+    // Remaining tabs (all except the featured one), in their original
+    // order, to fill the 4 regular slots around the center.
+    final regularTabIndices = List<int>.generate(_tabs.length, (i) => i)
+        .where((i) => i != _featuredTabIndex)
+        .toList();
+
     return SafeArea(
       top: false,
-      child: Container(
-        height: _barH,
-        margin: EdgeInsets.zero,
-        decoration: BoxDecoration(
-          color: surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(28),
-            topRight: Radius.circular(28),
-          ),
-          border: Border.all(color: border.withValues(alpha: 0.5), width: 0.6),
-          boxShadow: [
-            BoxShadow(
-                color: shadow, blurRadius: 20, offset: const Offset(0, 4)),
-          ],
-        ),
-        child: Directionality(
-          textDirection: TextDirection.rtl,
-          child: Row(
-            children: List.generate(_tabs.length, (i) {
-              return Expanded(
-                child: _NavItem(
-                  tab: _tabs[i],
-                  active: currentIndex == i,
-                  onTap: () => onTap(i),
-                  barH: _barH,
+      child: SizedBox(
+        height: _barH + _fabOverflow,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // ── Bar ──────────────────────────────────────────────────
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: _barH,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: surface,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(28),
+                    topRight: Radius.circular(28),
+                  ),
+                  border: Border.all(
+                      color: border.withValues(alpha: 0.5), width: 0.6),
+                  boxShadow: [
+                    BoxShadow(
+                        color: shadow,
+                        blurRadius: 20,
+                        offset: const Offset(0, 4)),
+                  ],
                 ),
-              );
-            }),
-          ),
+                child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: Row(
+                    children: List.generate(_tabs.length, (slot) {
+                      if (slot == _centerSlot) {
+                        // Empty slot: the floating button sits visually
+                        // above this spot, but still reserves equal width
+                        // so the other tabs stay evenly spaced.
+                        return const Expanded(child: SizedBox.shrink());
+                      }
+                      final orderPos = slot < _centerSlot ? slot : slot - 1;
+                      final tabIndex = regularTabIndices[orderPos];
+                      return Expanded(
+                        child: _NavItem(
+                          tab: _tabs[tabIndex],
+                          active: currentIndex == tabIndex,
+                          onTap: () => onTap(tabIndex),
+                          barH: _barH,
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+            ),
+
+            // ── Floating featured button ────────────────────────────
+            Positioned(
+              top: _fabTop,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  width: _fabSize + 4, // 2px ring on each side
+                  height: _fabSize + 4,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                  ),
+                  child: Center(
+                    child: _NavFab(
+                      tab: _tabs[_featuredTabIndex],
+                      active: currentIndex == _featuredTabIndex,
+                      onTap: () => onTap(_featuredTabIndex),
+                      size: _fabSize,
+                      primary: primary,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-// ─── Single nav item ──────────────────────────────────────────────────────────
+// ─── Featured floating button (center circular tab) ──────────────────────────
+class _NavFab extends StatelessWidget {
+  final _Tab tab;
+  final bool active;
+  final VoidCallback onTap;
+  final double size;
+  final Color primary;
+
+  const _NavFab({
+    required this.tab,
+    required this.active,
+    required this.onTap,
+    required this.size,
+    required this.primary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final darkShade = Color.lerp(primary, Colors.black, 0.25) ?? primary;
+
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        width: size,
+        height: size,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [primary, darkShade],
+          ),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.20),
+            width: 2,
+          ),
+          boxShadow: [
+            // Soft halo/glow around the button
+            BoxShadow(
+              color: primary.withValues(alpha: active ? 0.45 : 0.28),
+              blurRadius: active ? 22 : 14,
+              spreadRadius: active ? 3 : 0,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Icon(
+          active ? tab.activeIcon : tab.icon,
+          color: Colors.white,
+          size: size * 0.42,
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Single nav item (regular icon + label tabs) ─────────────────────────────
 // Active  :  thin pill indicator at top  +  icon scale up  +  label primary bold
 // Inactive:  no indicator                +  icon normal     +  label muted
 class _NavItem extends StatefulWidget {
