@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/home/home_screan.dart';
 import '../../features/calendar/calendar_screan.dart';
+import '../../features/daily_challenge/daily_challenge_screen.dart';
 import '../../features/guide/guide_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/setup/setup_intro_screen.dart';
@@ -28,6 +29,10 @@ const _tabs = [
       icon: Icons.menu_book_outlined,
       activeIcon: Icons.menu_book_rounded,
       label: 'الدليل'),
+  _Tab(
+      icon: Icons.school_outlined,
+      activeIcon: Icons.school_rounded,
+      label: 'التحدي'),
   _Tab(
       icon: Icons.tune_outlined,
       activeIcon: Icons.tune_rounded,
@@ -57,7 +62,7 @@ class AppShell extends ConsumerWidget {
           const Scaffold(body: Center(child: CircularProgressIndicator())),
       error: (e, _) => Scaffold(body: Center(child: Text('خطأ: $e'))),
       data: (plan) {
-        if (plan == null && currentTab != 2 && currentTab != 3) {
+        if (plan == null && currentTab != 2 && currentTab != 3 && currentTab != 4) {
           final userNameAsync = ref.watch(userNameProvider);
           return userNameAsync.when(
             loading: () => const Scaffold(
@@ -99,17 +104,18 @@ class AppShell extends ConsumerWidget {
                       ),
                 ),
                 child: IndexedStack(
-                  index: currentTab.clamp(0, 3),
+                  index: currentTab.clamp(0, 4),
                   children: const [
                     HomeScreen(),
                     CalendarScreen(),
                     GuidePage(),
+                    DailyChallengeScreen(),
                     SettingsScreen(),
                   ],
                 ),
               ),
               bottomNavigationBar: _NavBar(
-                currentIndex: currentTab.clamp(0, 3),
+                currentIndex: currentTab.clamp(0, 4),
                 onTap: (i) => ref.read(currentTabProvider.notifier).state = i,
               ),
             ),
