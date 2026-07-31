@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class FiqhQuestion {
   final int id;
   final String category;
@@ -15,6 +17,76 @@ class FiqhQuestion {
     required this.explanation,
   });
 }
+
+/// A "pack" of questions the user can challenge themselves on.
+/// [category] must match [FiqhQuestion.category] exactly — it's the key
+/// used to group questions under this subject.
+class FiqhSubject {
+  final String id;
+  final String category;
+  final String name;
+  final IconData icon;
+
+  const FiqhSubject({
+    required this.id,
+    required this.category,
+    required this.name,
+    required this.icon,
+  });
+}
+
+/// Subjects are ordered — this order is also the unlock order:
+/// subject[i] is unlocked only once subject[i-1] has been completed.
+const List<FiqhSubject> fiqhSubjects = [
+  FiqhSubject(
+    id: 'tahara',
+    category: 'الطهارة',
+    name: 'الطهارة',
+    icon: Icons.water_drop_rounded,
+  ),
+  FiqhSubject(
+    id: 'awqat',
+    category: 'أوقات الصلاة',
+    name: 'أوقات الصلاة',
+    icon: Icons.access_time_filled_rounded,
+  ),
+  FiqhSubject(
+    id: 'qada',
+    category: 'القضاء',
+    name: 'القضاء',
+    icon: Icons.replay_circle_filled_rounded,
+  ),
+  FiqhSubject(
+    id: 'niyyah',
+    category: 'النية',
+    name: 'النية',
+    icon: Icons.favorite_rounded,
+  ),
+  FiqhSubject(
+    id: 'qibla',
+    category: 'القبلة',
+    name: 'القبلة',
+    icon: Icons.explore_rounded,
+  ),
+  FiqhSubject(
+    id: 'sujud',
+    category: 'السجود',
+    name: 'السجود',
+    icon: Icons.self_improvement_rounded,
+  ),
+  FiqhSubject(
+    id: 'jumua',
+    category: 'الجمعة',
+    name: 'الجمعة',
+    icon: Icons.mosque_rounded,
+  ),
+  FiqhSubject(
+    id: 'safar',
+    category: 'السفر',
+    name: 'السفر',
+    icon: Icons.flight_takeoff_rounded,
+  ),
+];
 
 const List<FiqhQuestion> fiqhQuestions = [
   FiqhQuestion(
@@ -131,8 +203,6 @@ const List<FiqhQuestion> fiqhQuestions = [
   ),
 ];
 
-FiqhQuestion questionForDate(DateTime date) {
-  final startOfYear = DateTime(date.year);
-  final dayOfYear = date.difference(startOfYear).inDays;
-  return fiqhQuestions[dayOfYear % fiqhQuestions.length];
-}
+/// All questions belonging to a given subject/pack.
+List<FiqhQuestion> questionsForSubject(FiqhSubject subject) =>
+    fiqhQuestions.where((q) => q.category == subject.category).toList();
