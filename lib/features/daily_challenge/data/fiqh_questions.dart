@@ -26,12 +26,16 @@ class FiqhSubject {
   final String category;
   final String name;
   final IconData icon;
+  /// Optional custom image asset path (e.g. a PNG icon). When set, the UI
+  /// should prefer rendering this image over [icon].
+  final String? iconAsset;
 
   const FiqhSubject({
     required this.id,
     required this.category,
     required this.name,
     required this.icon,
+    this.iconAsset,
   });
 }
 
@@ -73,6 +77,7 @@ const List<FiqhSubject> fiqhSubjects = [
     category: 'السجود',
     name: 'السجود والسهو',
     icon: Icons.self_improvement_rounded,
+    iconAsset: 'assets/icon/sujud.png',
   ),
   FiqhSubject(
     id: 'jumua',

@@ -60,6 +60,7 @@ flutter:
     - assets/icon/women-icon.png
     - assets/icon/step2-icon.png
     - assets/icon/username.png
+    - assets/icon/sujud.png
   fonts:
     - family: ScheherazadeNew
       fonts:

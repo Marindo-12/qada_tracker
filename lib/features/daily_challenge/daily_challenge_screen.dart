@@ -559,7 +559,15 @@ class _SubjectTile extends StatelessWidget {
                   color: iconColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(subject.icon, color: iconColor, size: 28),
+                child: subject.iconAsset != null
+                    ? Image.asset(
+                        subject.iconAsset!,
+                        width: 28,
+                        height: 28,
+                        color: iconColor,
+                        colorBlendMode: BlendMode.srcIn,
+                      )
+                    : Icon(subject.icon, color: iconColor, size: 28),
               ),
               const SizedBox(width: 14),
               Expanded(
