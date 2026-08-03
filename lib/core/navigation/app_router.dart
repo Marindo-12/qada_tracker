@@ -106,12 +106,17 @@ class AppShell extends ConsumerWidget {
               // that opaque strip was the extra background showing up
               // around the floating featured button.
               extendBody: true,
-              body: MediaQuery(
-                data: MediaQuery.of(context).copyWith(
-                  padding: MediaQuery.of(context).padding.copyWith(
-                        bottom: _NavBar.totalHeight +
-                            MediaQuery.of(context).padding.bottom,
-                      ),
+              body: Padding(
+                // Real, physical inset that pushes page content above the
+                // nav bar (+ the floating button's overflow area + the
+                // device's own bottom safe-area inset). This is a genuine
+                // layout Padding, not a MediaQuery override — it works
+                // regardless of what each individual screen does
+                // internally (ListView, Column, ScrollView, etc.), so the
+                // nav bar can never visually cover the bottom of a page.
+                padding: EdgeInsets.only(
+                  bottom: _NavBar.totalHeight +
+                      MediaQuery.of(context).padding.bottom,
                 ),
                 child: IndexedStack(
                   index: currentTab.clamp(0, 4),
@@ -159,6 +164,7 @@ class _NavBar extends StatelessWidget {
   static const double _fabSize = 60;
   static const double _fabOverflow = 24; // extra space reserved above the bar
   static const double _fabTop = 12; // push the fab down (lower = closer to the bar)
+  static const double _contentBottomExtraInset = 24;
 
   /// The real total visual height of the nav bar (bar + the part of the
   /// floating button that pokes above it). AppShell uses this as the

@@ -96,7 +96,7 @@ class AppColors {
   static const greenDarkBackground = Color(0xFF0F1621);
   static const greenDarkCard = Color(0xFF1A2535);
   static const greenDarkBorder = Color(0xFF2A3545);
-  static const greenDarkPrimary = Color(0xFF22C55E);
+  static const greenDarkPrimary = Color.fromARGB(255, 27, 143, 69);
   static const greenDarkPrimaryFg = Color(0xFF052E16);
   static const greenDarkSecondary = Color(0xFF3B4A44);
   static const greenDarkAccent = Color(0xFFD4A853);
