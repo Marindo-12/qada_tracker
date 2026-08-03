@@ -96,8 +96,13 @@ class AppColors {
   static const greenDarkBackground = Color(0xFF0F1621);
   static const greenDarkCard = Color(0xFF1A2535);
   static const greenDarkBorder = Color(0xFF2A3545);
-  static const greenDarkPrimary = Color.fromARGB(255, 27, 143, 69);
-  static const greenDarkPrimaryFg = Color(0xFF052E16);
+  // Ancien vert trop saturé/lumineux (27,143,69) -> remplacé par un vert
+  // plus profond et désaturé, moins agressif pour les yeux en mode sombre,
+  // notamment comme fond du bouton central de la navbar.
+  static const greenDarkPrimary = Color(0xFF1E7A4B);
+  // Texte quasi blanc (au lieu d'un vert très sombre) pour garder un bon
+  // contraste maintenant que le fond primary est plus foncé.
+  static const greenDarkPrimaryFg = Color(0xFFF2FBF6);
   static const greenDarkSecondary = Color(0xFF3B4A44);
   static const greenDarkAccent = Color(0xFFD4A853);
 
@@ -112,8 +117,12 @@ class AppColors {
   static Color foregroundOf(BuildContext context) =>
       Theme.of(context).colorScheme.onSurface;
 
+  // Alpha remonté de 0.68 à 0.80 : à 0.68 le texte "muted" en mode sombre
+  // paraissait délavé/trop clair sur les fonds foncés. 0.80 garde le
+  // contraste hiérarchique (moins fort qu'un texte plein) tout en restant
+  // net et lisible.
   static Color mutedFgOf(BuildContext context) =>
-      Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.68);
+      Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.80);
 
   static Color mutedOf(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
