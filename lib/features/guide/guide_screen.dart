@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -148,6 +149,12 @@ class _GuidePageState extends State<GuidePage> {
                 child: _layout == GuideLayout.qa
                     ? const QAView(key: ValueKey('qa'))
                     : const ArticleView(key: ValueKey('article')),
+              ),
+              const SizedBox(height: 20),
+              const _VideoCard(
+                title: 'أثر الصلاة وأهميتها يوم القيامة',
+                subtitle: 'فيديو يوضح مكانة الصلاة وأثرها في يوم الحساب',
+                url: 'https://youtu.be/6uqy5gpWnIA?si=rHiL8CWDxzxDh5ly',
               ),
               const SizedBox(height: 32),
             ],
@@ -1384,6 +1391,86 @@ class _FooterAyah extends StatelessWidget {
           fontStyle: FontStyle.italic,
           height: 1.7,
           color: context.onSurface.withValues(alpha: 0.38),
+        ),
+      ),
+    );
+  }
+}
+
+class _VideoCard extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final String url;
+
+  const _VideoCard({
+    required this.title,
+    required this.subtitle,
+    required this.url,
+  });
+
+  Future<void> _open(BuildContext context) async {
+    final ok = await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!ok && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('تعذّر فتح الرابط')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = context.primary;
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () => _open(context),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: primary.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: primary.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: primary.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.play_arrow_rounded, size: 28, color: primary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: context.tt.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: context.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: context.tt.bodySmall?.copyWith(
+                      height: 1.6,
+                      color: context.onSurface.withValues(alpha: 0.6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.open_in_new_rounded,
+                size: 18, color: primary.withValues(alpha: 0.6)),
+          ],
         ),
       ),
     );
