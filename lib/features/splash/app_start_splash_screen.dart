@@ -190,7 +190,7 @@ class _IconBadge extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(_radius),
           child: Image.asset(
-            'assets/icon/icon.png',
+            'assets/icon/salat.jpeg',
             width: _size,
             height: _size,
             fit: BoxFit.cover,
