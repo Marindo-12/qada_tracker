@@ -51,7 +51,6 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/icon/icon.png
     - assets/icon/github_logo.png
     - assets/icon/linkedin-icon.png
     - assets/icon/whatsapp-icon.png
@@ -78,6 +77,6 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/icon.png"
+  image_path: "assets/icon/salat.jpeg"
   adaptive_icon_background: "#0D6B45"
-  adaptive_icon_foreground: "assets/icon/icon.png"
+  adaptive_icon_foreground: "assets/icon/salat.jpeg"
