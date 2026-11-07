@@ -60,7 +60,7 @@ flutter:
     - assets/icon/step2-icon.png
     - assets/icon/username.png
     - assets/icon/sujud.png
-    - assets/icon/salat.jpeg
+    - assets/icon/salatrag.png
   fonts:
     - family: ScheherazadeNew
       fonts:
@@ -77,6 +77,6 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/salat.jpeg"
+  image_path: "assets/icon/salatrag.png"
   adaptive_icon_background: "#0D6B45"
-  adaptive_icon_foreground: "assets/icon/salat.jpeg"
+  adaptive_icon_foreground: "assets/icon/salatrag.png"
