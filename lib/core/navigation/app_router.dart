@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/home/home_screan.dart';
 import '../../features/calendar/calendar_screan.dart';
-import '../../features/daily_challenge/daily_challenge_screen.dart';
+import '../../features/daily_challenge/courses_screen.dart';
 import '../../features/guide/guide_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/setup/setup_intro_screen.dart';
@@ -124,7 +124,7 @@ class AppShell extends ConsumerWidget {
                     HomeScreen(),
                     CalendarScreen(),
                     GuidePage(),
-                    DailyChallengeScreen(),
+                    CoursesScreen(),
                     SettingsScreen(),
                   ],
                 ),
