@@ -4,204 +4,107 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/app_utils.dart';
 import '../../shared/providers/providers.dart';
+import 'challenge_screen.dart';
+import 'course_progress.dart';
 import 'course_widgets.dart';
-import 'data/course_info.dart';
-import 'data/fiqh_questions.dart';
+import 'data/course_models.dart';
+import 'lesson_screen.dart';
 
-// ═════════════════════════════════════════════════════════════════════════════
-// Course detail: summary + lesson list + main action button
-// ═════════════════════════════════════════════════════════════════════════════
-class CourseDetailScreen extends ConsumerStatefulWidget {
-  final FiqhSubject subject;
-
-  /// Shared set of learned question ids (owned by the courses screen).
-  final Set<int> learned;
-
-  /// Persists a newly learned lesson.
-  final Future<void> Function(int questionId) onLearned;
+/// Course page: collapsing cover header, what you'll learn, the lesson
+/// path, and the final challenge.
+class CourseDetailScreen extends ConsumerWidget {
+  final Course course;
+  final CourseProgress progress;
 
   const CourseDetailScreen({
     super.key,
-    required this.subject,
-    required this.learned,
-    required this.onLearned,
+    required this.course,
+    required this.progress,
   });
 
-  @override
-  ConsumerState<CourseDetailScreen> createState() =>
-      _CourseDetailScreenState();
-}
-
-class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
-  late final Set<int> _learned = {...widget.learned};
-  late final List<FiqhQuestion> _lessons = questionsForSubject(widget.subject);
-
-  int get _doneCount => _lessons.where((l) => _learned.contains(l.id)).length;
-
-  int get _nextIndex {
-    final i = _lessons.indexWhere((l) => !_learned.contains(l.id));
-    return i == -1 ? 0 : i;
-  }
-
-  Future<void> _learn(int id) async {
-    if (mounted) setState(() => _learned.add(id));
-    await widget.onLearned(id);
-  }
-
-  Future<void> _openReader(int startIndex) async {
-    await Navigator.of(context).push(
+  void _openLesson(BuildContext context, int index) {
+    if (!progress.isLessonUnlocked(course, index)) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('أتمم الدرس السابق أولاً لفتح هذا الدرس.')),
+        );
+      return;
+    }
+    Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => CourseReaderScreen(
-          subject: widget.subject,
-          lessons: _lessons,
-          startIndex: startIndex,
-          learned: _learned,
-          onLearned: _learn,
+        builder: (_) => LessonScreen(
+          course: course,
+          lessonIndex: index,
+          progress: progress,
         ),
       ),
     );
-    if (mounted) setState(() {});
+  }
+
+  void _openChallenge(BuildContext context) {
+    if (!progress.allLessonsDone(course)) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            content: Text('أتمم جميع الدروس أولاً لتفتح التحدي النهائي.'),
+          ),
+        );
+      return;
+    }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => ChallengeScreen(course: course, progress: progress),
+      ),
+    );
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = AppColors.primaryOf(context);
-    final border = AppColors.borderOf(context);
-    final surface = AppColors.surfaceOf(context);
-    final mutedFg = AppColors.mutedFgOf(context);
+  Widget build(BuildContext context, WidgetRef ref) {
     final useArabic = ref.watch(digitStyleProvider);
-
-    final total = _lessons.length;
-    final done = _doneCount;
-    final completed = total > 0 && done >= total;
-    final progress = total == 0 ? 0.0 : done / total;
-    final nextIndex = _nextIndex;
-
-    final ctaLabel = completed
-        ? 'مراجعة الدورة'
-        : (done == 0 ? 'ابدأ الدورة' : 'تابع الدورة');
 
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        body: SafeArea(
-          child: Column(
-            children: [
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
-                  child: IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.arrow_forward_rounded),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
-                  children: [
-                    // ── Title block ───────────────────────────────────────
-                    Row(
-                      children: [
-                        CourseIcon(
-                          subject: widget.subject,
-                          color: completed ? AppColors.success : primary,
-                          boxSize: 60,
-                          iconSize: 30,
-                        ),
-                        const SizedBox(width: 14),
-                        Expanded(
-                          child: Text(
-                            widget.subject.name,
-                            style: theme.textTheme.headlineSmall
-                                ?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    Text(
-                      courseDescriptions[widget.subject.id] ?? '',
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: mutedFg, height: 1.7),
-                    ),
-                    const SizedBox(height: 20),
+      child: ListenableBuilder(
+        listenable: progress,
+        builder: (context, _) {
+          final theme = Theme.of(context);
+          final primary = AppColors.primaryOf(context);
+          final mutedFg = AppColors.mutedFgOf(context);
+          final border = AppColors.borderOf(context);
+          final surface = AppColors.surfaceOf(context);
 
-                    // ── Stats strip ───────────────────────────────────────
-                    Container(
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: surface,
-                        borderRadius: BorderRadius.circular(18),
-                        border:
-                            Border.all(color: border.withValues(alpha: 0.55)),
-                      ),
-                      child: Row(
-                        children: [
-                          _Stat(
-                            value: formatNumber(total, useArabic: useArabic),
-                            label: 'درساً',
-                          ),
-                          const _VDivider(),
-                          _Stat(
-                            value: formatNumber(lessonMinutes(total),
-                                useArabic: useArabic),
-                            label: 'دقيقة',
-                          ),
-                          const _VDivider(),
-                          _Stat(
-                            value:
-                                '${formatNumber((progress * 100).round(), useArabic: useArabic)}٪',
-                            label: 'مكتمل',
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SlimProgress(
-                      value: progress,
-                      color: completed ? AppColors.success : primary,
-                      height: 6,
-                    ),
-                    const SizedBox(height: 28),
+          final total = course.lessons.length;
+          final done = progress.doneLessons(course);
+          final allDone = progress.allLessonsDone(course);
+          final completed = progress.isCourseCompleted(course);
+          final next = progress.nextLessonIndex(course);
 
-                    // ── Lessons ───────────────────────────────────────────
-                    Text(
-                      'الدروس',
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 12),
-                    ...List.generate(_lessons.length, (i) {
-                      final lesson = _lessons[i];
-                      final isDone = _learned.contains(lesson.id);
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: _LessonTile(
-                          number: formatNumber(i + 1, useArabic: useArabic),
-                          title: lesson.question,
-                          done: isDone,
-                          isNext: !completed && i == nextIndex,
-                          onTap: () => _openReader(i),
-                        ),
-                      );
-                    }),
-                  ],
-                ),
-              ),
+          // Primary action
+          String ctaLabel;
+          VoidCallback ctaAction;
+          if (next != null) {
+            ctaLabel = done == 0
+                ? 'ابدأ الدورة'
+                : 'تابع · الدرس ${formatNumber(next + 1, useArabic: useArabic)}';
+            ctaAction = () => _openLesson(context, next);
+          } else if (!completed) {
+            ctaLabel = 'ابدأ التحدي النهائي';
+            ctaAction = () => _openChallenge(context);
+          } else {
+            ctaLabel = 'مراجعة الدروس';
+            ctaAction = () => _openLesson(context, 0);
+          }
 
-              // ── Sticky action ───────────────────────────────────────────
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+          return Scaffold(
+            bottomNavigationBar: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                 child: SizedBox(
-                  width: double.infinity,
                   height: 54,
                   child: ElevatedButton(
-                    onPressed: total == 0
-                        ? null
-                        : () => _openReader(completed ? 0 : nextIndex),
+                    onPressed: ctaAction,
                     child: Text(
                       ctaLabel,
                       textAlign: TextAlign.center,
@@ -210,9 +113,168 @@ class _CourseDetailScreenState extends ConsumerState<CourseDetailScreen> {
                   ),
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+            body: CustomScrollView(
+              slivers: [
+                // ── Collapsing cover ──────────────────────────────────
+                SliverAppBar(
+                  pinned: true,
+                  expandedHeight: 260,
+                  backgroundColor: course.accent,
+                  foregroundColor: Colors.white,
+                  leading: const BackButton(color: Colors.white),
+                  flexibleSpace: FlexibleSpaceBar(
+                    titlePadding: const EdgeInsetsDirectional.only(
+                      start: 56,
+                      bottom: 16,
+                    ),
+                    title: Text(
+                      course.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 18,
+                      ),
+                    ),
+                    background: CourseCoverBackground(course: course),
+                  ),
+                ),
+
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      Text(
+                        course.subtitle,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: course.accent,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        course.description,
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(color: mutedFg, height: 1.8),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // ── Stats ─────────────────────────────────────────
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        decoration: BoxDecoration(
+                          color: surface,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(
+                            color: border.withValues(alpha: 0.55),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            _Stat(
+                              value:
+                                  formatNumber(total, useArabic: useArabic),
+                              label: 'دروس',
+                            ),
+                            const _VDivider(),
+                            _Stat(
+                              value: formatNumber(course.totalMinutes,
+                                  useArabic: useArabic),
+                              label: 'دقيقة',
+                            ),
+                            const _VDivider(),
+                            _Stat(
+                              value:
+                                  '${formatNumber(done, useArabic: useArabic)}/${formatNumber(total, useArabic: useArabic)}',
+                              label: 'مكتمل',
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SlimProgress(
+                        value: total == 0 ? 0 : done / total,
+                        color: completed ? AppColors.success : primary,
+                      ),
+
+                      // ── What you'll learn ─────────────────────────────
+                      if (course.outcomes.isNotEmpty) ...[
+                        const SizedBox(height: 28),
+                        Text(
+                          'ماذا ستتعلم؟',
+                          style: theme.textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+                        const SizedBox(height: 12),
+                        for (final o in course.outcomes)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Icon(Icons.check_circle_rounded,
+                                      size: 20, color: course.accent),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    o,
+                                    style: theme.textTheme.bodyMedium
+                                        ?.copyWith(height: 1.6),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                      ],
+
+                      // ── Lessons ───────────────────────────────────────
+                      const SizedBox(height: 22),
+                      Text(
+                        'الدروس',
+                        style: theme.textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 12),
+                      ...List.generate(total, (i) {
+                        final lesson = course.lessons[i];
+                        final isDone = progress.isLessonDone(course, lesson);
+                        final unlocked = progress.isLessonUnlocked(course, i);
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: _LessonTile(
+                            number: formatNumber(i + 1, useArabic: useArabic),
+                            title: lesson.title,
+                            minutes: formatNumber(lesson.minutes,
+                                useArabic: useArabic),
+                            done: isDone,
+                            locked: !unlocked,
+                            isNext: i == next,
+                            accent: course.accent,
+                            onTap: () => _openLesson(context, i),
+                          ),
+                        );
+                      }),
+
+                      // ── Final challenge ───────────────────────────────
+                      const SizedBox(height: 14),
+                      _ChallengeCard(
+                        locked: !allDone,
+                        completed: completed,
+                        bestPoints: progress.bestChallengePoints(course),
+                        accent: course.accent,
+                        useArabic: useArabic,
+                        onTap: () => _openChallenge(context),
+                      ),
+                    ]),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -263,83 +325,99 @@ class _VDivider extends StatelessWidget {
 class _LessonTile extends StatelessWidget {
   final String number;
   final String title;
+  final String minutes;
   final bool done;
+  final bool locked;
   final bool isNext;
+  final Color accent;
   final VoidCallback onTap;
 
   const _LessonTile({
     required this.number,
     required this.title,
+    required this.minutes,
     required this.done,
+    required this.locked,
     required this.isNext,
+    required this.accent,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final primary = AppColors.primaryOf(context);
     final border = AppColors.borderOf(context);
     final surface = AppColors.surfaceOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
     final success = AppColors.success;
+    final theme = Theme.of(context);
 
-    return Material(
-      color: surface,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
+    final Color badgeColor =
+        done ? success : (isNext ? accent : mutedFg);
+
+    return Opacity(
+      opacity: locked ? 0.55 : 1,
+      child: Material(
+        color: surface,
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: isNext ? primary : border.withValues(alpha: 0.55),
-              width: isNext ? 1.5 : 1,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isNext ? accent : border.withValues(alpha: 0.55),
+                width: isNext ? 1.5 : 1,
+              ),
             ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: done
-                      ? success.withValues(alpha: 0.14)
-                      : (isNext
-                          ? primary.withValues(alpha: 0.12)
-                          : mutedFg.withValues(alpha: 0.10)),
+            child: Row(
+              children: [
+                Container(
+                  width: 34,
+                  height: 34,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: badgeColor.withValues(alpha: 0.14),
+                  ),
+                  child: done
+                      ? Icon(Icons.check_rounded, size: 19, color: success)
+                      : (locked
+                          ? Icon(Icons.lock_rounded, size: 16, color: mutedFg)
+                          : Text(
+                              number,
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: badgeColor,
+                              ),
+                            )),
                 ),
-                child: done
-                    ? Icon(Icons.check_rounded, size: 18, color: success)
-                    : Text(
-                        number,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          color: isNext ? primary : mutedFg,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          height: 1.4,
                         ),
                       ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    height: 1.5,
+                      const SizedBox(height: 2),
+                      Text(
+                        '$minutes دقائق',
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: mutedFg),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              if (isNext) ...[
-                const SizedBox(width: 8),
-                Icon(Icons.play_circle_fill_rounded, color: primary, size: 24),
+                if (isNext)
+                  Icon(Icons.play_circle_fill_rounded, color: accent, size: 26),
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -347,380 +425,91 @@ class _LessonTile extends StatelessWidget {
   }
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-// Lesson reader: one lesson per screen. Try to recall → reveal → continue.
-// ═════════════════════════════════════════════════════════════════════════════
-class CourseReaderScreen extends ConsumerStatefulWidget {
-  final FiqhSubject subject;
-  final List<FiqhQuestion> lessons;
-  final int startIndex;
-  final Set<int> learned;
-  final Future<void> Function(int questionId) onLearned;
+class _ChallengeCard extends StatelessWidget {
+  final bool locked;
+  final bool completed;
+  final int bestPoints;
+  final Color accent;
+  final bool useArabic;
+  final VoidCallback onTap;
 
-  const CourseReaderScreen({
-    super.key,
-    required this.subject,
-    required this.lessons,
-    required this.startIndex,
-    required this.learned,
-    required this.onLearned,
+  const _ChallengeCard({
+    required this.locked,
+    required this.completed,
+    required this.bestPoints,
+    required this.accent,
+    required this.useArabic,
+    required this.onTap,
   });
 
   @override
-  ConsumerState<CourseReaderScreen> createState() =>
-      _CourseReaderScreenState();
-}
-
-class _CourseReaderScreenState extends ConsumerState<CourseReaderScreen> {
-  late int _index = widget.startIndex;
-  late bool _revealed = widget.learned.contains(widget.lessons[_index].id);
-  bool _finished = false;
-
-  FiqhQuestion get _lesson => widget.lessons[_index];
-  bool get _isLast => _index == widget.lessons.length - 1;
-
-  Future<void> _next() async {
-    await widget.onLearned(_lesson.id);
-    if (!mounted) return;
-
-    if (_isLast) {
-      setState(() => _finished = true);
-      return;
-    }
-    setState(() {
-      _index++;
-      _revealed = widget.learned.contains(_lesson.id);
-    });
-  }
-
-  void _previous() {
-    if (_index == 0) return;
-    setState(() {
-      _index--;
-      _revealed = widget.learned.contains(_lesson.id);
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final useArabic = ref.watch(digitStyleProvider);
-
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        body: SafeArea(
-          child: _finished
-              ? _FinishedView(
-                  subject: widget.subject,
-                  allDone: widget.lessons.every(
-                    (l) => widget.learned.contains(l.id),
-                  ),
-                  onBack: () => Navigator.of(context).pop(),
-                )
-              : _buildLesson(useArabic),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLesson(bool useArabic) {
     final theme = Theme.of(context);
-    final primary = AppColors.primaryOf(context);
-    final border = AppColors.borderOf(context);
-    final surface = AppColors.surfaceOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
-    final success = AppColors.success;
 
-    final total = widget.lessons.length;
-    final answer = _lesson.options[_lesson.correctAnswerIndex];
+    final Color color = completed ? AppColors.success : accent;
+    final String subtitle = locked
+        ? 'أتمم جميع الدروس لفتح التحدي'
+        : (completed
+            ? 'أفضل نتيجة: ${formatNumber(bestPoints, useArabic: useArabic)} نقطة'
+            : 'أسئلة مؤقّتة لإتمام الدورة وفتح التي تليها');
 
-    return Column(
-      children: [
-        // ── Top bar ─────────────────────────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
-          child: Row(
-            children: [
-              IconButton(
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close_rounded),
-              ),
-              Expanded(
-                child: Text(
-                  widget.subject.name,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.w800),
-                ),
-              ),
-              const SizedBox(width: 48),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 0),
-          child: Column(
-            children: [
-              SlimProgress(
-                value: (_index + 1) / total,
-                color: primary,
-                height: 5,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'الدرس ${formatNumber(_index + 1, useArabic: useArabic)} من ${formatNumber(total, useArabic: useArabic)}',
-                style: theme.textTheme.bodySmall?.copyWith(color: mutedFg),
-              ),
-            ],
-          ),
-        ),
-
-        // ── Lesson content ──────────────────────────────────────────────
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-            children: [
-              Text(
-                'المسألة',
-                style: theme.textTheme.labelLarge?.copyWith(
-                  color: primary,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _lesson.question,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  height: 1.55,
-                ),
-              ),
-              const SizedBox(height: 22),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 220),
-                child: _revealed
-                    ? Column(
-                        key: ValueKey('answer-${_lesson.id}'),
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: success.withValues(alpha: 0.10),
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: success.withValues(alpha: 0.35),
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.check_circle_rounded,
-                                        color: success, size: 20),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'الجواب',
-                                      style: theme.textTheme.labelLarge
-                                          ?.copyWith(
-                                        color: success,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  answer,
-                                  style: theme.textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    height: 1.6,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: surface,
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: border.withValues(alpha: 0.55),
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Icon(Icons.menu_book_rounded,
-                                        color: primary, size: 20),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'الشرح',
-                                      style:
-                                          theme.textTheme.labelLarge?.copyWith(
-                                        color: primary,
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  _lesson.explanation,
-                                  style: theme.textTheme.bodyMedium
-                                      ?.copyWith(height: 1.8),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
-                    : Container(
-                        key: ValueKey('hint-${_lesson.id}'),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: primary.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.lightbulb_outline_rounded,
-                                color: primary),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'حاول أن تتذكّر الجواب أولاً، ثم اكشفه لتتأكد.',
-                                style: theme.textTheme.bodyMedium
-                                    ?.copyWith(color: mutedFg, height: 1.6),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-              ),
-            ],
-          ),
-        ),
-
-        // ── Bottom actions ──────────────────────────────────────────────
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
-          child: Row(
-            children: [
-              if (_index > 0) ...[
-                SizedBox(
-                  width: 54,
-                  height: 54,
-                  child: OutlinedButton(
-                    onPressed: _previous,
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                    ),
-                    child: const Icon(Icons.arrow_forward_rounded),
+    return Opacity(
+      opacity: locked ? 0.55 : 1,
+      child: Material(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: color.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    locked
+                        ? Icons.lock_rounded
+                        : (completed
+                            ? Icons.check_rounded
+                            : Icons.emoji_events_rounded),
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'التحدي النهائي',
+                        style: theme.textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: mutedFg, height: 1.5),
+                      ),
+                    ],
+                  ),
+                ),
+                if (!locked)
+                  Icon(Icons.chevron_left_rounded, color: color),
               ],
-              Expanded(
-                child: SizedBox(
-                  height: 54,
-                  child: _revealed
-                      ? ElevatedButton(
-                          onPressed: _next,
-                          child: Text(
-                            _isLast ? 'إنهاء الدورة' : 'فهمت، التالي',
-                            textAlign: TextAlign.center,
-                            style:
-                                const TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                        )
-                      : ElevatedButton(
-                          onPressed: () => setState(() => _revealed = true),
-                          child: const Text(
-                            'أظهر الجواب',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontWeight: FontWeight.w800),
-                          ),
-                        ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _FinishedView extends StatelessWidget {
-  final FiqhSubject subject;
-  final bool allDone;
-  final VoidCallback onBack;
-
-  const _FinishedView({
-    required this.subject,
-    required this.allDone,
-    required this.onBack,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final success = AppColors.success;
-    final mutedFg = AppColors.mutedFgOf(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                color: success.withValues(alpha: 0.12),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.check_rounded, color: success, size: 52),
-            ),
-            const SizedBox(height: 22),
-            Text(
-              allDone ? 'أحسنت!' : 'انتهت الدروس',
-              style: theme.textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              allDone
-                  ? 'أتممت دورة «${subject.name}».'
-                  : 'تبقّت دروس لم تُكمِلها في دورة «${subject.name}».',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge
-                  ?.copyWith(color: mutedFg, height: 1.6),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                onPressed: onBack,
-                child: const Text(
-                  'العودة إلى الدورة',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );

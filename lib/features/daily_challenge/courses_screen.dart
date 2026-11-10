@@ -5,14 +5,14 @@ import '../../core/theme/app_theme.dart';
 import '../../core/utils/app_utils.dart';
 import '../../shared/providers/providers.dart';
 import 'course_detail_screen.dart';
+import 'course_progress.dart';
 import 'course_widgets.dart';
-import 'data/fiqh_questions.dart';
+import 'data/course_models.dart';
+import 'data/courses_data.dart';
 
-/// Courses home: overall progress, a "continue" card, and the course list.
-///
-/// Progress model: a lesson = one [FiqhQuestion]. A lesson is "learned" once
-/// the user has read it and tapped "فهمت". A course is complete when all of
-/// its lessons are learned, and completing it unlocks the next course.
+enum _CardState { locked, comingSoon, fresh, inProgress, completed }
+
+/// Courses home: header, a "continue" strip, and big cover-image cards.
 class CoursesScreen extends ConsumerStatefulWidget {
   const CoursesScreen({super.key});
 
@@ -21,104 +21,69 @@ class CoursesScreen extends ConsumerStatefulWidget {
 }
 
 class _CoursesScreenState extends ConsumerState<CoursesScreen> {
-  static const _learnedKey = 'qada.courses.learnedLessons';
-
-  /// Set to false if you'd rather let users open any course freely.
-  static const _sequentialUnlock = true;
-
-  bool _loading = true;
-  Set<int> _learned = {};
+  CourseProgress? _progress;
 
   @override
   void initState() {
     super.initState();
-    _load();
+    _init();
   }
 
-  Future<void> _load() async {
+  Future<void> _init() async {
     final prefs = await ref.read(sharedPrefsProvider.future);
     if (!mounted) return;
-    setState(() {
-      _learned = (prefs.getStringList(_learnedKey) ?? [])
-          .map(int.tryParse)
-          .whereType<int>()
-          .toSet();
-      _loading = false;
-    });
+    setState(() => _progress = CourseProgress(prefs));
   }
 
-  Future<void> _markLearned(int questionId) async {
-    if (_learned.contains(questionId)) return;
-    final next = {..._learned, questionId};
-    if (mounted) setState(() => _learned = next);
-    final prefs = await ref.read(sharedPrefsProvider.future);
-    await prefs.setStringList(
-      _learnedKey,
-      next.map((e) => e.toString()).toList(),
-    );
+  @override
+  void dispose() {
+    _progress?.dispose();
+    super.dispose();
   }
 
-  // ── Derived progress ─────────────────────────────────────────────────────
-  int _total(FiqhSubject s) => questionsForSubject(s).length;
-
-  int _done(FiqhSubject s) =>
-      questionsForSubject(s).where((q) => _learned.contains(q.id)).length;
-
-  bool _isCompleted(FiqhSubject s) {
-    final t = _total(s);
-    return t > 0 && _done(s) >= t;
+  _CardState _stateOf(CourseProgress p, int i) {
+    final c = courses[i];
+    if (!p.isCourseUnlocked(i)) return _CardState.locked;
+    if (c.comingSoon) return _CardState.comingSoon;
+    if (p.isCourseCompleted(c)) return _CardState.completed;
+    if (p.doneLessons(c) > 0) return _CardState.inProgress;
+    return _CardState.fresh;
   }
 
-  bool _isUnlocked(int i) {
-    if (!_sequentialUnlock || i == 0) return true;
-    return _isCompleted(fiqhSubjects[i - 1]);
-  }
+  void _open(CourseProgress p, int i) {
+    final state = _stateOf(p, i);
+    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
 
-  /// First unlocked course that isn't finished yet, or -1 if all are done.
-  int get _currentIndex {
-    for (var i = 0; i < fiqhSubjects.length; i++) {
-      if (_isUnlocked(i) && !_isCompleted(fiqhSubjects[i])) return i;
-    }
-    return -1;
-  }
-
-  void _openCourse(int i) {
-    if (!_isUnlocked(i)) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(
-            content: Text(
-              'أكمل دورة «${fiqhSubjects[i - 1].name}» أولاً لفتح هذه الدورة.',
-            ),
+    if (state == _CardState.locked) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            'أتمم التحدي النهائي لدورة «${courses[i - 1].title}» لفتح هذه الدورة.',
           ),
-        );
+        ),
+      );
+      return;
+    }
+    if (state == _CardState.comingSoon) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('هذه الدورة قيد الإعداد وستتوفر قريباً.')),
+      );
       return;
     }
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => CourseDetailScreen(
-          subject: fiqhSubjects[i],
-          learned: _learned,
-          onLearned: _markLearned,
-        ),
+        builder: (_) => CourseDetailScreen(course: courses[i], progress: p),
       ),
     );
   }
 
-  // ── Build ────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
+    final p = _progress;
+    if (p == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-
     final useArabic = ref.watch(digitStyleProvider);
-    final totalLessons =
-        fiqhSubjects.fold<int>(0, (sum, s) => sum + _total(s));
-    final doneLessons = fiqhSubjects.fold<int>(0, (sum, s) => sum + _done(s));
-    final overall = totalLessons == 0 ? 0.0 : doneLessons / totalLessons;
-    final current = _currentIndex;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -126,88 +91,69 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
         backgroundColor: Colors.transparent,
         body: SafeArea(
           bottom: false,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
-            children: [
-              _Header(
-                overall: overall,
-                doneLessons: doneLessons,
-                totalLessons: totalLessons,
-                useArabic: useArabic,
-              ),
-              const SizedBox(height: 22),
-              if (current >= 0)
-                _ContinueCard(
-                  subject: fiqhSubjects[current],
-                  done: _done(fiqhSubjects[current]),
-                  total: _total(fiqhSubjects[current]),
-                  nextLesson: _nextLessonTitle(fiqhSubjects[current]),
-                  useArabic: useArabic,
-                  onTap: () => _openCourse(current),
-                )
-              else
-                const _AllDoneCard(),
-              const SizedBox(height: 28),
-              Text(
-                'جميع الدورات',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w800),
-              ),
-              const SizedBox(height: 12),
-              ...List.generate(fiqhSubjects.length, (i) {
-                final s = fiqhSubjects[i];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: _CourseTile(
-                    subject: s,
-                    done: _done(s),
-                    total: _total(s),
-                    unlocked: _isUnlocked(i),
-                    completed: _isCompleted(s),
-                    lockedHint: i > 0
-                        ? 'أكمل «${fiqhSubjects[i - 1].name}» لفتحها'
-                        : '',
-                    useArabic: useArabic,
-                    onTap: () => _openCourse(i),
-                  ),
-                );
-              }),
-            ],
+          child: ListenableBuilder(
+            listenable: p,
+            builder: (context, _) {
+              // First course that is open, has content, and isn't finished.
+              int current = -1;
+              for (var i = 0; i < courses.length; i++) {
+                final s = _stateOf(p, i);
+                if (s == _CardState.fresh || s == _CardState.inProgress) {
+                  current = i;
+                  break;
+                }
+              }
+
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 110),
+                children: [
+                  _Header(progress: p, useArabic: useArabic),
+                  const SizedBox(height: 20),
+                  if (current >= 0) ...[
+                    _ContinueStrip(
+                      course: courses[current],
+                      progress: p,
+                      useArabic: useArabic,
+                      onTap: () => _open(p, current),
+                    ),
+                    const SizedBox(height: 24),
+                  ],
+                  ...List.generate(courses.length, (i) {
+                    final c = courses[i];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: _CourseCard(
+                        course: c,
+                        number: i + 1,
+                        state: _stateOf(p, i),
+                        done: p.doneLessons(c),
+                        useArabic: useArabic,
+                        onTap: () => _open(p, i),
+                      ),
+                    );
+                  }),
+                ],
+              );
+            },
           ),
         ),
       ),
     );
   }
-
-  String _nextLessonTitle(FiqhSubject s) {
-    final lessons = questionsForSubject(s);
-    final next = lessons.where((q) => !_learned.contains(q.id));
-    return next.isEmpty ? lessons.first.question : next.first.question;
-  }
 }
 
-// ─── Header with overall progress ring ───────────────────────────────────────
+// ─── Header ──────────────────────────────────────────────────────────────────
 class _Header extends StatelessWidget {
-  final double overall;
-  final int doneLessons;
-  final int totalLessons;
+  final CourseProgress progress;
   final bool useArabic;
 
-  const _Header({
-    required this.overall,
-    required this.doneLessons,
-    required this.totalLessons,
-    required this.useArabic,
-  });
+  const _Header({required this.progress, required this.useArabic});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primary = AppColors.primaryOf(context);
     final mutedFg = AppColors.mutedFgOf(context);
-    final percent = formatNumber((overall * 100).round(), useArabic: useArabic);
 
     return Row(
       children: [
@@ -222,33 +168,29 @@ class _Header extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '${formatNumber(doneLessons, useArabic: useArabic)} من ${formatNumber(totalLessons, useArabic: useArabic)} درساً مكتملاً',
+                '${formatNumber(progress.completedCourses, useArabic: useArabic)} من ${formatNumber(courses.length, useArabic: useArabic)} دورات مكتملة',
                 style: theme.textTheme.bodyMedium?.copyWith(color: mutedFg),
               ),
             ],
           ),
         ),
-        SizedBox(
-          width: 56,
-          height: 56,
-          child: Stack(
-            alignment: Alignment.center,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            color: primary.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox.expand(
-                child: CircularProgressIndicator(
-                  value: overall.clamp(0.0, 1.0).toDouble(),
-                  strokeWidth: 5,
-                  strokeCap: StrokeCap.round,
-                  backgroundColor: primary.withValues(alpha: 0.12),
-                  valueColor: AlwaysStoppedAnimation<Color>(primary),
-                ),
-              ),
+              Icon(Icons.stars_rounded, color: primary, size: 20),
+              const SizedBox(width: 6),
               Text(
-                '$percent٪',
+                formatNumber(progress.points, useArabic: useArabic),
                 style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
                   color: primary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15,
                 ),
               ),
             ],
@@ -259,115 +201,74 @@ class _Header extends StatelessWidget {
   }
 }
 
-// ─── "Continue learning" hero card ───────────────────────────────────────────
-class _ContinueCard extends StatelessWidget {
-  final FiqhSubject subject;
-  final int done;
-  final int total;
-  final String nextLesson;
+// ─── Continue strip ──────────────────────────────────────────────────────────
+class _ContinueStrip extends StatelessWidget {
+  final Course course;
+  final CourseProgress progress;
   final bool useArabic;
   final VoidCallback onTap;
 
-  const _ContinueCard({
-    required this.subject,
-    required this.done,
-    required this.total,
-    required this.nextLesson,
+  const _ContinueStrip({
+    required this.course,
+    required this.progress,
     required this.useArabic,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final primary = AppColors.primaryOf(context);
-    final started = done > 0;
-    final progress = total == 0 ? 0.0 : done / total;
+    final mutedFg = AppColors.mutedFgOf(context);
+
+    final next = progress.nextLessonIndex(course);
+    final started = progress.doneLessons(course) > 0;
+    final subtitle = next == null
+        ? 'التحدي النهائي بانتظارك'
+        : course.lessons[next].title;
 
     return Material(
-      color: primary,
-      borderRadius: BorderRadius.circular(24),
+      color: primary.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.all(14),
+          child: Row(
             children: [
-              Text(
-                started ? 'تابع من حيث توقفت' : 'ابدأ رحلتك',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.78),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.play_arrow_rounded,
+                    color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      started ? 'تابع من حيث توقفت' : 'ابدأ رحلتك',
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: mutedFg),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${course.title} · $subtitle',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w800),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                subject.name,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                nextLesson,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.85),
-                  fontSize: 14,
-                  height: 1.55,
-                ),
-              ),
-              const SizedBox(height: 18),
-              SlimProgress(
-                value: progress,
-                color: Colors.white,
-                trackColor: Colors.white.withValues(alpha: 0.25),
-                height: 6,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${formatNumber(done, useArabic: useArabic)} / ${formatNumber(total, useArabic: useArabic)} درس',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          started ? 'متابعة' : 'ابدأ',
-                          style: TextStyle(
-                            color: primary,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Icon(Icons.arrow_back_rounded, size: 18, color: primary),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+              Icon(Icons.chevron_left_rounded, color: primary),
             ],
           ),
         ),
@@ -376,153 +277,120 @@ class _ContinueCard extends StatelessWidget {
   }
 }
 
-class _AllDoneCard extends StatelessWidget {
-  const _AllDoneCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final success = AppColors.success;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: success.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: success.withValues(alpha: 0.35)),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.emoji_events_rounded, color: success, size: 36),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'أتممت جميع الدورات',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: success,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'يمكنك مراجعة أي دورة في أي وقت.',
-                  style: theme.textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── One course row ──────────────────────────────────────────────────────────
-class _CourseTile extends StatelessWidget {
-  final FiqhSubject subject;
+// ─── Cover-image course card ─────────────────────────────────────────────────
+class _CourseCard extends StatelessWidget {
+  final Course course;
+  final int number;
+  final _CardState state;
   final int done;
-  final int total;
-  final bool unlocked;
-  final bool completed;
-  final String lockedHint;
   final bool useArabic;
   final VoidCallback onTap;
 
-  const _CourseTile({
-    required this.subject,
+  const _CourseCard({
+    required this.course,
+    required this.number,
+    required this.state,
     required this.done,
-    required this.total,
-    required this.unlocked,
-    required this.completed,
-    required this.lockedHint,
     required this.useArabic,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primary = AppColors.primaryOf(context);
-    final border = AppColors.borderOf(context);
-    final surface = AppColors.surfaceOf(context);
-    final mutedFg = AppColors.mutedFgOf(context);
-    final success = AppColors.success;
+    final locked = state == _CardState.locked;
+    final soon = state == _CardState.comingSoon;
+    final muted = locked || soon;
+    final total = course.lessons.length;
 
-    final accent = completed ? success : (unlocked ? primary : mutedFg);
-    final inProgress = unlocked && !completed && done > 0;
+    final String meta;
+    if (soon) {
+      meta = 'قريباً';
+    } else if (locked) {
+      meta = 'أتمم الدورة السابقة لفتحها';
+    } else {
+      meta =
+          '${formatNumber(total, useArabic: useArabic)} دروس · ${formatNumber(course.totalMinutes, useArabic: useArabic)} دقيقة';
+    }
 
-    final subtitle = !unlocked
-        ? lockedHint
-        : '${formatNumber(total, useArabic: useArabic)} درساً · ${formatNumber(lessonMinutes(total), useArabic: useArabic)} دقيقة';
+    final IconData statusIcon = switch (state) {
+      _CardState.locked => Icons.lock_rounded,
+      _CardState.comingSoon => Icons.hourglass_top_rounded,
+      _CardState.completed => Icons.check_rounded,
+      _CardState.inProgress => Icons.play_arrow_rounded,
+      _CardState.fresh => Icons.arrow_back_rounded,
+    };
 
-    return Opacity(
-      opacity: unlocked ? 1 : 0.6,
-      child: Material(
-        color: surface,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: border.withValues(alpha: 0.55)),
-            ),
-            child: Row(
-              children: [
-                CourseIcon(subject: subject, color: accent),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: SizedBox(
+        height: 180,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            CourseCoverBackground(course: course, muted: muted),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      Text(
-                        subject.name,
-                        style: theme.textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w800),
+                      GlassPill(
+                        text:
+                            'الدورة ${formatNumber(number, useArabic: useArabic)}',
                       ),
-                      const SizedBox(height: 3),
-                      Text(
-                        subtitle,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall
-                            ?.copyWith(color: mutedFg),
-                      ),
-                      if (inProgress) ...[
-                        const SizedBox(height: 10),
-                        SlimProgress(
-                          value: total == 0 ? 0 : done / total,
-                          color: primary,
-                          height: 5,
+                      const Spacer(),
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: state == _CardState.completed
+                              ? AppColors.success
+                              : Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
                         ),
-                      ],
+                        child: Icon(statusIcon, color: Colors.white, size: 20),
+                      ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 10),
-                if (completed)
-                  Icon(Icons.check_circle_rounded, color: success)
-                else if (!unlocked)
-                  Icon(Icons.lock_rounded, color: mutedFg, size: 20)
-                else if (inProgress)
+                  const Spacer(),
                   Text(
-                    '${formatNumber(done, useArabic: useArabic)}/${formatNumber(total, useArabic: useArabic)}',
-                    style: TextStyle(
-                      color: primary,
+                    course.title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
                       fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    muted ? meta : '${course.subtitle} · $meta',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.85),
                       fontSize: 13,
                     ),
-                  )
-                else
-                  Icon(Icons.chevron_left_rounded, color: mutedFg),
-              ],
+                  ),
+                  if (state == _CardState.inProgress) ...[
+                    const SizedBox(height: 10),
+                    SlimProgress(
+                      value: total == 0 ? 0 : done / total,
+                      color: Colors.white,
+                      trackColor: Colors.white.withValues(alpha: 0.28),
+                      height: 5,
+                    ),
+                  ],
+                ],
+              ),
             ),
-          ),
+            Positioned.fill(
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(onTap: onTap),
+              ),
+            ),
+          ],
         ),
       ),
     );
