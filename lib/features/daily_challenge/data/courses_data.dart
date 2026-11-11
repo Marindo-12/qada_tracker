@@ -381,6 +381,7 @@ const List<Course> courses = [
     description:
         'الأعضاء السبعة للسجود، وأسباب سجود السهو، والفرق بين السجود القبلي والبعدي.',
     icon: Icons.self_improvement_rounded,
+    iconAsset: 'assets/icon/sujud.png',
     accent: Color(0xFF6D28D9),
     coverAsset: 'assets/courses/sujud.jpg',
   ),

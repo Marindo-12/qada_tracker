@@ -45,11 +45,27 @@ class CourseCoverBackground extends StatelessWidget {
         PositionedDirectional(
           end: -18,
           top: -12,
-          child: Icon(
-            course.icon,
-            size: 150,
-            color: Colors.white.withValues(alpha: 0.12),
-          ),
+          child: course.iconAsset == null
+              ? Icon(
+                  course.icon,
+                  size: 150,
+                  color: Colors.white.withValues(alpha: 0.12),
+                )
+              : Opacity(
+                  opacity: 0.12,
+                  child: ColorFiltered(
+                    colorFilter: const ColorFilter.mode(
+                      Colors.white,
+                      BlendMode.srcIn,
+                    ),
+                    child: Image.asset(
+                      course.iconAsset!,
+                      width: 150,
+                      height: 150,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
         ),
       ],
     );

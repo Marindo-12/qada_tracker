@@ -72,6 +72,7 @@ class Course {
   final String subtitle;
   final String description;
   final IconData icon;
+  final String? iconAsset;
 
   /// Cover image, e.g. 'assets/courses/tahara.jpg'. When null or missing,
   /// a gradient built from [accent] is shown instead.
@@ -87,6 +88,7 @@ class Course {
     required this.subtitle,
     required this.description,
     required this.icon,
+    this.iconAsset,
     required this.accent,
     this.coverAsset,
     this.outcomes = const [],
